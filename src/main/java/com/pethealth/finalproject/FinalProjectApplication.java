@@ -1,5 +1,6 @@
 package com.pethealth.finalproject;
 
+import com.pethealth.finalproject.model.Admin;
 import com.pethealth.finalproject.model.Owner;
 import com.pethealth.finalproject.model.Veterinarian;
 import com.pethealth.finalproject.security.models.Role;
@@ -37,12 +38,13 @@ public class FinalProjectApplication {
 			userService.saveUser(new Owner(null, "Katia", "katia", "1234", new ArrayList<>(), "katia@mail.com"));
 //			userService.saveUser(new User(null, "Laia Fernández", "laia", "1234", new ArrayList<>()));
 			userService.saveUser(new Veterinarian(null, "Laia Fernández", "laia", "1234", new ArrayList<>(), "laia@pethealth.com"));
-			userService.saveUser(new User(null, "Super Admin", "admin", "1234", new ArrayList<>()));
+			userService.saveUser(new Admin(null, "Super Admin", "admin", "1234", new ArrayList<>()));
 
 			userService.addRoleToUser("katia", "ROLE_USER");
 			userService.addRoleToUser("katia", "ROLE_ADMIN");
 			userService.addRoleToUser("laia", "ROLE_VET");
 			userService.addRoleToUser("laia", "ROLE_USER");
+			userService.addRoleToUser("admin", "ROLE_ADMIN");
 		};
 	}
 
