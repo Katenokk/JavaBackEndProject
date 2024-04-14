@@ -24,6 +24,7 @@ public class Dog extends Pet{
     }
     @NotNull(message="chronic disease is required")
     @NotEmpty(message = "At least one chronic disease is required")
+    @ElementCollection(targetClass = DogDiseases.class)
     @Enumerated(EnumType.STRING)
     private List<DogDiseases> chronicDiseases;
 

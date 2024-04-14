@@ -22,7 +22,8 @@ public abstract class Pet {
     private Long id;
 
     @NotNull(message = "Name is required")
-    @Pattern(regexp = "^[a-zA-Z]{3,}$", message = "Name must be at least 3 characters long and contain only letters")
+//    @Pattern(regexp = "^[a-zA-Z]{3,}$", message = "Name must be at least 3 characters long and contain only letters")
+    @Pattern(regexp = "^[\\p{L}\\s]{3,}$", message = "Name must be at least 3 characters long and contain only letters")
     private String name;
 
     @Past(message = "Date of birth must be in the past")

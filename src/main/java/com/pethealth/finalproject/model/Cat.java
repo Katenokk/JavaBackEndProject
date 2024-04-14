@@ -22,7 +22,7 @@ public class Cat extends Pet {
         this.chronicDiseases = chronicDiseases;
         this.catBreed = catBreed;
     }
-
+    @ElementCollection(targetClass = CatDiseases.class)
     @Enumerated(EnumType.STRING)
     private List<CatDiseases> chronicDiseases;
 
