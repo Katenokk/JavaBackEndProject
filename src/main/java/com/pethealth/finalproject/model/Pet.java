@@ -1,27 +1,40 @@
 package com.pethealth.finalproject.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
+
+import java.time.LocalDate;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
+//@AllArgsConstructor
 @EqualsAndHashCode
 @DynamicUpdate
 @Inheritance(strategy= InheritanceType.JOINED)
 @Table(name="pet")
-public class Pet {
+public abstract class Pet {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "Name is required")
+    @Pattern(regexp = "^[a-zA-Z]{3,}$", message = "Name must be at least 3 characters long and contain only letters")
     private String name;
 
-    private String dateOfBirth;
+    @Past(message = "Date of birth must be in the past")
+    @NotNull(message = "Date of birth is required")
+    private LocalDate dateOfBirth;
 
+    public Pet(String name, LocalDate dateOfBirth, boolean isSpayedOrNeutered) {
+        this.name = name;
+        this.dateOfBirth = dateOfBirth;
+        this.isSpayedOrNeutered = isSpayedOrNeutered;
+    }
 
+    @NotNull(message = "You must select is spayed or neutered, yes/no")
     private boolean isSpayedOrNeutered;
 }
