@@ -1,22 +1,27 @@
 package com.pethealth.finalproject;
 
-import com.pethealth.finalproject.model.Admin;
-import com.pethealth.finalproject.model.Owner;
-import com.pethealth.finalproject.model.Veterinarian;
+import com.pethealth.finalproject.model.*;
 import com.pethealth.finalproject.security.models.Role;
 import com.pethealth.finalproject.security.models.User;
 import com.pethealth.finalproject.security.services.impl.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import com.pethealth.finalproject.repository.PetRepository;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.List;
 
 @SpringBootApplication
 public class FinalProjectApplication {
+
+	@Autowired
+	private PetRepository petRepository; //temporal!
 
 	public static void main(String[] args) {
 		SpringApplication.run(FinalProjectApplication.class, args);
@@ -45,6 +50,8 @@ public class FinalProjectApplication {
 			userService.addRoleToUser("laia", "ROLE_VET");
 			userService.addRoleToUser("laia", "ROLE_USER");
 			userService.addRoleToUser("admin", "ROLE_ADMIN");
+			Cat test = new Cat("Níobe", LocalDate.of(2010,06,01), true, List.of(CatDiseases.IBD), CatBreeds.MIXED);
+			petRepository.save(test);
 		};
 	}
 
