@@ -38,4 +38,7 @@ public abstract class Pet {
 
     @NotNull(message = "You must select is spayed or neutered, yes/no")
     private boolean isSpayedOrNeutered;
+
+//    @ManyToOne
+//    private Owner owner;
 }

@@ -13,16 +13,14 @@ import java.util.Collection;
 @Entity
 @Data//mirar el hashcode y equals!!
 @NoArgsConstructor
-@AllArgsConstructor
+//@AllArgsConstructor
 @DiscriminatorValue("OWNER")
 public class Owner extends User {
-//    @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
-//    private Long id;
+
     private String email;
 
-    public Owner(Long id, String name, String username, String password, Collection<Role> roles, String email) {
-        super(id, name, username, password, roles);
+    public Owner(String name, String username, String password, Collection<Role> roles, String email) {
+        super(name, username, password, roles);
         this.email = email;
     }
 }
