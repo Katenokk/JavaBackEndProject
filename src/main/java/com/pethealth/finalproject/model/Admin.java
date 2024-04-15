@@ -12,14 +12,9 @@ import java.util.Collection;
 @Entity
 @Data
 @NoArgsConstructor
-//@AllArgsConstructor
 @DiscriminatorValue("ADMIN")
 public class Admin extends User {
-//    @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
-//    private Long id;
-
-    public Admin(Long id, String name, String username, String password, Collection<Role> roles) {
-        super(id, name, username, password, roles);
+    public Admin(String name, String username, String password, Collection<Role> roles) {
+        super(name, username, password, roles);
     }
 }

@@ -40,10 +40,10 @@ public class FinalProjectApplication {
 			userService.saveRole(new Role(null, "ROLE_VET"));
 
 //			userService.saveUser(new User(null, "Katia", "katia", "1234", new ArrayList<>()));
-			userService.saveUser(new Owner(null, "Katia", "katia", "1234", new ArrayList<>(), "katia@mail.com"));
+			userService.saveUser(new Owner("Katia", "katia", "1234", new ArrayList<>(), "katia@mail.com"));
 //			userService.saveUser(new User(null, "Laia Fernández", "laia", "1234", new ArrayList<>()));
-			userService.saveUser(new Veterinarian(null, "Laia Fernández", "laia", "1234", new ArrayList<>(), "laia@pethealth.com"));
-			userService.saveUser(new Admin(null, "Super Admin", "admin", "1234", new ArrayList<>()));
+			userService.saveUser(new Veterinarian("Laia Fernández", "laia", "1234", new ArrayList<>(), "laia@pethealth.com"));
+			userService.saveUser(new Admin("Super Admin", "admin", "1234", new ArrayList<>()));
 
 			userService.addRoleToUser("katia", "ROLE_USER");
 			userService.addRoleToUser("katia", "ROLE_ADMIN");
