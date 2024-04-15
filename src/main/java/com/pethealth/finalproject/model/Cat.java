@@ -17,8 +17,8 @@ import java.util.List;
 @Table(name = "cat")
 @PrimaryKeyJoinColumn(name="id")
 public class Cat extends Pet {
-    public Cat(String name, LocalDate dateOfBirth, boolean isSpayedOrNeutered, List<CatDiseases> chronicDiseases, CatBreeds catBreed) {
-        super(name, dateOfBirth, isSpayedOrNeutered);
+    public Cat(String name, LocalDate dateOfBirth, boolean isSpayedOrNeutered, List<CatDiseases> chronicDiseases, CatBreeds catBreed, Owner owner) {
+        super(name, dateOfBirth, isSpayedOrNeutered, owner);
         this.chronicDiseases = chronicDiseases;
         this.catBreed = catBreed;
     }

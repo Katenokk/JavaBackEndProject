@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Set;
 
 @Entity
 @Data//mirar el hashcode y equals!!
@@ -18,6 +19,9 @@ import java.util.Collection;
 public class Owner extends User {
 
     private String email;
+
+    @OneToMany(mappedBy = "owner")
+    private Set<Pet> pets;
 
     public Owner(String name, String username, String password, Collection<Role> roles, String email) {
         super(name, username, password, roles);

@@ -2,8 +2,11 @@ package com.pethealth.finalproject.service;
 
 import com.pethealth.finalproject.model.Cat;
 import com.pethealth.finalproject.model.Dog;
+import com.pethealth.finalproject.model.Owner;
 import com.pethealth.finalproject.model.Pet;
 import com.pethealth.finalproject.repository.PetRepository;
+import com.pethealth.finalproject.security.models.User;
+import com.pethealth.finalproject.security.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -16,6 +19,9 @@ public class PetService {
 
     @Autowired
     private PetRepository petRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     public Pet findPetById(Long id){
         return petRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found"));
@@ -64,6 +70,23 @@ public class PetService {
         if (existingCat != null) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Cat already exists.");
         }
+        // Retrieve the owner ID from the cat object
+        Long ownerId = null;
+        if (cat.getOwner() != null) {
+            ownerId = cat.getOwner().getId();
+        }
+
+        // Check if owner ID is provided
+        if (ownerId != null) {
+            System.out.println("this is the owner id" + ownerId);
+            // Retrieve the owner from the database based on the owner ID
+            User owner = userRepository.findById(ownerId).orElse(null);
+            if (owner == null) {
+                throw new IllegalArgumentException("Owner with ID " + ownerId + " not found.");
+            }
+            // Set the retrieved owner to the cat
+            cat.setOwner((Owner) owner);
+        }
         return petRepository.save(cat);
     }
 
@@ -73,6 +96,15 @@ public class PetService {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Dog already exists.");
         }
         return petRepository.save(dog);
+    }
+    //same method but to be used by logged in owner to create a new pet
+    public Cat addNewCatWithOwner(Cat cat, Owner owner) {
+        Cat existingCat = petRepository.findCatById(cat.getId()).orElse(null);
+        if (existingCat != null) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Cat already exists.");
+        }
+        cat.setOwner(owner);
+        return petRepository.save(cat);
     }
 
     public List<Pet> findAllPets(){

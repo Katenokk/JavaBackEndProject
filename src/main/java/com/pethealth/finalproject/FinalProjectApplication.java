@@ -40,7 +40,8 @@ public class FinalProjectApplication {
 			userService.saveRole(new Role(null, "ROLE_VET"));
 
 //			userService.saveUser(new User(null, "Katia", "katia", "1234", new ArrayList<>()));
-			userService.saveUser(new Owner("Katia", "katia", "1234", new ArrayList<>(), "katia@mail.com"));
+			Owner katia = new Owner("Katia", "katia", "1234", new ArrayList<>(), "katia@mail.com");
+			userService.saveUser(katia);
 //			userService.saveUser(new User(null, "Laia Fernández", "laia", "1234", new ArrayList<>()));
 			userService.saveUser(new Veterinarian("Laia Fernández", "laia", "1234", new ArrayList<>(), "laia@pethealth.com"));
 			userService.saveUser(new Admin("Super Admin", "admin", "1234", new ArrayList<>()));
@@ -50,8 +51,9 @@ public class FinalProjectApplication {
 			userService.addRoleToUser("laia", "ROLE_VET");
 			userService.addRoleToUser("laia", "ROLE_USER");
 			userService.addRoleToUser("admin", "ROLE_ADMIN");
-			Cat test = new Cat("Níobe", LocalDate.of(2010,06,01), true, List.of(CatDiseases.IBD), CatBreeds.MIXED);
-			petRepository.save(test);
+//			Cat test = new Cat("Níobe", LocalDate.of(2010,06,01), true, List.of(CatDiseases.IBD), CatBreeds.MIXED, null);
+//			test.setOwner(katia);
+//			petRepository.save(test);
 		};
 	}
 

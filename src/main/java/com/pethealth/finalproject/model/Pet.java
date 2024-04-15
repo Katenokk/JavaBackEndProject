@@ -30,15 +30,21 @@ public abstract class Pet {
     @NotNull(message = "Date of birth is required")
     private LocalDate dateOfBirth;
 
-    public Pet(String name, LocalDate dateOfBirth, boolean isSpayedOrNeutered) {
+    public Pet(String name, LocalDate dateOfBirth, boolean isSpayedOrNeutered, Owner owner) {
         this.name = name;
         this.dateOfBirth = dateOfBirth;
         this.isSpayedOrNeutered = isSpayedOrNeutered;
+        this.owner = owner;
     }
 
     @NotNull(message = "You must select is spayed or neutered, yes/no")
     private boolean isSpayedOrNeutered;
 
-//    @ManyToOne
-//    private Owner owner;
+    @ManyToOne
+    @JoinColumn(name = "owner_id")
+    private Owner owner;
+
+    @ManyToOne
+    @JoinColumn(name = "veterinarian_id")
+    private Veterinarian veterinarian;
 }
