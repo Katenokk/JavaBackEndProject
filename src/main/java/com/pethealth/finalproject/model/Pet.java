@@ -30,11 +30,12 @@ public abstract class Pet {
     @NotNull(message = "Date of birth is required")
     private LocalDate dateOfBirth;
 
-    public Pet(String name, LocalDate dateOfBirth, boolean isSpayedOrNeutered, Owner owner) {
+    public Pet(String name, LocalDate dateOfBirth, boolean isSpayedOrNeutered, Owner owner, Veterinarian veterinarian) {
         this.name = name;
         this.dateOfBirth = dateOfBirth;
         this.isSpayedOrNeutered = isSpayedOrNeutered;
         this.owner = owner;
+        this.veterinarian = veterinarian;
     }
 
     @NotNull(message = "You must select is spayed or neutered, yes/no")

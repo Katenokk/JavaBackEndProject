@@ -37,11 +37,12 @@ public class PetController {
 
 
 //PARA ESTO hace falta un discriminador en el json para que spring sepa que tipo de Pet es
-//    @PostMapping("/pets")
-//    @ResponseStatus(HttpStatus.CREATED)
-//    public Pet addNewPet(@RequestBody @Valid Pet pet) {
-//        return petService.addNewPet(pet);
-//    }
+
+    @PostMapping("/pets")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Pet addPetPrueba(@RequestBody @Valid Pet pet) {
+        return petService.addPetprobandoo(pet);
+    }
 
     @PostMapping("/pets/cats")
     @ResponseStatus(HttpStatus.CREATED)
@@ -49,37 +50,25 @@ public class PetController {
         return (Cat) petService.addNewPet(cat);
     }
 
-//    @PostMapping("/pets/cats")
-//    @ResponseStatus(HttpStatus.CREATED)
-//    public Cat addNewPet(@RequestBody @Valid Cat cat, @RequestParam(required = false) String username) {
-//        // Check if an ownerId is provided
-//        if (username != null) {
-//            // Retrieve the owner by ID from the database
-//            User user = userService.getUser(username);
-//
-//            // Check if the user is an instance of Owner
-//            if (user instanceof Owner) {
-//                // Set the owner of the cat
-//                cat.setOwner((Owner) user);
-//            } else {
-//                // Handle the case where the retrieved user is not an Owner
-//                throw new IllegalArgumentException("User with username " + username + " is not an Owner.");
-//            }
-//        }
-//
-//        // Add the cat (with or without owner) using the existing addNewPet method
-//        return (Cat) petService.addNewPet(cat);
-//    }
-
-
-
-
     @PostMapping("pets/dogs")
     @ResponseStatus(HttpStatus.CREATED)
     public Dog addNewPet(@RequestBody @Valid Dog dog) {
         return (Dog) petService.addNewPet(dog);
     }
-//falta patch, put, delete
+
+
+    @PutMapping("pets/cats/{id}")
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    public void updatePet(@PathVariable Long id, @RequestBody Cat cat){
+        petService.updatePet(id, cat);
+    }
+
+    @PutMapping("pets/dogs/{id}")
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    public void updatePet(@PathVariable Long id, @RequestBody Dog dog){
+        petService.updatePet(id, dog);
+    }
+//falta patch, delete
     //findByalgo breed, disease
 
 }

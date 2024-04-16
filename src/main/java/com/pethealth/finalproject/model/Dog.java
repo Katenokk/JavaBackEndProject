@@ -17,8 +17,8 @@ import java.util.List;
 @PrimaryKeyJoinColumn(name="id")
 public class Dog extends Pet{
 
-    public Dog(String name, LocalDate dateOfBirth, boolean isSpayedOrNeutered, List<DogDiseases> chronicDiseases, DogBreeds dogBreed, Owner owner) {
-        super(name, dateOfBirth, isSpayedOrNeutered, owner);
+    public Dog(String name, LocalDate dateOfBirth, boolean isSpayedOrNeutered, List<DogDiseases> chronicDiseases, DogBreeds dogBreed, Owner owner, Veterinarian veterinarian) {
+        super(name, dateOfBirth, isSpayedOrNeutered, owner, veterinarian);
         this.chronicDiseases = chronicDiseases;
         this.dogBreed = dogBreed;
     }

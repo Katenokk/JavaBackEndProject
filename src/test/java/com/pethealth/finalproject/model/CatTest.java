@@ -26,7 +26,8 @@ class CatTest {
     @BeforeEach
     void setUp() {
         LocalDate dateOfBirth = LocalDate.of(2010,06,01);
-        newCat = new Cat("Níobe", dateOfBirth, true, List.of(CatDiseases.IBD), CatBreeds.MIXED);
+        newCat = new Cat("Níobe", dateOfBirth, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, null, null);
+
     }
 
     @AfterEach
