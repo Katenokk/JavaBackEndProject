@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Collection;
+import java.util.Set;
 
 @Entity
 @Data
@@ -18,6 +19,9 @@ import java.util.Collection;
 public class Veterinarian extends User {
 
     private String email;
+
+    @OneToMany(mappedBy = "veterinarian")
+    private Set<Pet> pets;
 
     public Veterinarian(String name, String username, String password, Collection<Role> roles, String email) {
         super(name, username, password, roles);
