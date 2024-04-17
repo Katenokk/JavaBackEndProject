@@ -15,6 +15,7 @@ import com.pethealth.finalproject.repository.PetRepository;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 @SpringBootApplication
@@ -40,11 +41,11 @@ public class FinalProjectApplication {
 			userService.saveRole(new Role(null, "ROLE_VET"));
 
 //			userService.saveUser(new User(null, "Katia", "katia", "1234", new ArrayList<>()));
-			Owner katia = new Owner("Katia", "katia", "1234", new ArrayList<>(), "katia@mail.com");
+			Owner katia = new Owner("Katia", "katia", "1234", new HashSet<>(), "katia@mail.com");
 			userService.saveUser(katia);
 //			userService.saveUser(new User(null, "Laia Fernández", "laia", "1234", new ArrayList<>()));
-			userService.saveUser(new Veterinarian("Laia Fernández", "laia", "1234", new ArrayList<>(), "laia@pethealth.com"));
-			userService.saveUser(new Admin("Super Admin", "admin", "1234", new ArrayList<>()));
+			userService.saveUser(new Veterinarian("Laia Fernández", "laia", "1234", new HashSet<>(), "laia@pethealth.com"));
+			userService.saveUser(new Admin("Super Admin", "admin", "1234", new HashSet<>()));
 
 			userService.addRoleToUser("katia", "ROLE_USER");
 			userService.addRoleToUser("katia", "ROLE_ADMIN");
