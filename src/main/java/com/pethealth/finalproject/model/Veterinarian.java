@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -26,5 +27,6 @@ public class Veterinarian extends User {
     public Veterinarian(String name, String username, String password, Collection<Role> roles, String email) {
         super(name, username, password, roles);
         this.email = email;
+        this.pets = new HashSet<>();
     }
 }

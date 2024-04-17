@@ -42,10 +42,18 @@ public abstract class Pet {
     private boolean isSpayedOrNeutered;
 
     @ManyToOne
-    @JoinColumn(name = "owner_id")
+    @JoinColumn(name = "owner_id", referencedColumnName  = "id")
     private Owner owner;
 
     @ManyToOne
-    @JoinColumn(name = "veterinarian_id")
+    @JoinColumn(name = "veterinarian_id", referencedColumnName = "id")
     private Veterinarian veterinarian;
+
+    //prueba
+//    public void setOwner(Owner owner) {
+//        this.owner = owner;
+//        if (owner != null) {
+//            owner.getPets().add(this); // Ensure bidirectional relationship is maintained
+//        }
+//    }
 }

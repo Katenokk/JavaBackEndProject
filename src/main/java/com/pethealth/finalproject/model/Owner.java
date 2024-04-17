@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -20,11 +21,38 @@ public class Owner extends User {
 
     private String email;
 
-    @OneToMany(mappedBy = "owner")
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Pet> pets;
 
     public Owner(String name, String username, String password, Collection<Role> roles, String email) {
         super(name, username, password, roles);
         this.email = email;
+        this.pets = new HashSet<>();//prueba para ver si tostring no falla en el test
     }
+    //prueba
+    public void addPet(Pet pet) {
+        // Check if pets set is null and initialize if necessary
+        if (pets == null) {
+            pets = new HashSet<>();
+        }
+        // Add the pet to the set
+        pets.add(pet);
+        // Set the owner of the pet
+        pet.setOwner(this);
+    }
+
+    @Override
+    public String toString() {
+        String firstPetName = !getPets().isEmpty() ? getPets().iterator().next().getName() : "";
+        return "Owner{" +
+                "name='" + getName() + '\'' +
+                "user name='" + getUsername() + '\'' +
+                ", email='" + email + '\'' +
+                ", firstPet='" + firstPetName + "'" +
+                // Add other attributes as needed
+                '}';
+    }
+
+
+
 }
