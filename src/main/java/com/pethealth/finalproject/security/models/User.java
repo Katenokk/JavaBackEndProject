@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 
 import static jakarta.persistence.FetchType.EAGER;
 
@@ -56,4 +57,5 @@ public class User {
         this.password = password;
         this.roles = roles;
     }
+
 }
