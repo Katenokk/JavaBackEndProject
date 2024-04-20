@@ -43,9 +43,9 @@ class CatTest {
     void setUp() {
         LocalDate dateOfBirth = LocalDate.of(2010,06,01);
         newCat = new Cat("Níobe", dateOfBirth, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, null, null);
-        newOwner = new Owner("New Owner", "new_owner", "1234", new HashSet<>(), "owner@mail.com");
+        newOwner = new Owner("New Owner", "new_owner", "1234", new ArrayList<>(), "owner@mail.com");
         userRepository.save(newOwner);
-        newVet = new Veterinarian("New Vet", "new_vet", "0000",  new HashSet<>(), "vet@mail.com");
+        newVet = new Veterinarian("New Vet", "new_vet", "0000",  new ArrayList<>(), "vet@mail.com");
         userRepository.save(newVet);
     }
 

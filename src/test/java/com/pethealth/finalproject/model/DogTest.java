@@ -32,9 +32,9 @@ class DogTest {
     @BeforeEach
     void setUp() {
         newDog = new Dog("Bombo", LocalDate.of(2000, 01, 01), false, List.of(DogDiseases.ARTHRITIS), DogBreeds.HUSKY, null, null);
-        newOwner = new Owner("New Owner", "new_owner", "1234",  new HashSet<>(), "owner@mail.com");
+        newOwner = new Owner("New Owner", "new_owner", "1234",  new ArrayList<>(), "owner@mail.com");
         userRepository.save(newOwner);
-        newVet = new Veterinarian("New Vet", "new_vet", "0000",   new HashSet<>(), "vet@mail.com");
+        newVet = new Veterinarian("New Vet", "new_vet", "0000",  new ArrayList<>(), "vet@mail.com");
         userRepository.save(newVet);
     }
 

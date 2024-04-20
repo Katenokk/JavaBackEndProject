@@ -1,6 +1,7 @@
 package com.pethealth.finalproject.model;
 
 import com.pethealth.finalproject.security.repositories.UserRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,11 @@ class OwnerTest {
     void setUp() {
         owner = new Owner("Katia", "katia", "1234", new HashSet<>(), "katia@mail.com");
         userRepository.save(owner);
+    }
+
+    @AfterEach
+    void tearDown() {
+        userRepository.deleteAll();
     }
 
     @Test

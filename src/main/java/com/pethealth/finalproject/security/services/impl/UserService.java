@@ -1,5 +1,6 @@
 package com.pethealth.finalproject.security.services.impl;
 
+import com.pethealth.finalproject.model.Owner;
 import com.pethealth.finalproject.security.models.Role;
 import com.pethealth.finalproject.security.models.User;
 import com.pethealth.finalproject.security.repositories.RoleRepository;
@@ -8,12 +9,14 @@ import com.pethealth.finalproject.security.services.interfaces.UserServiceInterf
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -138,5 +141,35 @@ public class UserService implements UserServiceInterface, UserDetailsService {
     public List<User> getUsers() {
         log.info("Fetching all users");
         return userRepository.findAll();
+    }
+
+    @Override
+    public void updateUser(Long id, User user){
+
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+
+        if (user instanceof Owner) {
+            updateOwner((Owner) user, id);
+        }
+
+        user.setId(id);
+
+        userRepository.save(user);
+
+//        User existingUser = userRepository.findById(id).orElseThrow( ()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+//        user.setId(id);
+//        userRepository.save(user);
+    }
+
+    private void updateOwner(Owner owner, Long id){
+        Owner existingOwner = (Owner) userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Owner not found."));
+
+        owner.setId(id);
+        userRepository.save(owner);
+
+
+
     }
 }

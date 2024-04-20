@@ -42,4 +42,16 @@ public class UserController {
     public void saveUser(@RequestBody User user) {
         userService.saveUser(user);
     }
+
+//    @PutMapping("/employees/{id}")
+//    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+//    public void updateDoctor(@PathVariable Integer id, @RequestBody Employee employee) {
+//        employeeService.update(id, employee);
+//    }
+
+    @PutMapping("/users/{id}")
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    public void updateUser(@PathVariable Long id, @RequestBody User user){
+        userService.updateUser(id, user);
+    }
 }
