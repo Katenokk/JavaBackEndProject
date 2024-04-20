@@ -66,7 +66,7 @@ public class PetController {
         return (Dog) petService.addNewPet(dog);
     }
 
-
+    //cambiar update para que use petDTO?
     @PutMapping("pets/cats/{id}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     public void updatePet(@PathVariable Long id, @RequestBody Cat cat){

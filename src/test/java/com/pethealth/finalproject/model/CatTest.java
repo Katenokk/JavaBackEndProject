@@ -43,7 +43,6 @@ class CatTest {
     void setUp() {
         LocalDate dateOfBirth = LocalDate.of(2010,06,01);
         newCat = new Cat("Níobe", dateOfBirth, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, null, null);
-        petRepository.save(newCat);
         newOwner = new Owner("New Owner", "new_owner", "1234", new HashSet<>(), "owner@mail.com");
         userRepository.save(newOwner);
         newVet = new Veterinarian("New Vet", "new_vet", "0000",  new HashSet<>(), "vet@mail.com");
@@ -68,18 +67,20 @@ class CatTest {
         assertEquals("New Owner", newCat.getOwner().getName());
         assertEquals(newOwner, newCat.getOwner());
         newOwner.addPet(newCat);
+        petRepository.save(newCat);
         assertFalse(newOwner.getOwnedPets().isEmpty());
         assertTrue(newOwner.getOwnedPets().contains(newCat));
         System.out.println("New Cat ID: " + newCat.getId());
         System.out.println("New Owner ID: " + newOwner.getId());
         System.out.println("Owner's Pets: " + newOwner.getOwnedPets());
-//no se asigna la id en la tabla pero si en los objetos
     }
 
     @Test
     void assignVeterinarian(){
         newCat.setVeterinarian(newVet);
+        newCat.setOwner(newOwner);
         newVet.addPet(newCat);
+        petRepository.save(newCat);
         assertEquals("New Vet", newCat.getVeterinarian().getName());
         assertEquals(newVet, newCat.getVeterinarian());
         assertFalse(newVet.getTreatedPets().isEmpty());

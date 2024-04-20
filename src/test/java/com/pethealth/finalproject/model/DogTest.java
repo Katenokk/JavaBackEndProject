@@ -32,10 +32,10 @@ class DogTest {
     @BeforeEach
     void setUp() {
         newDog = new Dog("Bombo", LocalDate.of(2000, 01, 01), false, List.of(DogDiseases.ARTHRITIS), DogBreeds.HUSKY, null, null);
-        petRepository.save(newDog);
         newOwner = new Owner("New Owner", "new_owner", "1234",  new HashSet<>(), "owner@mail.com");
         userRepository.save(newOwner);
         newVet = new Veterinarian("New Vet", "new_vet", "0000",   new HashSet<>(), "vet@mail.com");
+        userRepository.save(newVet);
     }
 
     @AfterEach
@@ -55,6 +55,7 @@ class DogTest {
     void assignOwner(){
         newDog.setOwner(newOwner);
         newOwner.addPet(newDog);
+        petRepository.save(newDog);
         assertEquals("New Owner", newDog.getOwner().getName());
         assertEquals(newOwner, newDog.getOwner());
         assertFalse(newOwner.getOwnedPets().isEmpty());
@@ -64,7 +65,9 @@ class DogTest {
     @Test
     void assignVeterinarian(){
         newDog.setVeterinarian(newVet);
+        newDog.setOwner(newOwner);
         newVet.addPet(newDog);
+        petRepository.save(newDog);
         assertEquals("New Vet", newDog.getVeterinarian().getName());
         assertEquals(newVet, newDog.getVeterinarian());
         assertFalse(newVet.getTreatedPets().isEmpty());
