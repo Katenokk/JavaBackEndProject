@@ -53,12 +53,12 @@ public class Veterinarian extends User {
 
     @Override
     public String toString() {
-        String firstPetName = !getTreatedPets().isEmpty() ? getTreatedPets().iterator().next().getName() : "";
+//        String firstPetName = !getTreatedPets().isEmpty() ? getTreatedPets().iterator().next().getName() : "";
         return "Vet{" +
                 "name='" + getName() + '\'' +
                 "user name='" + getUsername() + '\'' +
                 ", email='" + email + '\'' +
-                ", firstPet='" + firstPetName + "'" +
+//                ", firstPet='" + firstPetName + "'" +
                 // terminar resto luego
                 '}';
     }
