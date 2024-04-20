@@ -91,6 +91,102 @@ public class PetService {
         return petRepository.save(cat);
     }
 
+    public Pet addNewPet2(PetDTO petDTO) {
+
+        Pet pet;
+
+        if ((petDTO instanceof CatDTO)) {
+            pet = mapToCatEntity((CatDTO) petDTO);
+        } else if ((petDTO instanceof DogDTO)){
+            pet = mapToDogEntity((DogDTO) petDTO);
+        } else {
+            throw new IllegalArgumentException("Invalid pet type.");
+        }
+
+        if (pet instanceof Cat) {
+            Cat existingCat = petRepository.findCatById(pet.getId()).orElse(null);
+            if (existingCat != null) {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Cat already exists.");
+            }
+        } else if (pet instanceof Dog) {
+            Dog existingDog = petRepository.findDogById(pet.getId()).orElse(null);
+            if (existingDog != null) {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Dog already exists.");
+            }
+        } else {
+            throw new IllegalArgumentException("Invalid pet type.");
+        }
+
+        // Handle other logic based on the pet type
+//        if (pet.getOwner() != null) {
+//            // Retrieve the owner from the database based on the owner ID
+//            User owner = userRepository.findById(pet.getOwner().getId()).orElse(null);
+//            if (owner == null) {
+//                throw new IllegalArgumentException("Owner not found.");
+//            }
+//            pet.setOwner((Owner) owner);
+//        }
+
+//        if (pet instanceof Cat && ((Cat) pet).getVeterinarian() != null) {
+//            // Retrieve the vet from the database based on the ID
+//            User veterinarian = userRepository.findById(((Cat) pet).getVeterinarian().getId()).orElse(null);
+//            if (veterinarian == null) {
+//                throw new IllegalArgumentException("Veterinarian not found.");
+//            }
+//            ((Cat) pet).setVeterinarian((Veterinarian) veterinarian);
+//        }
+
+        return petRepository.save(pet);
+    }
+
+
+    private Cat mapToCatEntity(CatDTO catDTO) {
+        Cat cat = new Cat();
+        cat.setName(catDTO.getName());
+        cat.setDateOfBirth(catDTO.getDateOfBirth());
+        cat.setSpayedOrNeutered(catDTO.isSpayedOrNeutered());
+        //owner can't be null, it's the logged-in user (owner)
+        if (catDTO.getOwner() == null) {
+            throw new IllegalArgumentException("Owner is required to create a pet.");
+        } else {
+            User owner = userRepository.findById(catDTO.getOwner().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Owner not found"));
+            cat.setOwner((Owner) owner);
+        }
+        //veterinarian can be null
+        if(catDTO.getVeterinarian() != null){
+            User veterinarian = userRepository.findById(catDTO.getVeterinarian().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Veterinarian not found"));
+            cat.setVeterinarian((Veterinarian) veterinarian);
+        }
+
+        cat.setChronicDiseases(catDTO.getChronicDiseases());
+        cat.setCatBreed(catDTO.getCatBreed());
+        return cat;
+    }
+
+    private Dog mapToDogEntity(DogDTO dogDTO) {
+        Dog dog = new Dog();
+        dog.setName(dogDTO.getName());
+        dog.setDateOfBirth(dogDTO.getDateOfBirth());
+        dog.setSpayedOrNeutered(dogDTO.isSpayedOrNeutered());
+
+        Owner owner = (Owner) userRepository.findById(dogDTO.getOwner().getId())
+                .orElseThrow(() -> new IllegalArgumentException("Owner not found"));
+        dog.setOwner(owner);
+
+
+        Veterinarian veterinarian = (Veterinarian) userRepository.findById(dogDTO.getVeterinarian().getId())
+                .orElseThrow(() -> new IllegalArgumentException("Veterinarian not found"));
+        dog.setVeterinarian(veterinarian);
+
+        dog.setOwner(dogDTO.getOwner());
+        dog.setVeterinarian(dogDTO.getVeterinarian());
+        return dog;
+    }
+
+
+
 
 
 
@@ -101,6 +197,16 @@ public class PetService {
         }
         return petRepository.save(dog);
     }
+
+//    public PetDTO addNewPet(PetDTO petDTO) {
+//        if (petDTO instanceof CatDTO) {
+//            // Logic to add a new cat
+//        } else if (petDTO instanceof DogDTO) {
+//            // Logic to add a new dog
+//        } else {
+//            throw new IllegalArgumentException("Invalid pet type.");
+//        }
+//    }
 
 
     //same method but to be used by logged in owner to create a new pet

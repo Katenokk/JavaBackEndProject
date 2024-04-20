@@ -52,12 +52,12 @@ public class Owner extends User {
 
     @Override
     public String toString() {
-        String firstPetName = !getOwnedPets().isEmpty() ? getOwnedPets().iterator().next().getName() : "";
+//        String firstPetName = !getOwnedPets().isEmpty() ? getOwnedPets().iterator().next().getName() : "";
         return "Owner{" +
                 "name='" + getName() + '\'' +
                 "user name='" + getUsername() + '\'' +
                 ", email='" + email + '\'' +
-                ", firstPet='" + firstPetName + "'" +
+//                ", firstPet='" + firstPetName + "'" +
                 // terminar resto luego
                 '}';
     }

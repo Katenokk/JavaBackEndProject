@@ -1,15 +1,13 @@
 package com.pethealth.finalproject.controller;
 
-import com.pethealth.finalproject.model.Cat;
-import com.pethealth.finalproject.model.Dog;
-import com.pethealth.finalproject.model.Owner;
-import com.pethealth.finalproject.model.Pet;
+import com.pethealth.finalproject.model.*;
 import com.pethealth.finalproject.security.models.User;
 import com.pethealth.finalproject.security.services.impl.UserService;
 import com.pethealth.finalproject.service.PetService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,13 +34,25 @@ public class PetController {
     }
 
 
-//PARA ESTO hace falta un discriminador en el json para que spring sepa que tipo de Pet es
+
+//no funciona bien la deserializacion
 
     @PostMapping("/pets")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Pet addPetPrueba(@RequestBody @Valid Pet pet) {
-        return petService.addPetprobandoo(pet);
+    public ResponseEntity<Pet> addNewPet(@RequestBody PetDTO petDTO) {
+//        if ("cat".equals(petDTO.getDiscriminator())) {
+//            System.out.println(petDTO.getDiscriminator());
+//            return ResponseEntity.ok(petService.addNewPet2((CatDTO) petDTO));
+//        } else if ("dog".equals(petDTO.getDiscriminator())) {
+//            return ResponseEntity.ok(petService.addNewPet2((DogDTO) petDTO));
+//        } else {
+//            throw new IllegalArgumentException("Invalid pet type.");
+//        }
+        //de esta forma no se puede hacer el cast
+        return ResponseEntity.ok(petService.addNewPet2(petDTO));
     }
+
+
+
 
     @PostMapping("/pets/cats")
     @ResponseStatus(HttpStatus.CREATED)
