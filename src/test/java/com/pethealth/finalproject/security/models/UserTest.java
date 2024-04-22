@@ -42,6 +42,7 @@ class UserTest {
         userRepository.save(newOwner);
         assertNotNull(newOwner);
         assertEquals("Katia", newOwner.getName());
+        assertTrue(newOwner instanceof Owner);//siempre es true :(
     }
 
     @Test

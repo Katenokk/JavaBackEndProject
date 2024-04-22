@@ -1,5 +1,6 @@
 package com.pethealth.finalproject.security.services.impl;
 
+import com.pethealth.finalproject.model.Owner;
 import com.pethealth.finalproject.security.models.Role;
 import com.pethealth.finalproject.security.models.User;
 import com.pethealth.finalproject.security.repositories.RoleRepository;
@@ -13,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -34,9 +36,12 @@ class UserServiceTest {
 
     private User testUser;
 
+    private Owner newOwner;
+
     @BeforeEach
     void setUp() {
         testUser = new User("Test User", "test-user", "1234", new ArrayList<>());
+        newOwner = new Owner("Pepe", "pepito", "0000", new ArrayList<>(), "email.com");
     }
 
     @AfterEach
@@ -112,25 +117,22 @@ class UserServiceTest {
     }
 
     @Test
-    void updateUserValid(){
-        User savedUser = userRepository.save(testUser);
-        User updatedUser = new User();
-        updatedUser.setId(savedUser.getId());
-        updatedUser.setUsername("updateduser");
-
-        userService.updateUser(savedUser.getId(), updatedUser);
-
-        User fetchedUser = userRepository.findById(savedUser.getId()).orElse(null);
-        assertNotNull(fetchedUser);
-        assertEquals("updateduser", fetchedUser.getUsername());
+    void updateOwnerValid(){
+        userRepository.save(newOwner);
+        Owner updatedOwner = new Owner("Cambiado", "cambiado", "0000", new ArrayList<>(), "email_nuevo.com");
+        userService.updateOwner(newOwner.getId(), updatedOwner);
+        Owner fetchedOwner = (Owner) userRepository.findById(updatedOwner.getId()).orElse(null);
+        assertNotNull(fetchedOwner);
+        assertEquals("Cambiado", fetchedOwner.getName());
+        assertEquals("cambiado", fetchedOwner.getUsername());
     }
 
     @Test
-    public void testUpdateUserNotFound() {
-        User user = new User();
-        user.setId(100L);
-        user.setUsername("testuser");
+    public void testUpdateOwnerNotFound() {
+        Owner owner = new Owner();
+        owner.setId(100L);
+        owner.setUsername("testuser");
 
-        assertThrows(ResponseStatusException.class, () -> userService.updateUser(100L, user));
+        assertThrows(ResponseStatusException.class, () -> userService.updateOwner(100L, owner));
     }
 }

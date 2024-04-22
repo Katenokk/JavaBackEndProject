@@ -1,6 +1,8 @@
 package com.pethealth.finalproject.security.services.impl;
 
+import com.pethealth.finalproject.model.Admin;
 import com.pethealth.finalproject.model.Owner;
+import com.pethealth.finalproject.model.Veterinarian;
 import com.pethealth.finalproject.security.models.Role;
 import com.pethealth.finalproject.security.models.User;
 import com.pethealth.finalproject.security.repositories.RoleRepository;
@@ -87,6 +89,31 @@ public class UserService implements UserServiceInterface, UserDetailsService {
         return userRepository.save(user);
     }
 
+    @Override
+    public Owner saveOwner(Owner owner) {
+        if (owner == null) {
+            throw new IllegalArgumentException("Owner object cannot be null");
+        }
+        log.info("Saving new owner {} to the database", owner.getName());
+        owner.setPassword(passwordEncoder.encode(owner.getPassword()));
+        return userRepository.save(owner);
+    }
+
+    @Override
+    public Veterinarian saveVeterinarian(Veterinarian veterinarian) {
+        log.info("Saving new veterinarian {} to the database", veterinarian.getName());
+        veterinarian.setPassword(passwordEncoder.encode(veterinarian.getPassword()));
+        return userRepository.save(veterinarian);
+    }
+
+    @Override
+    public Admin saveAdmin(Admin admin) {
+        log.info("Saving new admin {} to the database", admin.getName());
+        // Encode the user's password for security before saving
+        admin.setPassword(passwordEncoder.encode(admin.getPassword()));
+        return userRepository.save(admin);
+    }
+
     /**
      * Saves a new role to the database
      *
@@ -143,33 +170,85 @@ public class UserService implements UserServiceInterface, UserDetailsService {
         return userRepository.findAll();
     }
 
-    @Override
-    public void updateUser(Long id, User user){
-
+    public void updateOwner(Long id, Owner owner){
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
-
-        if (user instanceof Owner) {
-            updateOwner((Owner) user, id);
-        }
-
-        user.setId(id);
-
-        userRepository.save(user);
-
-//        User existingUser = userRepository.findById(id).orElseThrow( ()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
-//        user.setId(id);
-//        userRepository.save(user);
-    }
-
-    private void updateOwner(Owner owner, Long id){
-        Owner existingOwner = (Owner) userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Owner not found."));
-
-        owner.setId(id);
-        userRepository.save(owner);
-
-
-
+        if(existingUser instanceof Owner){
+            owner.setId(id);
+            saveOwner(owner);
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid JSON. Expected Owner.");
+        }
     }
+
+    public void updateVeterinarian(Long id, Veterinarian veterinarian){
+        User existingVet = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Veterinarian not found."));
+        if(existingVet instanceof  Veterinarian){
+            veterinarian.setId(id);
+            saveVeterinarian(veterinarian);
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid JSON. Expected Veterinarian.");
+        }
+    }
+
+    public void updateAdmin(Long id, Admin admin){
+        User existingAdmin = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Admin not found."));
+        if(existingAdmin instanceof Admin){
+            admin.setId(id);
+            saveAdmin(admin);
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid JSON. Expected Admin.");
+        }
+    }
+
+    //put de varios campos a la vez
+    public void partialUpdateOwner(Long id, String name, String username, String password, String email){
+        User owner = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Owner not found."));
+        if(owner instanceof Owner){
+            if(name != null){
+                owner.setName(name);
+            }
+            if(username != null){
+                owner.setUsername(username);
+            }
+            if(password != null){
+                owner.setPassword(password);
+            }
+            if(email != null){
+                ((Owner) owner).setEmail(email);
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid JSON. Expected Owner.");
+        }
+        saveOwner((Owner) owner);
+    }
+
+    public void partialUpdateVeterinarian(Long id, String name, String username, String password, String email){
+        User veterinarian = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Veterinarian not found."));
+        if(veterinarian instanceof Veterinarian){
+            if(name != null){
+                veterinarian.setName(name);
+            }
+            if(username != null){
+                veterinarian.setUsername(username);
+            }
+            if(password != null){
+                veterinarian.setPassword(password);
+            }
+            if(email != null){
+                ((Veterinarian) veterinarian).setEmail(email);
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid JSON. Expected Veterinarian.");
+        }
+        saveVeterinarian((Veterinarian) veterinarian);
+    }
+
+    //falta updateAdmin
+
+    //dalta delete * 3
 }

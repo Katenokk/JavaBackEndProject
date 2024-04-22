@@ -1,5 +1,8 @@
 package com.pethealth.finalproject.security.services.interfaces;
 
+import com.pethealth.finalproject.model.Admin;
+import com.pethealth.finalproject.model.Owner;
+import com.pethealth.finalproject.model.Veterinarian;
 import com.pethealth.finalproject.security.models.Role;
 import com.pethealth.finalproject.security.models.User;
 
@@ -49,5 +52,20 @@ public interface UserServiceInterface {
      */
     List<User> getUsers();
 
-    void updateUser(Long id, User user);
+
+    Owner saveOwner(Owner owner);
+
+    Veterinarian saveVeterinarian(Veterinarian veterinarian);
+
+    Admin saveAdmin(Admin admin);
+
+    void updateOwner(Long id, Owner owner);
+
+    void updateAdmin(Long id, Admin admin);
+
+    void updateVeterinarian(Long id, Veterinarian veterinarian);
+
+    void partialUpdateOwner(Long id, String name, String username, String password, String email);
+
+    void partialUpdateVeterinarian(Long id, String name, String username, String password, String email);
 }
