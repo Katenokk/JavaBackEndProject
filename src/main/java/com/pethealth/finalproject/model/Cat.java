@@ -1,6 +1,8 @@
 package com.pethealth.finalproject.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,6 +26,8 @@ public class Cat extends Pet {
     }
     @ElementCollection(targetClass = CatDiseases.class)
     @Enumerated(EnumType.STRING)
+    @NotNull(message="chronic disease is required")
+    @NotEmpty(message = "At least one chronic disease is required")
     private List<CatDiseases> chronicDiseases;
 
     @Enumerated(EnumType.STRING)

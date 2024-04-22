@@ -11,17 +11,18 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.util.*;
 
-//@EqualsAndHashCode(callSuper = false)
+
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @JsonIdentityInfo( generator = ObjectIdGenerators.PropertyGenerator.class,
         property = "id")
 @Entity
 @Data
 @NoArgsConstructor
-//@AllArgsConstructor
+@DynamicUpdate
 @DiscriminatorValue("OWNER")
 public class Owner extends User {
     @EqualsAndHashCode.Include
