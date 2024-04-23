@@ -25,54 +25,54 @@ public class PetService {
     }
     //para el post diferente para gatos y perros:
 
-    public Pet addNewPet(Pet pet) {
-        if (pet instanceof Cat) {
-            return addNewCat((Cat) pet);
-        } else if (pet instanceof Dog) {
-            return addNewDog((Dog) pet);
-        } else {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid pet type. Only Cat and Dog are allowed.");
-        }
-    }
+//    public Pet addNewPet(Pet pet) {
+//        if (pet instanceof Cat) {
+//            return addNewCat((Cat) pet);
+//        } else if (pet instanceof Dog) {
+//            return addNewDog((Dog) pet);
+//        } else {
+//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid pet type. Only Cat and Dog are allowed.");
+//        }
+//    }
 
 
-    private Cat addNewCat(Cat cat) {
-        Cat existingCat = petRepository.findCatById(cat.getId()).orElse(null);
-        if (existingCat != null) {
-        throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Cat already exists.");
-    }
-        // Retrieve the owner ID from the cat object
-        Long ownerId = null;
-        if (cat.getOwner() != null) {
-            ownerId = cat.getOwner().getId();
-        }
-
-        Long veterinarianId = null;
-        if (cat.getVeterinarian() != null) {
-            veterinarianId = cat.getVeterinarian().getId();
-        }
-
-        if (ownerId != null) {
-            System.out.println("this is the owner id" + ownerId);
-            // Retrieve the owner from the database based on the owner ID
-            User owner = userRepository.findById(ownerId).orElse(null);
-            if (owner == null) {
-                throw new IllegalArgumentException("Owner with ID " + ownerId + " not found.");
-            }
-            cat.setOwner((Owner) owner);
-        }
-
-        if (veterinarianId != null) {
-            System.out.println("this is the vet id" + veterinarianId);
-            // Retrieve the vet from the database based on the owner ID
-            User veterinarian = userRepository.findById(veterinarianId).orElse(null);
-            if (veterinarian == null) {
-                throw new IllegalArgumentException("Veterinarian with ID " + veterinarianId + " not found.");
-            }
-            cat.setVeterinarian((Veterinarian) veterinarian);
-        }
-        return petRepository.save(cat);
-    }
+//    private Cat addNewCat(Cat cat) {
+//        Cat existingCat = petRepository.findCatById(cat.getId()).orElse(null);
+//        if (existingCat != null) {
+//        throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Cat already exists.");
+//    }
+//        // Retrieve the owner ID from the cat object
+//        Long ownerId = null;
+//        if (cat.getOwner() != null) {
+//            ownerId = cat.getOwner().getId();
+//        }
+//
+//        Long veterinarianId = null;
+//        if (cat.getVeterinarian() != null) {
+//            veterinarianId = cat.getVeterinarian().getId();
+//        }
+//
+//        if (ownerId != null) {
+//            System.out.println("this is the owner id" + ownerId);
+//            // Retrieve the owner from the database based on the owner ID
+//            User owner = userRepository.findById(ownerId).orElse(null);
+//            if (owner == null) {
+//                throw new IllegalArgumentException("Owner with ID " + ownerId + " not found.");
+//            }
+//            cat.setOwner((Owner) owner);
+//        }
+//
+//        if (veterinarianId != null) {
+//            System.out.println("this is the vet id" + veterinarianId);
+//            // Retrieve the vet from the database based on the owner ID
+//            User veterinarian = userRepository.findById(veterinarianId).orElse(null);
+//            if (veterinarian == null) {
+//                throw new IllegalArgumentException("Veterinarian with ID " + veterinarianId + " not found.");
+//            }
+//            cat.setVeterinarian((Veterinarian) veterinarian);
+//        }
+//        return petRepository.save(cat);
+//    }
 
     public Pet addNewPet2(PetDTO petDTO) {
         Pet pet;
@@ -154,13 +154,13 @@ public class PetService {
     }
 
 
-    private Dog addNewDog(Dog dog) {
-        // Check if the dog with the given ID already exists
-        if (dog.getId() != null && petRepository.existsById(dog.getId())) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Dog already exists.");
-        }
-        return petRepository.save(dog);
-    }
+//    private Dog addNewDog(Dog dog) {
+//        // Check if the dog with the given ID already exists
+//        if (dog.getId() != null && petRepository.existsById(dog.getId())) {
+//            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Dog already exists.");
+//        }
+//        return petRepository.save(dog);
+//    }
 
 
     public List<Pet> findAllPets(){
@@ -192,5 +192,26 @@ public class PetService {
         Dog existingDog = petRepository.findDogById(id).orElseThrow( ()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Dog not found."));
         dog.setId(id);
         petRepository.save(dog);
+    }
+
+    //para usar el mismo endpoint con petdto
+    public void updatePetnuevo(Long id, PetDTO petDTO) {
+        Pet existingPet = petRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found."));
+
+        Pet updatedPet;
+        if (petDTO instanceof CatDTO) {
+            updatedPet = mapToCatEntity((CatDTO) petDTO);
+        } else if (petDTO instanceof DogDTO) {
+            updatedPet = mapToDogEntity((DogDTO) petDTO);
+        } else {
+            throw new IllegalArgumentException("Invalid pet type.");
+        }
+
+        // Ensure the ID of the updated pet matches the ID in the request
+        updatedPet.setId(id);
+
+        // Save the updated pet
+        petRepository.save(updatedPet);
     }
 }
