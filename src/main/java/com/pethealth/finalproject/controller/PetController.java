@@ -54,19 +54,19 @@ public class PetController {
 
 
 
-    @PostMapping("/pets/cats")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Cat addNewPet(@RequestBody @Valid Cat cat) {
-        return (Cat) petService.addNewPet(cat);
-    }
+//    @PostMapping("/pets/cats")
+//    @ResponseStatus(HttpStatus.CREATED)
+//    public Cat addNewPet(@RequestBody @Valid Cat cat) {
+//        return (Cat) petService.addNewPet(cat);
+//    }
+//
+//    @PostMapping("pets/dogs")
+//    @ResponseStatus(HttpStatus.CREATED)
+//    public Dog addNewPet(@RequestBody @Valid Dog dog) {
+//        return (Dog) petService.addNewPet(dog);
+//    }
 
-    @PostMapping("pets/dogs")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Dog addNewPet(@RequestBody @Valid Dog dog) {
-        return (Dog) petService.addNewPet(dog);
-    }
 
-    //cambiar update para que use petDTO?
     @PutMapping("pets/cats/{id}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     public void updatePet(@PathVariable Long id, @RequestBody Cat cat){
@@ -78,6 +78,15 @@ public class PetController {
     public void updatePet(@PathVariable Long id, @RequestBody Dog dog){
         petService.updatePet(id, dog);
     }
+
+    //put usando un solo endpoint, probar
+    @PutMapping("pets/{id}")
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    public void updatePets(@PathVariable Long id, @RequestBody PetDTO petDTO){
+        petService.updatePetnuevo(id, petDTO);
+    }
+
+
 //falta patch, delete
     //findByalgo breed, disease
 

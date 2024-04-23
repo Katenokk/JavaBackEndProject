@@ -248,7 +248,43 @@ public class UserService implements UserServiceInterface, UserDetailsService {
         saveVeterinarian((Veterinarian) veterinarian);
     }
 
-    //falta updateAdmin
+    public void partialUpdateAdmin(Long id, String name, String username, String password){
+        User admin = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Admin not found."));
+        if(admin instanceof Admin){
+            if(name != null){
+                admin.setName(name);
+            }
+            if(username != null){
+                admin.setUsername(username);
+            }
+            if(password != null){
+                admin.setPassword(password);
+            }
 
-    //dalta delete * 3
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid JSON. Expected Admin.");
+        }
+        saveAdmin((Admin) admin);
+    }
+
+    public void deleteOwner(Long id){
+        Owner owner = (Owner) userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Owner not found."));
+        userRepository.deleteById(id);
+    }
+
+    public void deleteVeterinarian(Long id){
+        Veterinarian vet = (Veterinarian) userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Veterinarian not found."));
+        userRepository.removeAssociationVeterinarianWithPet(vet);
+        userRepository.deleteById(id);
+    }
+
+    public void deleteAdmin(Long id){
+        Admin admin = (Admin) userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Admin not found."));
+        userRepository.deleteById(id);
+    }
+
 }

@@ -3,12 +3,15 @@ package com.pethealth.finalproject.security.controllers.impl;
 import com.pethealth.finalproject.model.Admin;
 import com.pethealth.finalproject.model.Owner;
 import com.pethealth.finalproject.model.Veterinarian;
+import com.pethealth.finalproject.security.dtos.AdminDTO;
 import com.pethealth.finalproject.security.dtos.OwnerDTO;
 import com.pethealth.finalproject.security.dtos.VeterinarianDTO;
 import com.pethealth.finalproject.security.models.User;
 import com.pethealth.finalproject.security.services.interfaces.UserServiceInterface;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -97,5 +100,33 @@ public class UserController {
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     public void partialUpdateVeterinarian(@PathVariable Long id, @RequestBody VeterinarianDTO veterinarianDTO) {
         userService.partialUpdateVeterinarian(id, veterinarianDTO.getName(), veterinarianDTO.getUsername(), veterinarianDTO.getPassword(), veterinarianDTO.getEmail());
+    }
+
+    @PatchMapping("/admins/{id}")
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    public void partialUpdateAdmin(@PathVariable Long id, @RequestBody AdminDTO adminDTO) {
+        userService.partialUpdateAdmin(id, adminDTO.getName(), adminDTO.getUsername(), adminDTO.getPassword());
+    }
+
+    //faltan los 3 delete!
+
+
+    @DeleteMapping("/owners/{id}")
+    public ResponseEntity<String> deleteOwnerById(@PathVariable(name="id") Long id){
+        userService.deleteOwner(id);
+        return ResponseEntity.ok("Owner deleted successfully");
+    }
+
+    @Transactional
+    @DeleteMapping("/veterinarians/{id}")
+    public ResponseEntity<String> deleteVeterinarianById(@PathVariable(name="id") Long id){
+        userService.deleteVeterinarian(id);
+        return ResponseEntity.ok("Veterinarian deleted successfully");
+    }
+
+    @DeleteMapping("/admins/{id}")
+    public ResponseEntity<String> deleteAdminById(@PathVariable(name="id") Long id){
+        userService.deleteAdmin(id);
+        return ResponseEntity.ok("Admin deleted successfully");
     }
 }
