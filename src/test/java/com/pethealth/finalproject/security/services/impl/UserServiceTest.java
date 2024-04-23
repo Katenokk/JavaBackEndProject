@@ -1,8 +1,7 @@
 package com.pethealth.finalproject.security.services.impl;
 
-import com.pethealth.finalproject.model.Admin;
-import com.pethealth.finalproject.model.Owner;
-import com.pethealth.finalproject.model.Veterinarian;
+import com.pethealth.finalproject.model.*;
+import com.pethealth.finalproject.repository.PetRepository;
 import com.pethealth.finalproject.security.models.Role;
 import com.pethealth.finalproject.security.models.User;
 import com.pethealth.finalproject.security.repositories.RoleRepository;
@@ -13,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,9 +20,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.Mockito.*;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -33,6 +35,9 @@ class UserServiceTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PetRepository petRepository;
 
 
     @Autowired
@@ -330,6 +335,68 @@ class UserServiceTest {
     }
 
     //falta probar excepciones de los updates
+
+    @Test
+    void deleteOwnerTest(){
+        Owner savedOwner = userRepository.save(newOwner);
+
+        userService.deleteOwner(savedOwner.getId());
+
+        Optional<User> deletedOwner =  userRepository.findById(savedOwner.getId());
+        assertFalse(deletedOwner.isPresent());
+    }
+
+    @Test
+    @Transactional
+    void deleteOwnerWithPetTest(){
+        Owner savedOwner = userRepository.save(newOwner);
+        Cat newCat = new Cat("Níobe", LocalDate.of(2010,06,01), true, List.of(CatDiseases.IBD), CatBreeds.MIXED, null, null);
+
+        savedOwner.addPet(newCat);
+        petRepository.save(newCat);
+
+        userService.deleteOwner(savedOwner.getId());
+
+        Optional<User> deletedOwner =  userRepository.findById(savedOwner.getId());
+        assertFalse(deletedOwner.isPresent());
+        Optional<Cat> existingCat = petRepository.findCatById(newCat.getId());
+        assertFalse(existingCat.isPresent());
+    }
+
+    @Test
+    void deleteVeterinarianWithPetTest(){
+        Veterinarian savedVet = userRepository.save(newVet);
+        Cat newCat = new Cat("Níobe", LocalDate.of(2010,06,01), true, List.of(CatDiseases.IBD), CatBreeds.MIXED, null, null);
+
+        savedVet.addPet(newCat);
+        petRepository.save(newCat);
+        userService.deleteVeterinarian(savedVet.getId());
+
+        Optional<User> deletedVet =  userRepository.findById(savedVet.getId());
+        assertFalse(deletedVet.isPresent());
+        Optional<Cat> existingCat = petRepository.findCatById(newCat.getId());
+        assertTrue(existingCat.isPresent());
+    }
+
+    @Test
+    void deleteVeterinarianWithNoPetTest(){
+        Veterinarian savedVet = userRepository.save(newVet);
+
+        userService.deleteVeterinarian(savedVet.getId());
+
+        Optional<User> deletedVet =  userRepository.findById(savedVet.getId());
+        assertFalse(deletedVet.isPresent());
+    }
+
+    @Test
+    void deleteAdminTest(){
+        Admin savedAdmin = userRepository.save(newAdmin);
+
+        userService.deleteAdmin(savedAdmin.getId());
+
+        Optional<User> deletedAdmin =  userRepository.findById(savedAdmin.getId());
+        assertFalse(deletedAdmin.isPresent());
+    }
 
 
 }
