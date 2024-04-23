@@ -18,6 +18,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
@@ -268,16 +269,20 @@ public class UserService implements UserServiceInterface, UserDetailsService {
         saveAdmin((Admin) admin);
     }
 
+    @Transactional
     public void deleteOwner(Long id){
         Owner owner = (Owner) userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Owner not found."));
         userRepository.deleteById(id);
     }
 
+    @Transactional
     public void deleteVeterinarian(Long id){
         Veterinarian vet = (Veterinarian) userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Veterinarian not found."));
-        userRepository.removeAssociationVeterinarianWithPet(vet);
+        if (!vet.getTreatedPets().isEmpty()) {
+            userRepository.removeAssociationVeterinarianWithPet(vet);
+        }
         userRepository.deleteById(id);
     }
 
