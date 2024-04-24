@@ -95,6 +95,11 @@ public class UserService implements UserServiceInterface, UserDetailsService {
         if (owner == null) {
             throw new IllegalArgumentException("Owner object cannot be null");
         }
+        //el rol por defecto de owner
+//        if (owner.getRoles() == null || owner.getRoles().isEmpty()) {
+//            // Assign the default role to the user
+//            addRoleToUser(owner.getUsername(), "ROLE_USER");
+//        }
         log.info("Saving new owner {} to the database", owner.getName());
         owner.setPassword(passwordEncoder.encode(owner.getPassword()));
         return userRepository.save(owner);

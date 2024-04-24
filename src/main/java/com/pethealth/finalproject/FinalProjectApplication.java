@@ -45,11 +45,11 @@ public class FinalProjectApplication {
 			userService.saveUser(new Veterinarian("Laia Fernández", "laia", "1234", new ArrayList<>(), "laia@pethealth.com"));
 			userService.saveUser(new Admin("Super Admin", "admin", "1234", new ArrayList<>()));
 //
-//			userService.addRoleToUser("katia", "ROLE_USER");
-//			userService.addRoleToUser("katia", "ROLE_ADMIN");
-//			userService.addRoleToUser("laia", "ROLE_VET");
-//			userService.addRoleToUser("laia", "ROLE_USER");
-//			userService.addRoleToUser("admin", "ROLE_ADMIN");
+			userService.addRoleToUser("katia", "ROLE_USER");
+			userService.addRoleToUser("katia", "ROLE_ADMIN");
+			userService.addRoleToUser("laia", "ROLE_VET");
+			userService.addRoleToUser("laia", "ROLE_USER");
+			userService.addRoleToUser("admin", "ROLE_ADMIN");
 		};
 	}
 

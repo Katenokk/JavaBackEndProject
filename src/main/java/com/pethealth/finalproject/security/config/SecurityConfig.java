@@ -77,15 +77,18 @@ public class SecurityConfig {
         // set the session creation policy to stateless
         http.sessionManagement().sessionCreationPolicy(STATELESS);
         // set up authorization for different request matchers and user roles
-//        http.authorizeHttpRequests((requests) -> requests
-//                .requestMatchers("/api/login/**").permitAll()
-//                .requestMatchers(GET, "/api/users").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
-//                .requestMatchers(GET, "/api/veterinarians").hasAnyAuthority("ROLE_VET")
-//                .requestMatchers(POST, "/api/users").hasAnyAuthority("ROLE_ADMIN")
-//                .anyRequest().authenticated());
+        http.authorizeHttpRequests((requests) -> requests
+                .requestMatchers("/api/login/**").permitAll()
+                .requestMatchers(GET, "/api/users").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                .requestMatchers(GET, "/api/veterinarians").hasAnyAuthority("ROLE_VET")
+                .requestMatchers(POST, "/api/users").hasAnyAuthority("ROLE_ADMIN")
+                .requestMatchers(POST, "/api/owners").hasAnyAuthority("ROLE_ADMIN")
+                .requestMatchers(POST, "/api/veterinarians").hasAnyAuthority("ROLE_ADMIN")
+                .requestMatchers(POST, "/api/admins").hasAnyAuthority("ROLE_ADMIN")
+                .anyRequest().authenticated());
 
         //disable secturity during development (uncomment lines 80-85, remove line 88):
-        http.authorizeRequests().anyRequest().permitAll();
+//        http.authorizeRequests().anyRequest().permitAll();
 
         // add the custom authentication filter to the http security object
         http.addFilter(customAuthenticationFilter);
