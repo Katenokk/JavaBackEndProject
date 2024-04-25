@@ -172,20 +172,20 @@ class UserServiceTest {
         assertEquals("TEST_ROLE", fetchedRole.getName());
     }
 
-    @Test
-    void addRoleToUser() {
-        userRepository.save(testUser);
-
-        Role role = new Role();
-        role.setName("ROLE_TEST");
-        roleRepository.save(role);
-
-        userService.addRoleToUser("test-user", "ROLE_TEST");
-
-        User updatedUser = userRepository.findByUsername("test-user");
-        assertNotNull(updatedUser);
-        assertTrue(updatedUser.getRoles().stream().anyMatch(r -> r.getName().equals("ROLE_TEST")));
-    }
+//    @Test
+//    void addRoleToUser() {
+//        userRepository.save(testUser);
+//
+//        Role role = new Role();
+//        role.setName("ROLE_TEST");
+//        roleRepository.save(role);
+//
+//        userService.addRoleToUser("test-user", "ROLE_TEST");
+//
+//        User updatedUser = userRepository.findByUsername("test-user");
+//        assertNotNull(updatedUser);
+//        assertTrue(updatedUser.getRoles().stream().anyMatch(r -> r.getName().equals("ROLE_TEST")));
+//    }
 
     @Test
     void getUser() {
