@@ -76,4 +76,6 @@ public interface UserServiceInterface {
     void deleteVeterinarian(Long id);
 
     void deleteAdmin(Long id);
+
+
 }

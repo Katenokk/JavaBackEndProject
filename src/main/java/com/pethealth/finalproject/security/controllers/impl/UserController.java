@@ -40,6 +40,14 @@ public class UserController {
         return userService.getUsers();
     }
 
+    @GetMapping("/users/username")
+    @ResponseStatus(HttpStatus.OK)
+    public User finUserByUsername(@RequestParam String username) {
+        return userService.getUser(username);
+    }
+
+
+
     /**
      * Save a new user
      *
@@ -54,7 +62,7 @@ public class UserController {
     @PostMapping("/owners")
     @ResponseStatus(HttpStatus.CREATED)
     public void saveOwner(@RequestBody Owner owner) {
-        userService.saveUser(owner);
+        userService.saveOwner(owner);
     }
 
     @PostMapping("/admins")
@@ -67,6 +75,38 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     public void saveVeterinarian(@RequestBody Veterinarian veterinarian) {
         userService.saveUser(veterinarian);
+    }
+
+    //registro de usuarios:
+
+    @PostMapping("/register/owners")
+    public ResponseEntity<String> registerOwner(@RequestBody Owner owner) {
+        try {
+            userService.saveOwner(owner);
+            return ResponseEntity.ok("Owner registered successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error registering owner: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/register/veterinarians")
+    public ResponseEntity<String> registerVeterinarian(@RequestBody Veterinarian veterinarian) {
+        try {
+            userService.saveVeterinarian(veterinarian);
+            return ResponseEntity.ok("Veterinarian registered successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error registering veterinarian: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/register/admins")
+    public ResponseEntity<String> registerAdmin(@RequestBody Admin admin) {
+        try {
+            userService.saveAdmin(admin);
+            return ResponseEntity.ok("Admin registered successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error registering admin: " + e.getMessage());
+        }
     }
 
 
@@ -108,7 +148,7 @@ public class UserController {
         userService.partialUpdateAdmin(id, adminDTO.getName(), adminDTO.getUsername(), adminDTO.getPassword());
     }
 
-    //faltan los 3 delete!
+
 
 
     @DeleteMapping("/owners/{id}")

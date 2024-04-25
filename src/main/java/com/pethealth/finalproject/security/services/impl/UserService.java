@@ -24,6 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -59,12 +60,14 @@ public class UserService implements UserServiceInterface, UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         // Retrieve user with the given username
-        User user = userRepository.findByUsername(username);
+//        User user = userRepository.findByUsername(username);
+        Optional<User> userOptional = userRepository.findByUsername(username);
         // Check if user exists
-        if (user == null) {
+        if (userOptional.isEmpty()) {
             log.error("User not found in the database");
             throw new UsernameNotFoundException("User not found in the database");
         } else {
+            User user = userOptional.get();
             log.info("User found in the database: {}", username);
             // Create a collection of SimpleGrantedAuthority objects from the user's roles
             Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
@@ -95,29 +98,60 @@ public class UserService implements UserServiceInterface, UserDetailsService {
         if (owner == null) {
             throw new IllegalArgumentException("Owner object cannot be null");
         }
-        //el rol por defecto de owner
-//        if (owner.getRoles() == null || owner.getRoles().isEmpty()) {
-//            // Assign the default role to the user
-//            addRoleToUser(owner.getUsername(), "ROLE_USER");
-//        }
+        if(userRepository.findByUsername(owner.getUsername()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Username already exists");
+        }
+        if (userRepository.findOwnerByEmail(owner.getEmail()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Email already exists");
+        }
         log.info("Saving new owner {} to the database", owner.getName());
         owner.setPassword(passwordEncoder.encode(owner.getPassword()));
-        return userRepository.save(owner);
+        owner = userRepository.save(owner);
+        //el rol por defecto de owner
+        if (owner.getRoles() == null || owner.getRoles().isEmpty()) {
+            addRoleToUser(owner.getUsername(), "ROLE_USER");
+        }
+        return owner;
     }
 
     @Override
     public Veterinarian saveVeterinarian(Veterinarian veterinarian) {
+        if (veterinarian == null) {
+            throw new IllegalArgumentException("Veterinarian object cannot be null");
+        }
+        if(userRepository.findByUsername(veterinarian.getUsername()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Username already exists");
+        }
+        if (userRepository.findVetByEmail(veterinarian.getEmail()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Email already exists");
+        }
+
+
         log.info("Saving new veterinarian {} to the database", veterinarian.getName());
         veterinarian.setPassword(passwordEncoder.encode(veterinarian.getPassword()));
-        return userRepository.save(veterinarian);
+        veterinarian = userRepository.save(veterinarian);
+        //el rol por defecto de veterinario
+        if (veterinarian.getRoles() == null || veterinarian.getRoles().isEmpty()) {
+            addRoleToUser(veterinarian.getUsername(), "ROLE_VET");
+        }
+        return veterinarian;
     }
 
     @Override
     public Admin saveAdmin(Admin admin) {
+        if (admin == null) {
+            throw new IllegalArgumentException("Admin object cannot be null");
+        }
         log.info("Saving new admin {} to the database", admin.getName());
         // Encode the user's password for security before saving
         admin.setPassword(passwordEncoder.encode(admin.getPassword()));
-        return userRepository.save(admin);
+        admin = userRepository.save(admin);
+        if (admin.getRoles() == null || admin.getRoles().isEmpty()) {
+            addRoleToUser(admin.getUsername(), "ROLE_VET");
+            addRoleToUser(admin.getUsername(), "ROLE_USER");
+            addRoleToUser(admin.getUsername(), "ROLE_ADMIN");
+        }
+        return admin;
     }
 
     /**
@@ -143,7 +177,7 @@ public class UserService implements UserServiceInterface, UserDetailsService {
         log.info("Adding role {} to user {}", roleName, username);
 
         // Retrieve the user and role objects from the repository
-        User user = userRepository.findByUsername(username);
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Username not found"));
         Role role = roleRepository.findByName(roleName);
 
         // Add the role to the user's role collection
@@ -162,7 +196,7 @@ public class UserService implements UserServiceInterface, UserDetailsService {
     @Override
     public User getUser(String username) {
         log.info("Fetching user {}", username);
-        return userRepository.findByUsername(username);
+        return userRepository.findByUsername(username).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Username not found"));
     }
 
     /**

@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -16,6 +17,8 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+
 
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
@@ -79,12 +82,13 @@ public class SecurityConfig {
         // set up authorization for different request matchers and user roles
         http.authorizeHttpRequests((requests) -> requests
                 .requestMatchers("/api/login/**").permitAll()
-                .requestMatchers(GET, "/api/users").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
-                .requestMatchers(GET, "/api/veterinarians").hasAnyAuthority("ROLE_VET")
+                .requestMatchers("/api/register/**").permitAll()
+                .requestMatchers(GET, "/api/users/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(POST, "/api/users").hasAnyAuthority("ROLE_ADMIN")
                 .requestMatchers(POST, "/api/owners").hasAnyAuthority("ROLE_ADMIN")
                 .requestMatchers(POST, "/api/veterinarians").hasAnyAuthority("ROLE_ADMIN")
                 .requestMatchers(POST, "/api/admins").hasAnyAuthority("ROLE_ADMIN")
+                .requestMatchers("/error/**").permitAll()
                 .anyRequest().authenticated());
 
         //disable secturity during development (uncomment lines 80-85, remove line 88):

@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 /**
  * The UserRepository interface extends JpaRepository to allow for CRUD operations
  * on User entities in the database.
@@ -21,7 +23,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @param username The username of the User entity to search for
      * @return The found User entity or null if not found
      */
-    User findByUsername(String username);
+    Optional<User> findByUsername(String username);
 
 //    @Modifying
 //    @Query("UPDATE Patient p SET p.employee = null WHERE p.employee = :employee")
@@ -31,4 +33,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("UPDATE Pet p SET p.veterinarian = null WHERE p.veterinarian = :veterinarian")
     void removeAssociationVeterinarianWithPet(@Param("veterinarian") Veterinarian veterinarian);
 
+    Optional<Owner> findOwnerByEmail(String email);
+
+    Optional<Veterinarian> findVetByEmail(String email);
 }
