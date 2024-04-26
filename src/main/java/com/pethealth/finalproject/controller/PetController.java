@@ -34,60 +34,38 @@ public class PetController {
     }
 
 
-
-//no funciona bien la deserializacion
-
     @PostMapping("/pets")
     public ResponseEntity<Pet> addNewPet(@RequestBody PetDTO petDTO) {
-//        if ("cat".equals(petDTO.getDiscriminator())) {
-//            System.out.println(petDTO.getDiscriminator());
-//            return ResponseEntity.ok(petService.addNewPet2((CatDTO) petDTO));
-//        } else if ("dog".equals(petDTO.getDiscriminator())) {
-//            return ResponseEntity.ok(petService.addNewPet2((DogDTO) petDTO));
-//        } else {
-//            throw new IllegalArgumentException("Invalid pet type.");
-//        }
-        //de esta forma no se puede hacer el cast
-        return ResponseEntity.ok(petService.addNewPet2(petDTO));
+        return ResponseEntity.ok(petService.addNewPet(petDTO));
     }
 
 
-
-
-//    @PostMapping("/pets/cats")
-//    @ResponseStatus(HttpStatus.CREATED)
-//    public Cat addNewPet(@RequestBody @Valid Cat cat) {
-//        return (Cat) petService.addNewPet(cat);
+//    @PutMapping("pets/cats/{id}")
+//    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+//    public void updatePet(@PathVariable Long id, @RequestBody Cat cat){
+//        petService.updatePet(id, cat);
 //    }
 //
-//    @PostMapping("pets/dogs")
-//    @ResponseStatus(HttpStatus.CREATED)
-//    public Dog addNewPet(@RequestBody @Valid Dog dog) {
-//        return (Dog) petService.addNewPet(dog);
+//    @PutMapping("pets/dogs/{id}")
+//    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+//    public void updatePet(@PathVariable Long id, @RequestBody Dog dog){
+//        petService.updatePet(id, dog);
 //    }
 
-
-    @PutMapping("pets/cats/{id}")
-    @ResponseStatus(value = HttpStatus.NO_CONTENT)
-    public void updatePet(@PathVariable Long id, @RequestBody Cat cat){
-        petService.updatePet(id, cat);
-    }
-
-    @PutMapping("pets/dogs/{id}")
-    @ResponseStatus(value = HttpStatus.NO_CONTENT)
-    public void updatePet(@PathVariable Long id, @RequestBody Dog dog){
-        petService.updatePet(id, dog);
-    }
-
-    //put usando un solo endpoint, probar
     @PutMapping("pets/{id}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     public void updatePets(@PathVariable Long id, @RequestBody PetDTO petDTO){
-        petService.updatePetnuevo(id, petDTO);
+        petService.updatePet(id, petDTO);
+    }
+
+    @PatchMapping("pets/{id}")
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    public void patchPets(@PathVariable Long id, @RequestBody PetDTO petDTO){
+        petService.partialUpdate(id, petDTO);
     }
 
 
-//falta patch, delete
+//falta  delete
     //findByalgo breed, disease
 
 }

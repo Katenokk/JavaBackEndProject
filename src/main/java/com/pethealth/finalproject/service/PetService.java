@@ -7,6 +7,7 @@ import com.pethealth.finalproject.security.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -23,58 +24,8 @@ public class PetService {
     public Pet findPetById(Long id){
         return petRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found"));
     }
-    //para el post diferente para gatos y perros:
 
-//    public Pet addNewPet(Pet pet) {
-//        if (pet instanceof Cat) {
-//            return addNewCat((Cat) pet);
-//        } else if (pet instanceof Dog) {
-//            return addNewDog((Dog) pet);
-//        } else {
-//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid pet type. Only Cat and Dog are allowed.");
-//        }
-//    }
-
-
-//    private Cat addNewCat(Cat cat) {
-//        Cat existingCat = petRepository.findCatById(cat.getId()).orElse(null);
-//        if (existingCat != null) {
-//        throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Cat already exists.");
-//    }
-//        // Retrieve the owner ID from the cat object
-//        Long ownerId = null;
-//        if (cat.getOwner() != null) {
-//            ownerId = cat.getOwner().getId();
-//        }
-//
-//        Long veterinarianId = null;
-//        if (cat.getVeterinarian() != null) {
-//            veterinarianId = cat.getVeterinarian().getId();
-//        }
-//
-//        if (ownerId != null) {
-//            System.out.println("this is the owner id" + ownerId);
-//            // Retrieve the owner from the database based on the owner ID
-//            User owner = userRepository.findById(ownerId).orElse(null);
-//            if (owner == null) {
-//                throw new IllegalArgumentException("Owner with ID " + ownerId + " not found.");
-//            }
-//            cat.setOwner((Owner) owner);
-//        }
-//
-//        if (veterinarianId != null) {
-//            System.out.println("this is the vet id" + veterinarianId);
-//            // Retrieve the vet from the database based on the owner ID
-//            User veterinarian = userRepository.findById(veterinarianId).orElse(null);
-//            if (veterinarian == null) {
-//                throw new IllegalArgumentException("Veterinarian with ID " + veterinarianId + " not found.");
-//            }
-//            cat.setVeterinarian((Veterinarian) veterinarian);
-//        }
-//        return petRepository.save(cat);
-//    }
-
-    public Pet addNewPet2(PetDTO petDTO) {
+    public Pet addNewPet(PetDTO petDTO) {
         Pet pet;
         //map the dto to the corresponding entity
         if ((petDTO instanceof CatDTO)) {
@@ -104,7 +55,7 @@ public class PetService {
     }
 
 
-    private Cat mapToCatEntity(CatDTO catDTO) {
+    Cat mapToCatEntity(CatDTO catDTO) {
         Cat cat = new Cat();
         cat.setName(catDTO.getName());
         cat.setDateOfBirth(catDTO.getDateOfBirth());
@@ -154,14 +105,6 @@ public class PetService {
     }
 
 
-//    private Dog addNewDog(Dog dog) {
-//        // Check if the dog with the given ID already exists
-//        if (dog.getId() != null && petRepository.existsById(dog.getId())) {
-//            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Dog already exists.");
-//        }
-//        return petRepository.save(dog);
-//    }
-
 
     public List<Pet> findAllPets(){
         List<Pet> pets = petRepository.findAll();
@@ -172,30 +115,29 @@ public class PetService {
         }
     }
 
-    public void updatePet(Long id, Pet pet){
-        if (pet instanceof Cat) {
-            updateCat(id, (Cat) pet);
-        } else if (pet instanceof Dog) {
-            updateDog(id, (Dog) pet);
-        } else {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid pet type. Only Cat and Dog are allowed.");
-        }
-    }
+//    public void updatePet(Long id, Pet pet){
+//        if (pet instanceof Cat) {
+//            updateCat(id, (Cat) pet);
+//        } else if (pet instanceof Dog) {
+//            updateDog(id, (Dog) pet);
+//        } else {
+//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid pet type. Only Cat and Dog are allowed.");
+//        }
+//    }
 
-    private void updateCat(Long id, Cat cat){
-        Cat existingCat = petRepository.findCatById(id).orElseThrow( ()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cat not found."));
-        cat.setId(id);
-        petRepository.save(cat);
-    }
+//    private void updateCat(Long id, Cat cat){
+//        Cat existingCat = petRepository.findCatById(id).orElseThrow( ()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cat not found."));
+//        cat.setId(id);
+//        petRepository.save(cat);
+//    }
+//
+//    private void updateDog(Long id, Dog dog){
+//        Dog existingDog = petRepository.findDogById(id).orElseThrow( ()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Dog not found."));
+//        dog.setId(id);
+//        petRepository.save(dog);
+//    }
 
-    private void updateDog(Long id, Dog dog){
-        Dog existingDog = petRepository.findDogById(id).orElseThrow( ()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Dog not found."));
-        dog.setId(id);
-        petRepository.save(dog);
-    }
-
-    //para usar el mismo endpoint con petdto
-    public void updatePetnuevo(Long id, PetDTO petDTO) {
+    public void updatePet(Long id, PetDTO petDTO) {
         Pet existingPet = petRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found."));
 
@@ -208,10 +150,67 @@ public class PetService {
             throw new IllegalArgumentException("Invalid pet type.");
         }
 
-        // Ensure the ID of the updated pet matches the ID in the request
         updatedPet.setId(id);
 
-        // Save the updated pet
         petRepository.save(updatedPet);
     }
+
+    public void partialUpdate(Long id, PetDTO petDTO){
+        Pet existingPet = petRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found."));
+        Pet patchedPet;
+        if (petDTO instanceof CatDTO) {
+            patchedPet = patchCatEntity((CatDTO) petDTO, (Cat) existingPet);
+        } else if (petDTO instanceof DogDTO) {
+            patchedPet = patchDogEntity((DogDTO) petDTO, (Dog) existingPet);
+        } else {
+            throw new IllegalArgumentException("Invalid pet type.");
+        }
+
+        petRepository.save(patchedPet);
+    }
+
+    private Cat patchCatEntity(CatDTO catDTO, Cat existingCat) {
+        if (catDTO.getName() != null) {
+            existingCat.setName(catDTO.getName());
+        }
+        if (catDTO.getDateOfBirth() != null){
+            existingCat.setDateOfBirth(catDTO.getDateOfBirth());
+        }
+        existingCat.setSpayedOrNeutered(catDTO.isSpayedOrNeutered());
+        if (catDTO.getCatBreed() != null){
+            existingCat.setCatBreed(catDTO.getCatBreed());
+        }
+        if (catDTO.getChronicDiseases() != null) {
+            existingCat.setChronicDiseases(catDTO.getChronicDiseases());
+        }
+        return existingCat;
+    }
+
+    private Dog patchDogEntity(DogDTO dogDTO, Dog existingDog) {
+        if (dogDTO.getName() != null) {
+            existingDog.setName(dogDTO.getName());
+        }
+        if (dogDTO.getDateOfBirth() != null){
+            existingDog.setDateOfBirth(dogDTO.getDateOfBirth());
+        }
+        existingDog.setSpayedOrNeutered(dogDTO.isSpayedOrNeutered());
+        if (dogDTO.getDogBreed() != null){
+            existingDog.setDogBreed(dogDTO.getDogBreed());
+        }
+        if (dogDTO.getChronicDiseases() != null) {
+            existingDog.setChronicDiseases(dogDTO.getChronicDiseases());
+        }
+
+        return existingDog;
+    }
+
+    //revisar!! borrar de owner y vet
+    @Transactional
+    public void deletePet(Long id){
+        Pet pet = petRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found."));
+        petRepository.deleteById(id);
+    }
+
 }
