@@ -1,5 +1,7 @@
 package com.pethealth.finalproject.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pethealth.finalproject.model.*;
 import com.pethealth.finalproject.repository.PetRepository;
 import com.pethealth.finalproject.security.models.User;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -111,11 +114,24 @@ public class PetService {
 
 
 
-    public List<Pet> findAllPets(){
+    public List<Pet> findAllPets()  {
         List<Pet> pets = petRepository.findAll();
+
         if(pets.isEmpty()){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No pets found.");
         } else {
+            pets.forEach(pet-> {
+                    Hibernate.initialize(pet);
+                }
+            );
+            ObjectMapper mapper = new ObjectMapper();
+            try{
+                String jsonData = mapper.writeValueAsString(pets);
+                System.out.println(jsonData);
+            } catch (JsonProcessingException e){
+                e.printStackTrace();
+            }
+
             return pets;
         }
     }
