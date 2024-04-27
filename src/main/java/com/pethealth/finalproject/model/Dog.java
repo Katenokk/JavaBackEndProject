@@ -1,5 +1,6 @@
 package com.pethealth.finalproject.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -22,6 +23,7 @@ public class Dog extends Pet{
         this.chronicDiseases = chronicDiseases;
         this.dogBreed = dogBreed;
     }
+
     @NotNull(message="chronic disease is required")
     @NotEmpty(message = "At least one chronic disease is required")
     @ElementCollection(targetClass = DogDiseases.class)

@@ -1,9 +1,6 @@
 package com.pethealth.finalproject.model;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -49,14 +46,16 @@ public abstract class Pet {
     @NotNull(message = "You must select is spayed or neutered, yes/no")
     private boolean isSpayedOrNeutered;
 
-//    @JsonManagedReference
-    @ManyToOne(fetch = FetchType.LAZY)
+//    @JsonManagedReference //quitar ultima anotacion y eager
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "owner_id", referencedColumnName  = "id")
+    @JsonIdentityReference(alwaysAsId = true)
     private Owner owner;
 
-//    @JsonManagedReference
-    @ManyToOne(fetch = FetchType.LAZY)
+//    quitar jsoninclude
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "veterinarian_id", referencedColumnName = "id")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Veterinarian veterinarian;
 
     @Override

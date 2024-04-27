@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.Hibernate;
 import org.hibernate.annotations.DynamicUpdate;
 
 import java.util.*;
@@ -27,10 +28,14 @@ import java.util.*;
 public class Owner extends User {
     @EqualsAndHashCode.Include
     private String email;
-
-
-    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+//quitar eager
+    @OneToMany(mappedBy = "owner", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Pet> ownedPets;
+//quitar
+    @PostLoad
+    private void initPets(){
+        Hibernate.initialize(this.ownedPets);
+    }
 
     public Owner(String name, String username, String password, Collection<Role> roles, String email) {
         super(name, username, password, roles);

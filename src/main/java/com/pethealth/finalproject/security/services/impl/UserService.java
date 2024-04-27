@@ -260,8 +260,13 @@ public class UserService implements UserServiceInterface, UserDetailsService {
             petReadDTO.setDateOfBirth(pet.getDateOfBirth());
             petReadDTO.setOwnerId(pet.getOwner().getId());
             petReadDTO.setOwnerName(pet.getOwner().getName());
-            petReadDTO.setVeterinarianId(pet.getVeterinarian().getId());
-            petReadDTO.setVeterinarianName(pet.getVeterinarian().getName());
+            if(pet.getVeterinarian() != null) {
+                petReadDTO.setVeterinarianId(pet.getVeterinarian().getId());
+                petReadDTO.setVeterinarianName(pet.getVeterinarian().getName());
+            } else {
+                petReadDTO.setVeterinarianId(null);
+                petReadDTO.setVeterinarianName(null);
+            }
             petReadDTOs.add(petReadDTO);
         }
         return petReadDTOs;
