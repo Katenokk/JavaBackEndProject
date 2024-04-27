@@ -3,6 +3,7 @@ package com.pethealth.finalproject.security.services.interfaces;
 import com.pethealth.finalproject.model.Admin;
 import com.pethealth.finalproject.model.Owner;
 import com.pethealth.finalproject.model.Veterinarian;
+import com.pethealth.finalproject.security.dtos.UserDTO;
 import com.pethealth.finalproject.security.models.Role;
 import com.pethealth.finalproject.security.models.User;
 
@@ -50,7 +51,9 @@ public interface UserServiceInterface {
      *
      * @return a List of all User entities.
      */
-    List<User> getUsers();
+//    List<User> getUsers();
+
+    List<UserDTO> getUsers();
 
 
     Owner saveOwner(Owner owner);

@@ -2,10 +2,12 @@ package com.pethealth.finalproject.security.services.impl;
 
 import com.pethealth.finalproject.model.*;
 import com.pethealth.finalproject.repository.PetRepository;
+import com.pethealth.finalproject.security.dtos.UserDTO;
 import com.pethealth.finalproject.security.models.Role;
 import com.pethealth.finalproject.security.models.User;
 import com.pethealth.finalproject.security.repositories.RoleRepository;
 import com.pethealth.finalproject.security.repositories.UserRepository;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,6 +48,8 @@ class UserServiceTest {
 
     @Autowired
     private UserService userService;
+
+
 
 
     @Autowired
@@ -197,19 +201,15 @@ class UserServiceTest {
 
     @Test
     void getUsers() {
-        User user1 = new User();
-        user1.setUsername("user1");
-        userRepository.save(user1);
-
-        User user2 = new User();
-        user2.setUsername("user2");
-        userRepository.save(user2);
-        List<User> userList = userService.getUsers();
+        userRepository.deleteAll();
+        userRepository.save(newOwner);
+        userRepository.save(newVet);
+        List<UserDTO> userList = userService.getUsers();
 
         assertNotNull(userList);
         assertEquals(2, userList.size());
-        assertEquals("user1", userList.get(0).getUsername());
-        assertEquals("user2", userList.get(1).getUsername());
+        assertEquals("Pepe", userList.get(0).getName());
+        assertEquals("Oriol", userList.get(1).getName());
     }
 
     @Test

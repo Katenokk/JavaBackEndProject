@@ -1,8 +1,14 @@
 package com.pethealth.finalproject.security.services.impl;
 
+import com.pethealth.finalproject.dtos.PetReadDTO;
 import com.pethealth.finalproject.model.Admin;
 import com.pethealth.finalproject.model.Owner;
+import com.pethealth.finalproject.model.Pet;
 import com.pethealth.finalproject.model.Veterinarian;
+import com.pethealth.finalproject.security.dtos.AdminDTO;
+import com.pethealth.finalproject.security.dtos.OwnerDTO;
+import com.pethealth.finalproject.security.dtos.UserDTO;
+import com.pethealth.finalproject.security.dtos.VeterinarianDTO;
 import com.pethealth.finalproject.security.models.Role;
 import com.pethealth.finalproject.security.models.User;
 import com.pethealth.finalproject.security.repositories.RoleRepository;
@@ -21,10 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -204,10 +207,64 @@ public class UserService implements UserServiceInterface, UserDetailsService {
      *
      * @return a list of all users
      */
+//    @Override
+//    public List<User> getUsers() {
+//        log.info("Fetching all users");
+//        return userRepository.findAll();
+//    }
+
+    @Transactional
     @Override
-    public List<User> getUsers() {
+    public List<UserDTO> getUsers() {
         log.info("Fetching all users");
-        return userRepository.findAll();
+        List<User> users = userRepository.findAll();
+        List<UserDTO> userDTOs = new ArrayList<>();
+
+        for (User user : users) {
+            if(user instanceof Owner){
+                Owner owner = (Owner) user;
+                OwnerDTO ownerDTO = new OwnerDTO();
+//                ownerDTO.setId(owner.getId());
+                ownerDTO.setName(owner.getName());
+                ownerDTO.setUsername(owner.getUsername());
+                ownerDTO.setEmail(owner.getEmail());
+                ownerDTO.setOwnedPets(toPetReadDTO(owner.getOwnedPets()));
+                userDTOs.add(ownerDTO);
+            } else if(user instanceof Veterinarian){
+                Veterinarian vet = (Veterinarian) user;
+                VeterinarianDTO vetDTO = new VeterinarianDTO();
+//                vetDTO.setId(vet.getId());
+                vetDTO.setName(vet.getName());
+                vetDTO.setUsername(vet.getUsername());
+                vetDTO.setEmail(vet.getEmail());
+                vetDTO.setTreatedPets(toPetReadDTO(vet.getTreatedPets()));
+                userDTOs.add(vetDTO);
+            } else if(user instanceof Admin){
+                Admin admin = (Admin) user;
+                AdminDTO adminDTO = new AdminDTO();
+//                adminDTO.setId(admin.getId());
+                adminDTO.setName(admin.getName());
+                adminDTO.setUsername(admin.getUsername());
+                userDTOs.add(adminDTO);
+            }
+        }
+        return userDTOs;
+    }
+
+    private List<PetReadDTO> toPetReadDTO(Set<Pet> pets) {
+        List<PetReadDTO> petReadDTOs = new ArrayList<>();
+        for (Pet pet : pets) {
+            PetReadDTO petReadDTO = new PetReadDTO();
+//            petReadDTO.setId(pet.getId());
+            petReadDTO.setName(pet.getName());
+            petReadDTO.setDateOfBirth(pet.getDateOfBirth());
+            petReadDTO.setOwnerId(pet.getOwner().getId());
+            petReadDTO.setOwnerName(pet.getOwner().getName());
+            petReadDTO.setVeterinarianId(pet.getVeterinarian().getId());
+            petReadDTO.setVeterinarianName(pet.getVeterinarian().getName());
+            petReadDTOs.add(petReadDTO);
+        }
+        return petReadDTOs;
     }
 
     public void updateOwner(Long id, Owner owner){
@@ -255,7 +312,8 @@ public class UserService implements UserServiceInterface, UserDetailsService {
                 owner.setUsername(username);
             }
             if(password != null){
-                owner.setPassword(password);
+                String encodedPassword = passwordEncoder.encode(password);
+                owner.setPassword(encodedPassword);
             }
             if(email != null){
                 ((Owner) owner).setEmail(email);
@@ -263,7 +321,15 @@ public class UserService implements UserServiceInterface, UserDetailsService {
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid JSON. Expected Owner.");
         }
-        saveOwner((Owner) owner);
+        updateOwnerInDB((Owner) owner);
+    }
+
+    //para poder actulizar cualquier campo y que no salte que el owner ya existe
+    public Owner updateOwnerInDB(Owner owner) {
+        if (owner == null) {
+            throw new IllegalArgumentException("Owner object cannot be null");
+        }
+        return userRepository.save(owner);
     }
 
     public void partialUpdateVeterinarian(Long id, String name, String username, String password, String email){
@@ -277,7 +343,8 @@ public class UserService implements UserServiceInterface, UserDetailsService {
                 veterinarian.setUsername(username);
             }
             if(password != null){
-                veterinarian.setPassword(password);
+                String encodedPassword = passwordEncoder.encode(password);
+                veterinarian.setPassword(encodedPassword);
             }
             if(email != null){
                 ((Veterinarian) veterinarian).setEmail(email);
@@ -285,7 +352,14 @@ public class UserService implements UserServiceInterface, UserDetailsService {
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid JSON. Expected Veterinarian.");
         }
-        saveVeterinarian((Veterinarian) veterinarian);
+        updateVeterinarianInDB((Veterinarian) veterinarian);
+    }
+
+    public Veterinarian updateVeterinarianInDB(Veterinarian veterinarian) {
+        if (veterinarian == null) {
+            throw new IllegalArgumentException("Veterinarian object cannot be null");
+        }
+        return userRepository.save(veterinarian);
     }
 
     public void partialUpdateAdmin(Long id, String name, String username, String password){
@@ -299,13 +373,21 @@ public class UserService implements UserServiceInterface, UserDetailsService {
                 admin.setUsername(username);
             }
             if(password != null){
-                admin.setPassword(password);
+                String encodedPassword = passwordEncoder.encode(password);
+                admin.setPassword(encodedPassword);
             }
 
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid JSON. Expected Admin.");
         }
-        saveAdmin((Admin) admin);
+        updateAdminInDB((Admin) admin);
+    }
+
+    public Admin updateAdminInDB(Admin admin) {
+        if (admin == null) {
+            throw new IllegalArgumentException("Admin object cannot be null");
+        }
+        return userRepository.save(admin);
     }
 
     @Transactional

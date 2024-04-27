@@ -64,8 +64,27 @@ public class PetController {
         petService.partialUpdate(id, petDTO);
     }
 
+    @DeleteMapping("pets/{id}")
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    public ResponseEntity<String> deletePet(@PathVariable Long id){
+        petService.deletePet(id);
+        return ResponseEntity.ok("Pet deleted successfully.");
+    }
 
-//falta  delete
+    @PatchMapping("/pets/veterinarians/{petId}/{vetId}")
+    public ResponseEntity<String> assignVeterinarianToPet(@PathVariable Long petId, @PathVariable Long vetId) {
+        petService.addVeterinarianToPet(petId, vetId);
+        return ResponseEntity.ok("Veterinarian assigned to pet successfully.");
+    }
+
+    @DeleteMapping("/pets/{petId}/veterinarians/{vetId}")
+    public ResponseEntity<String> removeVeterinarianFromPet(@PathVariable Long petId, @PathVariable Long vetId) {
+        petService.removeVeterinarianFromPet(petId, vetId);
+        return ResponseEntity.ok("Veterinarian removed from pet successfully.");
+    }
+
+
+
     //findByalgo breed, disease
 
 }
