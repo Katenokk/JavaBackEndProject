@@ -3,9 +3,7 @@ package com.pethealth.finalproject.security.controllers.impl;
 import com.pethealth.finalproject.model.Admin;
 import com.pethealth.finalproject.model.Owner;
 import com.pethealth.finalproject.model.Veterinarian;
-import com.pethealth.finalproject.security.dtos.AdminDTO;
-import com.pethealth.finalproject.security.dtos.OwnerDTO;
-import com.pethealth.finalproject.security.dtos.VeterinarianDTO;
+import com.pethealth.finalproject.security.dtos.*;
 import com.pethealth.finalproject.security.models.User;
 import com.pethealth.finalproject.security.services.interfaces.UserServiceInterface;
 import jakarta.transaction.Transactional;
@@ -34,9 +32,15 @@ public class UserController {
      *
      * @return list of all users
      */
+//    @GetMapping("/users")
+//    @ResponseStatus(HttpStatus.OK)
+//    public List<User> getUsers() {
+//        return userService.getUsers();
+//    }
+
     @GetMapping("/users")
     @ResponseStatus(HttpStatus.OK)
-    public List<User> getUsers() {
+    public List<UserDTO> getUsers() {
         return userService.getUsers();
     }
 
@@ -132,20 +136,20 @@ public class UserController {
 
     @PatchMapping("/owners/{id}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
-    public void partialUpdateOwner(@PathVariable Long id, @RequestBody OwnerDTO ownerDTO) {
-        userService.partialUpdateOwner(id, ownerDTO.getName(), ownerDTO.getUsername(), ownerDTO.getPassword(), ownerDTO.getEmail());
+    public void partialUpdateOwner(@PathVariable Long id, @RequestBody UserUpdateDTO userUpdateDTO) {
+        userService.partialUpdateOwner(id, userUpdateDTO.getName(), userUpdateDTO.getUsername(), userUpdateDTO.getPassword(), userUpdateDTO.getEmail());
     }
 
     @PatchMapping("/veterinarians/{id}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
-    public void partialUpdateVeterinarian(@PathVariable Long id, @RequestBody VeterinarianDTO veterinarianDTO) {
-        userService.partialUpdateVeterinarian(id, veterinarianDTO.getName(), veterinarianDTO.getUsername(), veterinarianDTO.getPassword(), veterinarianDTO.getEmail());
+    public void partialUpdateVeterinarian(@PathVariable Long id, @RequestBody UserUpdateDTO userUpdateDTO) {
+        userService.partialUpdateVeterinarian(id, userUpdateDTO.getName(), userUpdateDTO.getUsername(), userUpdateDTO.getPassword(), userUpdateDTO.getEmail());
     }
 
     @PatchMapping("/admins/{id}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
-    public void partialUpdateAdmin(@PathVariable Long id, @RequestBody AdminDTO adminDTO) {
-        userService.partialUpdateAdmin(id, adminDTO.getName(), adminDTO.getUsername(), adminDTO.getPassword());
+    public void partialUpdateAdmin(@PathVariable Long id, @RequestBody UserUpdateDTO userUpdateDTO) {
+        userService.partialUpdateAdmin(id, userUpdateDTO.getName(), userUpdateDTO.getUsername(),  userUpdateDTO.getPassword());
     }
 
 

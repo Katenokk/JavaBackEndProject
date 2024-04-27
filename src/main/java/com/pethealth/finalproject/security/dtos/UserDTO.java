@@ -7,10 +7,10 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class AdminDTO extends UserDTO {
-//    private String name;
-//
-//    private String username;
-//
+public class UserDTO {
+    private String name;
+    private String username;
 //    private String password;
+
+
 }

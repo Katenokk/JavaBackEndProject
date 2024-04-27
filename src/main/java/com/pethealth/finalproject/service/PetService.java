@@ -4,12 +4,15 @@ import com.pethealth.finalproject.model.*;
 import com.pethealth.finalproject.repository.PetRepository;
 import com.pethealth.finalproject.security.models.User;
 import com.pethealth.finalproject.security.repositories.UserRepository;
+import jakarta.persistence.EntityManager;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.HashSet;
 import java.util.List;
 
 @Service
@@ -21,6 +24,8 @@ public class PetService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private EntityManager entityManager;
     public Pet findPetById(Long id){
         return petRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found"));
     }
@@ -205,12 +210,66 @@ public class PetService {
         return existingDog;
     }
 
-    //revisar!! borrar de owner y vet
     @Transactional
     public void deletePet(Long id){
         Pet pet = petRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found."));
+
+            if (pet.getOwner() != null) {
+                pet.getOwner().getOwnedPets().remove(pet);
+            }
+            if (pet.getVeterinarian() != null) {
+                pet.getVeterinarian().getTreatedPets().remove(pet);
+            }
+
         petRepository.deleteById(id);
     }
 
+    //add and remove veterinarians from pets
+    @Transactional
+    public Veterinarian addVeterinarianToPet(Long petId, Long vetId) {
+        Pet pet = petRepository.findById(petId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found."));
+        Veterinarian veterinarian = (Veterinarian) userRepository.findById(vetId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Veterinarian not found."));
+
+        pet.setVeterinarian(veterinarian);
+        if(veterinarian.getTreatedPets() == null){
+            veterinarian.setTreatedPets(new HashSet<>());
+        }
+        veterinarian.getTreatedPets().add(pet);
+
+        userRepository.save(veterinarian);
+        petRepository.save(pet);
+
+        return userRepository.findById(vetId).map(user -> {
+            Veterinarian vet = (Veterinarian) user;
+            vet.getTreatedPets().size();
+            return vet;
+        }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Veterinarian not found."));
+    }
+
+    //helper para poder sacar el pet con el veterinario asignado
+    @Transactional
+    public Pet getPetWithInitializedVeterinarian(Long petId) {
+        Pet pet = petRepository.findById(petId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found."));
+        Hibernate.initialize(pet.getVeterinarian());
+        if(pet.getVeterinarian() != null) {
+            Hibernate.initialize(pet.getVeterinarian().getTreatedPets());
+        }
+        return pet;
+    }
+
+    @Transactional
+    public Pet removeVeterinarianFromPet(Long petId, Long vetId) {
+        Pet pet = petRepository.findById(petId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found."));
+        Veterinarian veterinarian = (Veterinarian) userRepository.findById(vetId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Veterinarian not found."));
+
+        veterinarian.getTreatedPets().remove(pet);
+        pet.setVeterinarian(null);
+        return pet;
+    }
 }
