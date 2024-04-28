@@ -145,6 +145,9 @@ public class UserService implements UserServiceInterface, UserDetailsService {
         if (admin == null) {
             throw new IllegalArgumentException("Admin object cannot be null");
         }
+        if(userRepository.findByUsername(admin.getUsername()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Username already exists");
+        }
         log.info("Saving new admin {} to the database", admin.getName());
         // Encode the user's password for security before saving
         admin.setPassword(passwordEncoder.encode(admin.getPassword()));
