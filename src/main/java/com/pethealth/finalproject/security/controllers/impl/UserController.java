@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
 
 import java.util.List;
 
@@ -88,8 +90,10 @@ public class UserController {
         try {
             userService.saveOwner(owner);
             return ResponseEntity.ok("Owner registered successfully");
+        } catch (ResponseStatusException e){
+            return ResponseEntity.status(e.getStatusCode().value()).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error registering owner: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error registering owner: " + e.getMessage());
         }
     }
 
@@ -98,6 +102,8 @@ public class UserController {
         try {
             userService.saveVeterinarian(veterinarian);
             return ResponseEntity.ok("Veterinarian registered successfully");
+        } catch (ResponseStatusException e){
+            return ResponseEntity.status(e.getStatusCode().value()).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error registering veterinarian: " + e.getMessage());
         }
@@ -108,6 +114,8 @@ public class UserController {
         try {
             userService.saveAdmin(admin);
             return ResponseEntity.ok("Admin registered successfully");
+        } catch (ResponseStatusException e){
+            return ResponseEntity.status(e.getStatusCode().value()).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error registering admin: " + e.getMessage());
         }
