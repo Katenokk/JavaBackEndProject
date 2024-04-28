@@ -77,7 +77,7 @@ public class PetController {
         return ResponseEntity.ok("Veterinarian assigned to pet successfully.");
     }
 
-    @DeleteMapping("/pets/{petId}/veterinarians/{vetId}")
+    @DeleteMapping("/pets/veterinarians/{petId}/{vetId}")
     public ResponseEntity<String> removeVeterinarianFromPet(@PathVariable Long petId, @PathVariable Long vetId) {
         petService.removeVeterinarianFromPet(petId, vetId);
         return ResponseEntity.ok("Veterinarian removed from pet successfully.");

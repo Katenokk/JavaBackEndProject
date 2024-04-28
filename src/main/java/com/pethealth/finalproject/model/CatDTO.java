@@ -1,5 +1,6 @@
 package com.pethealth.finalproject.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,7 +16,4 @@ public class CatDTO extends PetDTO{
 
     private CatBreeds catBreed;
 
-//    private Owner owner;
-//
-//    private Veterinarian veterinarian;
 }

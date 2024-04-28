@@ -17,7 +17,7 @@ import java.util.List;
 })
 public class PetDTO {
 
-
+    private Long id;
 
     private String name;
 
