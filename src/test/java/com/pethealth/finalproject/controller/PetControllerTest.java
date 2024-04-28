@@ -1,7 +1,9 @@
 package com.pethealth.finalproject.controller;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.pethealth.finalproject.model.*;
 import com.pethealth.finalproject.repository.PetRepository;
 import com.pethealth.finalproject.security.repositories.UserRepository;
@@ -16,13 +18,15 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
@@ -51,6 +55,9 @@ class PetControllerTest {
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+        objectMapper.registerModule(new JavaTimeModule());
+        //no coge bien los json de los dto
+//        objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
         LocalDate dateOfBirth = LocalDate.of(2010,06,01);
         newCat = new Cat("Níobe", dateOfBirth, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, null, null);
         newDog = new Dog("Bombo", LocalDate.of(2000, 01, 01), false, List.of(DogDiseases.ARTHRITIS), DogBreeds.HUSKY, null, null);
@@ -63,6 +70,7 @@ class PetControllerTest {
     @AfterEach
     void tearDown() {
         petRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     @Test
@@ -76,39 +84,258 @@ class PetControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$[0].name").value("Níobe"))
-//                .andExpect(jsonPath("$[1].name").value("Bombo"))
+                .andExpect(jsonPath("$[1].name").value("Bombo"))
                 .andReturn();
         String jsonResponse = mvcResult.getResponse().getContentAsString();
         JsonNode responseNode = objectMapper.readTree(jsonResponse);
-        System.out.println(jsonResponse);
-        assertTrue(jsonResponse.contains("Bombo"));
+        assertTrue(jsonResponse.contains("ARTHRITIS"));
+    }
+
+
+    @Test
+    void findPetById() throws Exception {
+        newCat.setOwner(newOwner);
+        petRepository.save(newCat);
+        MvcResult mvcResult = mockMvc.perform(get("/api/pets/" + newCat.getId()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.name").value("Níobe"))
+                .andReturn();
     }
 
     @Test
-    void findPetById() {
+    void addNewPet_Valid() throws Exception {
+        CatDTO newCatDTO = new CatDTO();
+        userRepository.save(newOwner);
+        newCatDTO.setOwner(newOwner);
+        newCatDTO.setName("Pipu");
+        newCatDTO.setSpayedOrNeutered(true);
+        newCatDTO.setDateOfBirth(LocalDate.of(2010, 1, 1));
+        newCatDTO.setChronicDiseases(List.of(CatDiseases.IBD));
+
+        String body = objectMapper.writeValueAsString(newCatDTO);
+        MvcResult mvcResult = mockMvc.perform(post("/api/pets")
+                .content(body)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isOk()).andReturn();
+
+        String jsonResponse = mvcResult.getResponse().getContentAsString();
+
+        JsonNode createdCatNode = objectMapper.readTree(jsonResponse);
+
+        String createdPetName = createdCatNode.get("name").asText();
+        String createdPetDateOfBirth = createdCatNode.get("dateOfBirth").asText();
+
+        Long createdCatId = createdCatNode.get("id").asLong();
+        //retrieve new added cat from repository
+        Cat createdCat = (Cat) petRepository.findById(createdCatId).get();
+
+        assertNotNull(createdCat);
+        assertEquals(createdCat.getName(), createdPetName);
+        assertEquals(createdCat.getDateOfBirth().toString(), createdPetDateOfBirth);
+    }
+
+
+    @Test
+    void addNewPet_ThrowException_ExistingCat() throws Exception {
+        petRepository.save(newCat);
+        CatDTO newCatDTO = new CatDTO();
+        userRepository.save(newOwner);
+        newCatDTO.setOwner(newOwner);
+        newCatDTO.setName("Níobe");
+        newCatDTO.setSpayedOrNeutered(true);
+        newCatDTO.setDateOfBirth(LocalDate.of(2010, 1, 1));
+        newCatDTO.setChronicDiseases(List.of(CatDiseases.IBD));
+
+        String body = objectMapper.writeValueAsString(newCatDTO);
+        MvcResult mvcResult = mockMvc.perform(post("/api/pets")
+                .content(body)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isUnprocessableEntity()).andReturn();
+    }
+    @Test
+    void updatePets_Valid() throws Exception {
+        newCat.setOwner(newOwner);
+        petRepository.save(newCat);
+        Long existingCatId = newCat.getId();
+
+        CatDTO updatedCatDTO = new CatDTO();
+        updatedCatDTO.setName("Updated Name");
+        updatedCatDTO.setOwner(newOwner);
+        updatedCatDTO.setSpayedOrNeutered(false);
+        updatedCatDTO.setDateOfBirth(LocalDate.of(2011, 1, 1));
+        updatedCatDTO.setChronicDiseases(List.of(CatDiseases.DIABETES));
+
+        String body = objectMapper.writeValueAsString(updatedCatDTO);
+        mockMvc.perform(put("/api/pets/" + existingCatId)
+                .content(body)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isNoContent());
+
+        // Retrieve the updated Cat from the repository
+        Cat updatedCat = (Cat) petRepository.findById(existingCatId).get();
+
+        assertEquals(updatedCatDTO.getName(), updatedCat.getName());
+        assertEquals(updatedCatDTO.getDateOfBirth(), updatedCat.getDateOfBirth());
+        assertEquals(updatedCatDTO.isSpayedOrNeutered(), updatedCat.isSpayedOrNeutered());
+        assertEquals(updatedCatDTO.isSpayedOrNeutered(), updatedCat.isSpayedOrNeutered());
     }
 
     @Test
-    void addNewPet() {
+    void updatePets_ThrowException_CatNotFound() throws Exception {
+        CatDTO updatedCatDTO = new CatDTO();
+        updatedCatDTO.setName("Updated Name");
+        updatedCatDTO.setOwner(newOwner);
+        updatedCatDTO.setSpayedOrNeutered(false);
+        updatedCatDTO.setDateOfBirth(LocalDate.of(2011, 1, 1));
+        updatedCatDTO.setChronicDiseases(List.of(CatDiseases.DIABETES));
+
+        String body = objectMapper.writeValueAsString(updatedCatDTO);
+        mockMvc.perform(put("/api/pets/100")
+                .content(body)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isNotFound());
+    }
+
+
+    @Test
+    void patchPets_Valid() throws Exception {
+        newCat.setOwner(newOwner);
+        petRepository.save(newCat);
+        Long existingCatId = newCat.getId();
+
+        CatDTO updatedCatDTO = new CatDTO();
+        updatedCatDTO.setName("Updated Name");
+        updatedCatDTO.setSpayedOrNeutered(false);
+
+        String body = objectMapper.writeValueAsString(updatedCatDTO);
+        mockMvc.perform(patch("/api/pets/" + existingCatId)
+                .content(body)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isNoContent());
+
+        Cat updatedCat = (Cat) petRepository.findById(existingCatId).get();
+
+        assertEquals(updatedCatDTO.getName(), updatedCat.getName());
+        assertEquals(updatedCatDTO.isSpayedOrNeutered(), updatedCat.isSpayedOrNeutered());
+
+        assertEquals(newCat.getDateOfBirth(), updatedCat.getDateOfBirth());
+        assertEquals(newCat.getCatBreed(), updatedCat.getCatBreed());
     }
 
     @Test
-    void updatePets() {
+    void patchPets_ThrowsException_CatNotFound() throws Exception {
+        CatDTO updatedCatDTO = new CatDTO();
+        updatedCatDTO.setName("Updated Name");
+        updatedCatDTO.setOwner(newOwner);
+        updatedCatDTO.setSpayedOrNeutered(false);
+        updatedCatDTO.setDateOfBirth(LocalDate.of(2011, 1, 1));
+        updatedCatDTO.setChronicDiseases(List.of(CatDiseases.DIABETES));
+
+        String body = objectMapper.writeValueAsString(updatedCatDTO);
+
+        mockMvc.perform(patch("/api/pets/100")
+                .content(body)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isNotFound());
     }
 
     @Test
-    void patchPets() {
+    void deletePet_Valid() throws Exception {
+        newCat.setOwner(newOwner);
+        petRepository.save(newCat);
+        Long existingCatId = newCat.getId();
+
+        mockMvc.perform(delete("/api/pets/" + existingCatId)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isOk());
+
+        assertFalse(petRepository.existsById(existingCatId));
     }
 
     @Test
-    void deletePet() {
+    void deletePet_ThrowsException_CatNotFound() throws Exception {
+        mockMvc.perform(delete("/api/pets/100")
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isNotFound());
     }
 
     @Test
-    void assignVeterinarianToPet() {
+    void assignVeterinarianToPet_Valid() throws Exception {
+        newCat.setOwner(newOwner);
+        petRepository.save(newCat);
+        userRepository.save(newVet);
+        Long existingCatId = newCat.getId();
+        Long existingVetId = newVet.getId();
+
+        mockMvc.perform(patch("/api/pets/veterinarians/" + existingCatId + "/" + existingVetId)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isOk());
+
+        Cat updatedCat = (Cat) petRepository.findById(existingCatId).get();
+
+        assertEquals(newVet, updatedCat.getVeterinarian());
     }
 
     @Test
-    void removeVeterinarianFromPet() {
+    void assignVeterinarianToPet_CatNotFound() throws Exception {
+        userRepository.save(newVet);
+        Long existingVetId = newVet.getId();
+
+        mockMvc.perform(patch("/api/pets/veterinarians/100/" + existingVetId)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void assignVeterinarianToPet_VeterinaryNotFound() throws Exception {
+        newCat.setOwner(newOwner);
+        petRepository.save(newCat);
+        Long existingCatId = newCat.getId();
+
+        mockMvc.perform(patch("/api/pets/veterinarians/" + existingCatId + "/100")
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void removeVeterinarianFromPet_Valid() throws Exception {
+        newCat.setOwner(newOwner);
+        petRepository.save(newCat);
+        userRepository.save(newVet);
+        Long existingCatId = newCat.getId();
+        Long existingVetId = newVet.getId();
+
+        petService.addVeterinarianToPet(existingCatId, existingVetId);
+
+        mockMvc.perform(delete("/api/pets/veterinarians/" + existingCatId + "/" + existingVetId)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isOk());
+
+        Cat updatedCat = (Cat) petRepository.findById(existingCatId).get();
+
+        // Assert that the Veterinarian is not assigned to the Cat anymore
+        assertNotEquals(newVet, updatedCat.getVeterinarian());
+    }
+
+    @Test
+    void removeVeterinarianFromPet_CatNotFound() throws Exception {
+        userRepository.save(newVet);
+        Long existingVetId = newVet.getId();
+
+        mockMvc.perform(delete("/api/pets/veterinarians/100/" + existingVetId)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void removeVeterinarianFromPet_VeterinarianNotFound() throws Exception {
+        newCat.setOwner(newOwner);
+        petRepository.save(newCat);
+        Long existingCatId = newCat.getId();
+
+        mockMvc.perform(delete("/api/pets/veterinarians/" + existingCatId + "/100")
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isNotFound());
     }
 }

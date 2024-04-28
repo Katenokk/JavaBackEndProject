@@ -81,15 +81,12 @@ class UserServiceTest {
 
         User savedUser = userService.saveUser(testUser);
 
-        // Assertions
         assertNotNull(savedUser);
         assertEquals("Test User", savedUser.getName());
-        assertNotEquals("1234", savedUser.getPassword()); // Password should be encoded
+        assertNotEquals("1234", savedUser.getPassword());
 
-        // Retrieve the saved user from the repository
         User fetchedUser = userRepository.findById(savedUser.getId()).orElse(null);
 
-        // More assertions
         assertNotNull(fetchedUser);
         assertEquals("Test User", fetchedUser.getName());
         assertEquals(savedUser.getPassword(), fetchedUser.getPassword());
@@ -397,6 +394,7 @@ class UserServiceTest {
         Optional<User> deletedAdmin =  userRepository.findById(savedAdmin.getId());
         assertFalse(deletedAdmin.isPresent());
     }
+
 
 
 }
