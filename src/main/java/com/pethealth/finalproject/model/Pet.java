@@ -34,6 +34,10 @@ public abstract class Pet {
     @NotNull(message = "Date of birth is required")
     private LocalDate dateOfBirth;
 
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "health_record_id", referencedColumnName = "id")
+    private HealthRecord healthRecord;
+
     public Pet(String name, LocalDate dateOfBirth, boolean isSpayedOrNeutered, Owner owner, Veterinarian veterinarian) {
         this.name = name;
         this.dateOfBirth = dateOfBirth;
