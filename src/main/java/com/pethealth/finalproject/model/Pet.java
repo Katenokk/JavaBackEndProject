@@ -42,7 +42,6 @@ public abstract class Pet {
         this.veterinarian = veterinarian;
     }
 
-    @NotNull(message = "You must select is spayed or neutered, yes/no")
     private boolean isSpayedOrNeutered;
 
 //    @JsonManagedReference //quitar ultima anotacion y eager
