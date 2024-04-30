@@ -7,6 +7,7 @@ import com.pethealth.finalproject.security.dtos.*;
 import com.pethealth.finalproject.security.models.User;
 import com.pethealth.finalproject.security.services.interfaces.UserServiceInterface;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -61,7 +62,7 @@ public class UserController {
      */
     @PostMapping("/users")
     @ResponseStatus(HttpStatus.CREATED)
-    public void saveUser(@RequestBody User user) {
+    public void saveUser(@RequestBody @Valid User user) {
         userService.saveUser(user);
     }
 
