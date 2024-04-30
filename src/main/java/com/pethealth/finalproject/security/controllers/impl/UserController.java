@@ -7,6 +7,7 @@ import com.pethealth.finalproject.security.dtos.*;
 import com.pethealth.finalproject.security.models.User;
 import com.pethealth.finalproject.security.services.interfaces.UserServiceInterface;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -53,40 +54,34 @@ public class UserController {
     }
 
 
-
-    /**
-     * Save a new user
-     *
-     * @param user the user to be saved
-     */
     @PostMapping("/users")
     @ResponseStatus(HttpStatus.CREATED)
-    public void saveUser(@RequestBody User user) {
+    public void saveUser(@RequestBody @Valid User user) {
         userService.saveUser(user);
     }
 
     @PostMapping("/owners")
     @ResponseStatus(HttpStatus.CREATED)
-    public void saveOwner(@RequestBody Owner owner) {
+    public void saveOwner(@RequestBody @Valid Owner owner) {
         userService.saveOwner(owner);
     }
 
     @PostMapping("/admins")
     @ResponseStatus(HttpStatus.CREATED)
-    public void saveAdmin(@RequestBody Admin admin) {
+    public void saveAdmin(@RequestBody @Valid Admin admin) {
         userService.saveUser(admin);
     }
 
     @PostMapping("/veterinarians")
     @ResponseStatus(HttpStatus.CREATED)
-    public void saveVeterinarian(@RequestBody Veterinarian veterinarian) {
+    public void saveVeterinarian(@RequestBody @Valid Veterinarian veterinarian) {
         userService.saveUser(veterinarian);
     }
 
     //registro de usuarios:
 
     @PostMapping("/register/owners")
-    public ResponseEntity<String> registerOwner(@RequestBody Owner owner) {
+    public ResponseEntity<String> registerOwner(@RequestBody @Valid Owner owner) {
         try {
             userService.saveOwner(owner);
             return ResponseEntity.ok("Owner registered successfully");
@@ -98,7 +93,7 @@ public class UserController {
     }
 
     @PostMapping("/register/veterinarians")
-    public ResponseEntity<String> registerVeterinarian(@RequestBody Veterinarian veterinarian) {
+    public ResponseEntity<String> registerVeterinarian(@RequestBody @Valid Veterinarian veterinarian) {
         try {
             userService.saveVeterinarian(veterinarian);
             return ResponseEntity.ok("Veterinarian registered successfully");
@@ -110,7 +105,7 @@ public class UserController {
     }
 
     @PostMapping("/register/admins")
-    public ResponseEntity<String> registerAdmin(@RequestBody Admin admin) {
+    public ResponseEntity<String> registerAdmin(@RequestBody @Valid Admin admin) {
         try {
             userService.saveAdmin(admin);
             return ResponseEntity.ok("Admin registered successfully");
@@ -126,37 +121,37 @@ public class UserController {
     //no se pone la id en el json!
     @PutMapping("/admins/{id}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
-    public void updateAdmin(@PathVariable Long id, @RequestBody Admin admin){
+    public void updateAdmin(@PathVariable Long id, @RequestBody @Valid Admin admin){
         userService.updateAdmin(id, admin);
     }
 
     @PutMapping("/owners/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateOwner(@PathVariable Long id, @RequestBody Owner owner) {
+    public void updateOwner(@PathVariable Long id, @RequestBody @Valid Owner owner) {
         userService.updateOwner(id, owner);
     }
 
     @PutMapping("/veterinarians/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateVeterinarian(@PathVariable Long id, @RequestBody Veterinarian veterinarian) {
+    public void updateVeterinarian(@PathVariable Long id, @RequestBody @Valid Veterinarian veterinarian) {
         userService.updateVeterinarian(id, veterinarian);
     }
 
     @PatchMapping("/owners/{id}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
-    public void partialUpdateOwner(@PathVariable Long id, @RequestBody UserUpdateDTO userUpdateDTO) {
+    public void partialUpdateOwner(@PathVariable Long id, @RequestBody @Valid UserUpdateDTO userUpdateDTO) {
         userService.partialUpdateOwner(id, userUpdateDTO.getName(), userUpdateDTO.getUsername(), userUpdateDTO.getPassword(), userUpdateDTO.getEmail());
     }
 
     @PatchMapping("/veterinarians/{id}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
-    public void partialUpdateVeterinarian(@PathVariable Long id, @RequestBody UserUpdateDTO userUpdateDTO) {
+    public void partialUpdateVeterinarian(@PathVariable Long id, @RequestBody @Valid UserUpdateDTO userUpdateDTO) {
         userService.partialUpdateVeterinarian(id, userUpdateDTO.getName(), userUpdateDTO.getUsername(), userUpdateDTO.getPassword(), userUpdateDTO.getEmail());
     }
 
     @PatchMapping("/admins/{id}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
-    public void partialUpdateAdmin(@PathVariable Long id, @RequestBody UserUpdateDTO userUpdateDTO) {
+    public void partialUpdateAdmin(@PathVariable Long id, @RequestBody @Valid UserUpdateDTO userUpdateDTO) {
         userService.partialUpdateAdmin(id, userUpdateDTO.getName(), userUpdateDTO.getUsername(),  userUpdateDTO.getPassword());
     }
 

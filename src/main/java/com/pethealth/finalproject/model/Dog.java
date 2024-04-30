@@ -30,7 +30,6 @@ public class Dog extends Pet{
     @Enumerated(EnumType.STRING)
     private List<DogDiseases> chronicDiseases;
 
-    @NotNull(message="breed is required")
     @Enumerated(EnumType.STRING)
     private DogBreeds dogBreed;
 }

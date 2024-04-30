@@ -7,9 +7,13 @@ import jakarta.persistence.EntityManager;
 import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import java.util.Collections;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.ConstraintViolation;
@@ -36,9 +40,7 @@ class CatTest {
     private Cat newCat;
     private Owner newOwner;
     private Veterinarian newVet;
-//no funciona la validacion con jackarta, hacer test en el controller
-//    private final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-//    private final Validator validator = factory.getValidator();
+
     @BeforeEach
     void setUp() {
         LocalDate dateOfBirth = LocalDate.of(2010,06,01);
@@ -88,14 +90,58 @@ class CatTest {
         assertTrue(newVet.getTreatedPets().contains(newCat));
     }
 
-//    @Test
-//    void catInvalidCreation(){
-//        Cat cat = new Cat("123", LocalDate.of(2015, 1, 2), false, List.of(CatDiseases.IBD), CatBreeds.MIXED);
-//
-//        // Validate the Cat instance
-//        Set<ConstraintViolation<Cat>> violations = validator.validate(cat);
-//
-//        // Assert that there are constraint violations
-//        assertFalse(violations.isEmpty());
-//    }
+
+    @ParameterizedTest
+    @DisplayName("Should validate incorrect names")
+    @ValueSource(strings = {"", "12", "a", "ab", "abc1", "abc!", "abc*"})
+    void testNameValidation_Invalid(String invalidName) {
+        Cat cat = new Cat(invalidName, LocalDate.of(2020, 1, 1), true, List.of(CatDiseases.IBD), CatBreeds.MIXED, newOwner, newVet);
+        assertThrows(ConstraintViolationException.class, () -> petRepository.save(cat));
+    }
+
+    @ParameterizedTest
+    @DisplayName("Should validate correct names")
+    @ValueSource(strings = {"abc", "John Doe", "Ириска"})
+    void testNameValidation_Valid(String validName) {
+        Cat cat = new Cat(validName, LocalDate.of(2020, 1, 1), true, List.of(CatDiseases.IBD), CatBreeds.MIXED, newOwner, newVet);
+        assertDoesNotThrow(() -> petRepository.save(cat));
+    }
+
+    @Test
+    void testDateOfBirthValidation_PastDate() {
+        Cat cat = new Cat("Valid Name", LocalDate.of(2000, 1, 1), true, List.of(CatDiseases.IBD), CatBreeds.MIXED, newOwner, newVet);
+        assertDoesNotThrow(() -> petRepository.save(cat));
+    }
+
+    @Test
+    void testDateOfBirthValidation_FutureDate() {
+        Cat cat = new Cat("Valid Name", LocalDate.of(3000, 1, 1), true, List.of(CatDiseases.IBD), CatBreeds.MIXED, newOwner, newVet);
+        assertThrows(ConstraintViolationException.class, () -> petRepository.save(cat));
+    }
+
+    @Test
+    void testDateOfBirthValidation_NullDate() {
+        Cat cat = new Cat("Valid Name", null, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, newOwner, newVet);
+        assertThrows(ConstraintViolationException.class, () -> petRepository.save(cat));
+    }
+
+    @Test
+    void testChronicDiseasesValidation_Null() {
+        Cat cat = new Cat("Valid Name", LocalDate.of(2000, 1, 1), true, null, CatBreeds.MIXED, newOwner, newVet);
+        assertThrows(ConstraintViolationException.class, () -> petRepository.save(cat));
+    }
+
+    @Test
+    void testChronicDiseasesValidation_Empty() {
+        Cat cat = new Cat("Valid Name", LocalDate.of(2000, 1, 1), true, Collections.emptyList(), CatBreeds.MIXED, newOwner, newVet);
+        assertThrows(ConstraintViolationException.class, () -> petRepository.save(cat));
+    }
+
+    @Test
+    void testChronicDiseasesValidation_NotEmpty() {
+        Cat cat = new Cat("Valid Name", LocalDate.of(2000, 1, 1), true, List.of(CatDiseases.IBD), CatBreeds.MIXED, newOwner, newVet);
+        assertDoesNotThrow(() -> petRepository.save(cat));
+    }
+
+
 }

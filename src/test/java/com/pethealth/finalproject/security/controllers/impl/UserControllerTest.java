@@ -71,9 +71,9 @@ class UserControllerTest {
         //para que pueda deserializar un userdto sin el campo email en el test
 //        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         testUser = new User("Test User", "test-user", "1234", new ArrayList<>());
-        newOwner = new Owner("Pepe", "pepito", "0000", new ArrayList<>(), "email.com");
+        newOwner = new Owner("Pepe", "pepito", "0000", new ArrayList<>(), "email@email.com");
         newVet = new Veterinarian("Oriol", "dr gato", "1111", new ArrayList<>(), "oriol@email.com");
-        newAdmin = new Admin("Admin", "admin", "888", new ArrayList<>());
+        newAdmin = new Admin("Admin", "admin", "8888", new ArrayList<>());
 //        LocalDate dateOfBirth = LocalDate.of(2010,06,01);
 //        newCat = new Cat("Níobe", dateOfBirth, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, null, null);
 //        newDog = new Dog("Bombo", LocalDate.of(2000, 01, 01), false, List.of(DogDiseases.ARTHRITIS), DogBreeds.HUSKY, null, null);
@@ -418,10 +418,10 @@ class UserControllerTest {
 
     @Test
     void updateVeterinarian_Valid() throws Exception {
-        Veterinarian existingVeterinarian = new Veterinarian("Existing Veterinarian", "existing_veterinarian", "1234", new ArrayList<>(), "veterinarian@mail.com");
+        Veterinarian existingVeterinarian = new Veterinarian("Existing Vet", "existing-vet", "1234", new ArrayList<>(), "veterinarian@mail.com");
         userRepository.save(existingVeterinarian);
 
-        Veterinarian updatedVeterinarian = new Veterinarian("Updated Veterinarian", "updated_veterinarian", "5678", new ArrayList<>(), "updated_veterinarian@mail.com");
+        Veterinarian updatedVeterinarian = new Veterinarian("Updated Vet", "updated-vet", "5678", new ArrayList<>(), "updatedveterinarian@mail.com");
         String veterinarianJson = objectMapper.writeValueAsString(updatedVeterinarian);
 
         mockMvc.perform(put("/api/veterinarians/" + existingVeterinarian.getId())
@@ -429,21 +429,21 @@ class UserControllerTest {
                         .content(veterinarianJson))
                 .andExpect(status().isNoContent());
 
-        Optional<User> savedVeterinarian = userRepository.findByUsername("updated_veterinarian");
+        Optional<User> savedVeterinarian = userRepository.findByUsername("updated-vet");
 
         assertNotNull(savedVeterinarian);
-        assertEquals("Updated Veterinarian", savedVeterinarian.get().getName());
-        assertEquals("updated_veterinarian", savedVeterinarian.get().getUsername());
+        assertEquals("Updated Vet", savedVeterinarian.get().getName());
+        assertEquals("updated-vet", savedVeterinarian.get().getUsername());
         assertTrue(passwordEncoder.matches("5678", savedVeterinarian.get().getPassword()));
-        assertEquals("updated_veterinarian@mail.com", ((Veterinarian)savedVeterinarian.get()).getEmail());
+        assertEquals("updatedveterinarian@mail.com", ((Veterinarian)savedVeterinarian.get()).getEmail());
     }
 
     @Test
     void updateVeterinarian_NotFound() throws Exception {
-        Veterinarian existingVeterinarian = new Veterinarian("Existing Veterinarian", "existing_veterinarian", passwordEncoder.encode("1234"), new ArrayList<>(), "veterinarian@mail.com");
+        Veterinarian existingVeterinarian = new Veterinarian("Existing Vet", "existing-vet", passwordEncoder.encode("1234"), new ArrayList<>(), "veterinarian@mail.com");
         userRepository.save(existingVeterinarian);
 
-        Veterinarian updatedVeterinarian = new Veterinarian("Updated Veterinarian", "updated_veterinarian", "5678", new ArrayList<>(), "updated_veterinarian@mail.com");
+        Veterinarian updatedVeterinarian = new Veterinarian("Updated Vet", "updated-vet", "5678", new ArrayList<>(), "updatedveterinarian@mail.com");
         String veterinarianJson = objectMapper.writeValueAsString(updatedVeterinarian);
 
         mockMvc.perform(put("/api/veterinarians/" + 9999)
@@ -454,14 +454,14 @@ class UserControllerTest {
 
     @Test
     void partialUpdateOwner_Valid() throws Exception {
-        Owner existingOwner = new Owner("Existing Owner", "existing_owner", "1234", new ArrayList<>(), "owner@mail.com");
+        Owner existingOwner = new Owner("Existing Owner", "existing-owner", "1234", new ArrayList<>(), "owner@mail.com");
         userRepository.save(existingOwner);
 
         UserUpdateDTO updatedOwner = new UserUpdateDTO();
         updatedOwner.setName("Updated Owner");
-        updatedOwner.setUsername("updated_owner");
+        updatedOwner.setUsername("updated-owner");
         updatedOwner.setPassword("5678");
-        updatedOwner.setEmail("updated_owner@mail.com");
+        updatedOwner.setEmail("updatedowner@mail.com");
 
         String ownerJson = objectMapper.writeValueAsString(updatedOwner);
 
@@ -470,13 +470,13 @@ class UserControllerTest {
                         .content(ownerJson))
                 .andExpect(status().isNoContent());
 
-        Optional<User> savedOwner = userRepository.findByUsername("updated_owner");
+        Optional<User> savedOwner = userRepository.findByUsername("updated-owner");
 
         assertNotNull(savedOwner);
         assertEquals("Updated Owner", savedOwner.get().getName());
-        assertEquals("updated_owner", savedOwner.get().getUsername());
+        assertEquals("updated-owner", savedOwner.get().getUsername());
         assertTrue(passwordEncoder.matches("5678", savedOwner.get().getPassword()));
-        assertEquals("updated_owner@mail.com", ((Owner)savedOwner.get()).getEmail());
+        assertEquals("updatedowner@mail.com", ((Owner)savedOwner.get()).getEmail());
     }
 
     @Test
@@ -500,14 +500,14 @@ class UserControllerTest {
 
     @Test
     void partialUpdateVeterinarian_Valid() throws Exception {
-        Veterinarian existingVeterinarian = new Veterinarian("Existing Veterinarian", "existing_veterinarian", "1234", new ArrayList<>(), "veterinarian@mail.com");
+        Veterinarian existingVeterinarian = new Veterinarian("Existing Vet", "existing-vet", "1234", new ArrayList<>(), "veterinarian@mail.com");
         userRepository.save(existingVeterinarian);
 
         UserUpdateDTO updatedVeterinarian = new UserUpdateDTO();
-        updatedVeterinarian.setName("Updated Veterinarian");
-        updatedVeterinarian.setUsername("updated_veterinarian");
+        updatedVeterinarian.setName("Updated Vet");
+        updatedVeterinarian.setUsername("updated-vet");
         updatedVeterinarian.setPassword("5678");
-        updatedVeterinarian.setEmail("updated_veterinarian@mail.com");
+        updatedVeterinarian.setEmail("updatedveterinarian@mail.com");
 
         String veterinarianJson = objectMapper.writeValueAsString(updatedVeterinarian);
 
@@ -516,25 +516,25 @@ class UserControllerTest {
                         .content(veterinarianJson))
                 .andExpect(status().isNoContent());
 
-        Optional<User> savedVeterinarian = userRepository.findByUsername("updated_veterinarian");
+        Optional<User> savedVeterinarian = userRepository.findByUsername("updated-vet");
 
         assertNotNull(savedVeterinarian);
-        assertEquals("Updated Veterinarian", savedVeterinarian.get().getName());
-        assertEquals("updated_veterinarian", savedVeterinarian.get().getUsername());
+        assertEquals("Updated Vet", savedVeterinarian.get().getName());
+        assertEquals("updated-vet", savedVeterinarian.get().getUsername());
         assertTrue(passwordEncoder.matches("5678", savedVeterinarian.get().getPassword()));
-        assertEquals("updated_veterinarian@mail.com", ((Veterinarian)savedVeterinarian.get()).getEmail());
+        assertEquals("updatedveterinarian@mail.com", ((Veterinarian)savedVeterinarian.get()).getEmail());
     }
 
     @Test
     void partialUpdateVeterinarian_NotFound() throws Exception {
-        Veterinarian existingVeterinarian = new Veterinarian("Existing Veterinarian", "existing_veterinarian", "1234", new ArrayList<>(), "veterinarian@mail.com");
+        Veterinarian existingVeterinarian = new Veterinarian("Existing Vet", "existing-vet", "1234", new ArrayList<>(), "veterinarian@mail.com");
         userRepository.save(existingVeterinarian);
 
         UserUpdateDTO updatedVeterinarian = new UserUpdateDTO();
-        updatedVeterinarian.setName("Updated Veterinarian");
-        updatedVeterinarian.setUsername("updated_veterinarian");
+        updatedVeterinarian.setName("Updated Vet");
+        updatedVeterinarian.setUsername("updated-vet");
         updatedVeterinarian.setPassword("5678");
-        updatedVeterinarian.setEmail("updated_veterinarian@mail.com");
+        updatedVeterinarian.setEmail("updatedveterinarian@mail.com");
 
         String veterinarianJson = objectMapper.writeValueAsString(updatedVeterinarian);
 
@@ -546,12 +546,12 @@ class UserControllerTest {
 
     @Test
     void partialUpdateAdmin_Valid() throws Exception {
-        Admin existingAdmin = new Admin("Existing Admin", "existing_admin", "1234", new ArrayList<>());
+        Admin existingAdmin = new Admin("Existing Admin", "existing-admin", "1234", new ArrayList<>());
         userRepository.save(existingAdmin);
 
         UserUpdateDTO updatedAdmin = new UserUpdateDTO();
         updatedAdmin.setName("Updated Admin");
-        updatedAdmin.setUsername("updated_admin");
+        updatedAdmin.setUsername("updated-admin");
         updatedAdmin.setPassword("5678");
 
         String adminJson = objectMapper.writeValueAsString(updatedAdmin);
@@ -561,22 +561,22 @@ class UserControllerTest {
                         .content(adminJson))
                 .andExpect(status().isNoContent());
 
-        Optional<User> savedAdmin = userRepository.findByUsername("updated_admin");
+        Optional<User> savedAdmin = userRepository.findByUsername("updated-admin");
 
         assertNotNull(savedAdmin);
         assertEquals("Updated Admin", savedAdmin.get().getName());
-        assertEquals("updated_admin", savedAdmin.get().getUsername());
+        assertEquals("updated-admin", savedAdmin.get().getUsername());
         assertTrue(passwordEncoder.matches("5678", savedAdmin.get().getPassword()));
     }
 
     @Test
     void partialUpdateAdmin_NotFound() throws Exception {
-        Admin existingAdmin = new Admin("Existing Admin", "existing_admin", "1234", new ArrayList<>());
+        Admin existingAdmin = new Admin("Existing Admin", "existing-admin", "1234", new ArrayList<>());
         userRepository.save(existingAdmin);
 
         UserUpdateDTO updatedAdmin = new UserUpdateDTO();
         updatedAdmin.setName("Updated Admin");
-        updatedAdmin.setUsername("updated_admin");
+        updatedAdmin.setUsername("updated-admin");
         updatedAdmin.setPassword("5678");
 
         String adminJson = objectMapper.writeValueAsString(updatedAdmin);
@@ -609,7 +609,7 @@ class UserControllerTest {
     @Test
     void deleteVeterinarianById_Valid() throws Exception {
 
-        Veterinarian existingVeterinarian = new Veterinarian("Existing Veterinarian", "existing_veterinarian", "1234", new ArrayList<>(), "veterinarian@mail.com");
+        Veterinarian existingVeterinarian = new Veterinarian("Existing Vet", "existing-vet", "1234", new ArrayList<>(), "veterinarian@mail.com");
         userRepository.save(existingVeterinarian);
 
 
@@ -628,7 +628,7 @@ class UserControllerTest {
 
     @Test
     void deleteAdminById_Valid() throws Exception {
-        Admin existingAdmin = new Admin("Existing Admin", "existing_admin", "1234", new ArrayList<>());
+        Admin existingAdmin = new Admin("Existing Admin", "existing-admin", "1234", new ArrayList<>());
         userRepository.save(existingAdmin);
 
         mockMvc.perform(delete("/api/admins/" + existingAdmin.getId()))

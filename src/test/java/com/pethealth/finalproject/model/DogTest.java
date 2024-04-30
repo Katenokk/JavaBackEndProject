@@ -2,11 +2,13 @@ package com.pethealth.finalproject.model;
 
 import com.pethealth.finalproject.repository.PetRepository;
 import com.pethealth.finalproject.security.repositories.UserRepository;
+import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import java.util.Collections;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -72,5 +74,23 @@ class DogTest {
         assertEquals(newVet, newDog.getVeterinarian());
         assertFalse(newVet.getTreatedPets().isEmpty());
         assertTrue(newVet.getTreatedPets().contains(newDog));
+    }
+
+    @Test
+    void testChronicDiseasesValidation_Null_Dog() {
+        Dog dog = new Dog("Valid Name", LocalDate.of(2000, 1, 1), true, null, DogBreeds.MIXED, newOwner, newVet);
+        assertThrows(ConstraintViolationException.class, () -> petRepository.save(dog));
+    }
+
+    @Test
+    void testChronicDiseasesValidation_Empty_Dog() {
+        Dog dog = new Dog("Valid Name", LocalDate.of(2000, 1, 1), true, Collections.emptyList(), DogBreeds.MIXED, newOwner, newVet);
+        assertThrows(ConstraintViolationException.class, () -> petRepository.save(dog));
+    }
+
+    @Test
+    void testChronicDiseasesValidation_NotEmpty_Dog() {
+        Dog dog = new Dog("Valid Name", LocalDate.of(2000, 1, 1), true, List.of(DogDiseases.KIDNEY_DISEASE), DogBreeds.MIXED, newOwner, newVet);
+        assertDoesNotThrow(() -> petRepository.save(dog));
     }
 }

@@ -34,22 +34,14 @@ import java.util.*;
 @Slf4j
 public class UserService implements UserServiceInterface, UserDetailsService {
 
-    /**
-     * Autowired UserRepository for database operations.
-     */
+
     @Autowired
     private UserRepository userRepository;
 
-    /**
-     * Autowired RoleRepository for database operations.
-     */
+
     @Autowired
     private RoleRepository roleRepository;
 
-    /**
-     * Injects a bean of type PasswordEncoder into this class.
-     * The bean is used for encoding passwords before storing them.
-     */
     @Autowired
     private PasswordEncoder passwordEncoder;
 
