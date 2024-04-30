@@ -35,7 +35,7 @@ public class PetController {
 
 
     @PostMapping("/pets")
-    public ResponseEntity<Pet> addNewPet(@RequestBody PetDTO petDTO) {
+    public ResponseEntity<Pet> addNewPet(@RequestBody @Valid PetDTO petDTO) {
         return ResponseEntity.ok(petService.addNewPet(petDTO));
     }
 
@@ -54,9 +54,10 @@ public class PetController {
 
     @PutMapping("pets/{id}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
-    public void updatePets(@PathVariable Long id, @RequestBody PetDTO petDTO){
+    public void updatePets(@PathVariable Long id, @RequestBody @Valid PetDTO petDTO){
         petService.updatePet(id, petDTO);
     }
+
 
     @PatchMapping("pets/{id}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)

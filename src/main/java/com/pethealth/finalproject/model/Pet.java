@@ -26,7 +26,6 @@ public abstract class Pet {
 
     @EqualsAndHashCode.Include
     @NotNull(message = "Name is required")
-//    @Pattern(regexp = "^[a-zA-Z]{3,}$", message = "Name must be at least 3 characters long and contain only letters")
     @Pattern(regexp = "^[\\p{L}\\s]{3,}$", message = "Name must be at least 3 characters long and contain only letters")
     private String name;
 
@@ -60,7 +59,7 @@ public abstract class Pet {
 
     @Override
     public String toString() {
-        return "Cat{" +
+        return "Pet{" +
                 "id=" + getId() +
                 ", name='" + getName() + '\'' +
                 '}';

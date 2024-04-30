@@ -66,9 +66,9 @@ class UserServiceTest {
     @BeforeEach
     void setUp() {
         testUser = new User("Test User", "test-user", "1234", new ArrayList<>());
-        newOwner = new Owner("Pepe", "pepito", "0000", new ArrayList<>(), "email.com");
+        newOwner = new Owner("Pepe", "pepito", "0000", new ArrayList<>(), "pepe@email.com");
         newVet = new Veterinarian("Oriol", "dr gato", "1111", new ArrayList<>(), "oriol@email.com");
-        newAdmin = new Admin("Admin", "admin", "888", new ArrayList<>());
+        newAdmin = new Admin("Admin", "admin", "8888", new ArrayList<>());
     }
 
     @AfterEach
@@ -212,7 +212,7 @@ class UserServiceTest {
     @Test
     void updateOwnerValid(){
         userRepository.save(newOwner);
-        Owner updatedOwner = new Owner("Cambiado", "cambiado", "0000", new ArrayList<>(), "email_nuevo.com");
+        Owner updatedOwner = new Owner("Cambiado", "cambiado", "0000", new ArrayList<>(), "email@nuevo.com");
         userService.updateOwner(newOwner.getId(), updatedOwner);
         Owner fetchedOwner = (Owner) userRepository.findById(updatedOwner.getId()).orElse(null);
         assertNotNull(fetchedOwner);
@@ -232,7 +232,7 @@ class UserServiceTest {
     @Test
     void updateVeterinarianValid(){
         userRepository.save(newVet);
-        Veterinarian updatedVet = new Veterinarian("nuevo nombre", "nuevo usuario", "0000", new ArrayList<>(), "email_nuevo.com");
+        Veterinarian updatedVet = new Veterinarian("nuevo nombre", "nuevo usuario", "0000", new ArrayList<>(), "email@nuevo.com");
         userService.updateVeterinarian(newVet.getId(), updatedVet);
         Veterinarian fetchedVet = (Veterinarian) userRepository.findById(updatedVet.getId()).orElse(null);
         assertNotNull(fetchedVet);

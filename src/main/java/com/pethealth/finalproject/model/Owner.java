@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.pethealth.finalproject.security.models.Role;
 import com.pethealth.finalproject.security.models.User;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -27,6 +28,7 @@ import java.util.*;
 @DiscriminatorValue("OWNER")
 public class Owner extends User {
     @EqualsAndHashCode.Include
+    @Email(message = "Email should be valid")
     private String email;
 //quitar eager
     @OneToMany(mappedBy = "owner", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
