@@ -3,6 +3,7 @@ package com.pethealth.finalproject.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pethealth.finalproject.model.*;
+import com.pethealth.finalproject.repository.HealthRecordRepository;
 import com.pethealth.finalproject.repository.PetRepository;
 import com.pethealth.finalproject.security.models.User;
 import com.pethealth.finalproject.security.repositories.UserRepository;
@@ -26,6 +27,8 @@ public class PetService {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private HealthRecordRepository healthRecordRepository;
 
     @Autowired
     private EntityManager entityManager;
@@ -35,6 +38,7 @@ public class PetService {
 
     public Pet addNewPet(PetDTO petDTO) {
         Pet pet;
+
         //map the dto to the corresponding entity
         if ((petDTO instanceof CatDTO)) {
             pet = mapToCatEntity((CatDTO) petDTO);
@@ -58,8 +62,14 @@ public class PetService {
         } else {
             throw new IllegalArgumentException("Invalid pet type.");
         }
+        pet = petRepository.save(pet);
+        //initialize a healthRecord
+        HealthRecord healthRecord = new HealthRecord();
+        pet.setHealthRecord(healthRecord);
+        healthRecord.setPet(pet);
+        healthRecordRepository.save(healthRecord);
 
-        return petRepository.save(pet);
+        return pet;
     }
 
 

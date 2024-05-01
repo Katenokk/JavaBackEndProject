@@ -59,6 +59,7 @@ public class PetController {
     }
 
 
+
     @PatchMapping("pets/{id}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     public void patchPets(@PathVariable Long id, @RequestBody PetDTO petDTO){

@@ -90,6 +90,7 @@ public class SecurityConfig {
                 .requestMatchers(PUT, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(POST, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(PATCH, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                .requestMatchers(POST, "/health-records/**").permitAll()
                 .requestMatchers("/error/**").permitAll()
                 .anyRequest().authenticated());
 

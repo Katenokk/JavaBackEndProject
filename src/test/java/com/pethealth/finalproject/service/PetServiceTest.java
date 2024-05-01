@@ -160,6 +160,7 @@ class PetServiceTest {
         Pet addedPet = petService.addNewPet(catDTO);
 
         assertNotNull(addedPet);
+        assertNotNull(addedPet.getHealthRecord());
         assertEquals(catDTO.getName(), addedPet.getName());
         assertEquals(catDTO.getOwner(), newOwner);
         assertEquals(catDTO.getCatBreed(), CatBreeds.BENGAL);

@@ -44,6 +44,7 @@ public abstract class Pet {
         this.isSpayedOrNeutered = isSpayedOrNeutered;
         this.owner = owner;
         this.veterinarian = veterinarian;
+        this.healthRecord = new HealthRecord(this);
     }
 
     private boolean isSpayedOrNeutered;

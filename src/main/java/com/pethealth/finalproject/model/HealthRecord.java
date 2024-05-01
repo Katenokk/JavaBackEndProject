@@ -3,6 +3,7 @@ package com.pethealth.finalproject.model;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @EqualsAndHashCode
+@DynamicUpdate
 public class HealthRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,10 +25,10 @@ public class HealthRecord {
     @OneToMany(mappedBy = "healthRecord", cascade = CascadeType.ALL)
     private List<Weight> weights;
 
-    @PostLoad
-    private void initWeights(){
-        Hibernate.initialize(this.weights);
-    }
+//    @PostLoad
+//    private void initWeights(){
+//        Hibernate.initialize(this.weights);
+//    }
 // implementar luego:
 //    @OneToMany(mappedBy = "petHealthRecord", cascade = CascadeType.ALL)
 //    private List<Medication> medications;
