@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -65,17 +66,16 @@ class HealthRecordTest {
     }
 
     @Test
+    @Transactional
     void testPetHealthRecordAssociation() {
-
         HealthRecord healthRecord = new HealthRecord();
 
         Cat testCat = new Cat("Catto", LocalDate.of(2000, 1, 1), false, List.of(CatDiseases.IBD), CatBreeds.BENGAL, owner, null);
-        petRepository.save(testCat);
 
         healthRecord.setPet(testCat);
         testCat.setHealthRecord(healthRecord);
-        healthRecordRepository.save(healthRecord);
         petRepository.save(testCat);
+        healthRecordRepository.save(healthRecord);
 
         HealthRecord foundHealthRecord = healthRecordRepository.findById(healthRecord.getId()).orElse(null);
 
@@ -87,28 +87,25 @@ class HealthRecordTest {
     @Test
     void testAddWeight() {
         catto = petRepository.save(catto);
-        petRepository.flush();
+//        petRepository.flush(); // no hacen falta los flush
 
         catto = (Cat) petRepository.findById(catto.getId()).orElse(null);
-
+//importante crear el HealthRecord con un pet asignado
         HealthRecord healthRecord = new HealthRecord(catto);
         catto.setHealthRecord(healthRecord);
 
         catto = petRepository.save(catto);
-
         healthRecordRepository.save(healthRecord);
 
+//importante asignar el healthrecord a weight cuando se crea
         Weight weight = new Weight(LocalDate.now(), 10.5, healthRecord);
         weight = weightRepository.save(weight);
         healthRecord.addWeight(weight);
 
-//        healthRecordRepository.save(healthRecord);
-
-        healthRecordRepository.flush();
+//        healthRecordRepository.flush();
 
         HealthRecord foundHealthRecord = healthRecordRepository.findById(healthRecord.getId()).orElse(null);
 
-        foundHealthRecord.getWeights().size();
         assertNotNull(foundHealthRecord);
         assertTrue(healthRecord.getWeights().contains(weight));
         assertTrue(foundHealthRecord.getWeights().contains(weight));
