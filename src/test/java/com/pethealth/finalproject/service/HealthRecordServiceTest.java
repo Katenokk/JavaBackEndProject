@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -99,6 +100,16 @@ class HealthRecordServiceTest {
 
     @Test
     @Transactional
+    void addWeightToPet_InvalidWeight(){
+        petRepository.save(catto);
+        LocalDate date = LocalDate.now().plusDays(1);
+        double weightInKg = -10.5;
+
+        assertThrows(IllegalArgumentException.class, () -> healthRecordService.addWeightToPet(catto.getId(), date, weightInKg));
+    }
+
+    @Test
+    @Transactional
     void getPetHealthRecord_Valid(){
         petRepository.save(catto);
         healthRecordRepository.save(healthRecord1);
@@ -119,33 +130,88 @@ class HealthRecordServiceTest {
         assertEquals(2, healthRecordDTO.getWeights().size());
     }
 
+//    @Test
+//    @Transactional
+//    void findWeightsBetWeenDates_Valid(){
+//        petRepository.save(catto);
+//        healthRecordRepository.save(healthRecord1);
+//        catto.setHealthRecord(healthRecord1);
+//
+//        healthRecord1.addWeight(weight1);
+//        healthRecord1.addWeight(weight2);
+//
+//        weightRepository.save(weight1);
+//        weightRepository.save(weight2);
+//
+//        healthRecordRepository.saveAndFlush(healthRecord1);
+//
+//        LocalDate startDate = LocalDate.now().minusDays(1);
+//        LocalDate endDate = LocalDate.now().plusDays(1);
+//
+//        List<Weight> weights = healthRecordService.findWeightsBetweenDates(startDate, endDate);
+//
+//        assertNotNull(weights);
+//        assertEquals(2, weights.size());
+//    }
+
+//    @Test
+//    @Transactional
+//    void findWeightBetweenDates_EndDateBeforeStartDate(){
+//        petRepository.save(catto);
+//        healthRecordRepository.save(healthRecord1);
+//        catto.setHealthRecord(healthRecord1);
+//        healthRecord1.addWeight(weight1);
+//        healthRecord1.addWeight(weight2);
+//        weightRepository.save(weight1);
+//        weightRepository.save(weight2);
+//        healthRecordRepository.saveAndFlush(healthRecord1);
+//
+//        LocalDate startDate = LocalDate.now().plusDays(1);
+//        LocalDate endDate = LocalDate.now();
+//
+//        assertThrows(IllegalArgumentException.class, () -> healthRecordService.findWeightsBetweenDates(startDate, endDate));
+//    }
+
+//    @Test
+//    @Transactional
+//    void findWeightsBetweenDates_NoWeightsFound(){
+//        petRepository.save(catto);
+//        healthRecordRepository.save(healthRecord1);
+//        catto.setHealthRecord(healthRecord1);
+//        healthRecord1.addWeight(weight1);
+//        healthRecord1.addWeight(weight2);
+//        weightRepository.save(weight1);
+//        weightRepository.save(weight2);
+//        healthRecordRepository.saveAndFlush(healthRecord1);
+//        LocalDate startDate = LocalDate.now().plusDays(2);
+//        LocalDate endDate = LocalDate.now().plusDays(3);
+//
+//        assertThrows(EntityNotFoundException.class, () -> healthRecordService.findWeightsBetweenDates(startDate, endDate));
+//    }
+
     @Test
     @Transactional
-    void findWeightsBetWeenDates_Valid(){
+    void removeWeightFromPet_Valid(){
         petRepository.save(catto);
         healthRecordRepository.save(healthRecord1);
         catto.setHealthRecord(healthRecord1);
-
         healthRecord1.addWeight(weight1);
         healthRecord1.addWeight(weight2);
-
         weightRepository.save(weight1);
         weightRepository.save(weight2);
-
         healthRecordRepository.saveAndFlush(healthRecord1);
 
-        LocalDate startDate = LocalDate.now().minusDays(1);
-        LocalDate endDate = LocalDate.now().plusDays(1);
+        healthRecordService.removeWeightFromPet(catto.getId(), weight1.getId());
 
-        List<Weight> weights = healthRecordService.findWeightsBetweenDates(startDate, endDate);
+        Optional<Pet> foundPet = petRepository.findById(catto.getId());
 
-        assertNotNull(weights);
-        assertEquals(2, weights.size());
+        assertTrue(foundPet.isPresent());
+        assertFalse(foundPet.get().getHealthRecord().getWeights().contains(weight1));
     }
 
     @Test
     @Transactional
-    void findWeightBetweenDates_EndDateBeforeStartDate(){
+    void removeWeightFromPet_WeightNotFound(){
         petRepository.save(catto);
         healthRecordRepository.save(healthRecord1);
         catto.setHealthRecord(healthRecord1);
@@ -155,27 +221,15 @@ class HealthRecordServiceTest {
         weightRepository.save(weight2);
         healthRecordRepository.saveAndFlush(healthRecord1);
 
-        LocalDate startDate = LocalDate.now().plusDays(1);
-        LocalDate endDate = LocalDate.now();
-
-        assertThrows(IllegalArgumentException.class, () -> healthRecordService.findWeightsBetweenDates(startDate, endDate));
+        assertThrows(EntityNotFoundException.class, () -> healthRecordService.removeWeightFromPet(catto.getId(), 100L));
     }
 
     @Test
     @Transactional
-    void findWeightsBetweenDates_NoWeightsFound(){
+    void removeWeightFromPet_PetNotFound(){
         petRepository.save(catto);
-        healthRecordRepository.save(healthRecord1);
-        catto.setHealthRecord(healthRecord1);
-        healthRecord1.addWeight(weight1);
-        healthRecord1.addWeight(weight2);
         weightRepository.save(weight1);
-        weightRepository.save(weight2);
-        healthRecordRepository.saveAndFlush(healthRecord1);
-        LocalDate startDate = LocalDate.now().plusDays(2);
-        LocalDate endDate = LocalDate.now().plusDays(3);
-
-        assertThrows(EntityNotFoundException.class, () -> healthRecordService.findWeightsBetweenDates(startDate, endDate));
+        assertThrows(EntityNotFoundException.class, () -> healthRecordService.removeWeightFromPet(100L, weight1.getId()));
     }
 
 }

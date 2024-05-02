@@ -16,6 +16,11 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)//comprobar equals!
 @DynamicUpdate
+//@JsonIdentityInfo(
+//        generator = ObjectIdGenerators.PropertyGenerator.class,
+//        property = "id"
+//)
+//evitar referencias circulares
 public class Weight {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -122,8 +122,6 @@ public class PetService {
         return dog;
     }
 
-
-
     public List<Pet> findAllPets()  {
         List<Pet> pets = petRepository.findAll();
 
