@@ -1,5 +1,7 @@
 package com.pethealth.finalproject.model;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.Hibernate;
@@ -14,6 +16,10 @@ import java.util.List;
 @NoArgsConstructor
 @EqualsAndHashCode
 @DynamicUpdate
+//@JsonIdentityInfo(
+//        generator = ObjectIdGenerators.PropertyGenerator.class,
+//        property = "id"
+//)
 public class HealthRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,5 +55,10 @@ public class HealthRecord {
             weights.add(weight);
             weight.setHealthRecord(this);
         }
+    }
+
+    public void removeWeight(Weight weight) {
+        weights.remove(weight);
+        weight.setHealthRecord(null);
     }
 }

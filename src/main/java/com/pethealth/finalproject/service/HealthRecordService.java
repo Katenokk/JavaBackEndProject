@@ -8,11 +8,15 @@ import com.pethealth.finalproject.model.Weight;
 import com.pethealth.finalproject.repository.PetRepository;
 import com.pethealth.finalproject.repository.WeightRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class HealthRecordService {
@@ -38,6 +42,14 @@ public class HealthRecordService {
 
         HealthRecord healthRecord = pet.getHealthRecord();
         Weight weight = new Weight(date, weightInKg, healthRecord);
+        //
+        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+        Set<ConstraintViolation<Weight>> violations = validator.validate(weight);
+
+        if(!violations.isEmpty()){
+            throw new IllegalArgumentException(violations.toString());
+        }
+        //
         healthRecord.addWeight(weight);
 
         weightRepository.save(weight);
@@ -68,15 +80,29 @@ public class HealthRecordService {
         return dto;
     }
 
-    public List<Weight> findWeightsBetweenDates(LocalDate startDate, LocalDate endDate) {
+    public List<Weight> findWeightsBetweenDates(Long petId, LocalDate startDate, LocalDate endDate) {
         if(endDate.isBefore(startDate)){
             throw new IllegalArgumentException("End date must be after start date");
         }
-        List<Weight> weights = weightRepository.findAllBetweenDates(startDate, endDate);
+        Pet pet = petRepository.findById(petId)
+                .orElseThrow(() -> new EntityNotFoundException("Pet not found with id " + petId));
+        HealthRecord healthRecord = pet.getHealthRecord();
+        List<Weight> weights = weightRepository.findAllByHealthRecordAndDayBetween(healthRecord, startDate, endDate);
         if(weights.isEmpty()){
             throw new EntityNotFoundException("No weights found between dates");
         }
         return weights;
+    }
+
+    //testear luego y añadir delete en controller
+    public void removeWeightFromPet(Long petId, Long weightId) {
+        Pet pet = petRepository.findById(petId)
+                .orElseThrow(() -> new EntityNotFoundException("Pet not found with id " + petId));
+        HealthRecord healthRecord = pet.getHealthRecord();
+        Weight weight = weightRepository.findById(weightId)
+                .orElseThrow(() -> new EntityNotFoundException("Weight not found with id " + weightId));
+        healthRecord.removeWeight(weight);
+        weightRepository.delete(weight);
     }
 
 }
