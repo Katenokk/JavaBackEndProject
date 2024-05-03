@@ -1,7 +1,6 @@
 package com.pethealth.finalproject.model;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.Hibernate;
@@ -16,16 +15,28 @@ import java.util.List;
 @NoArgsConstructor
 @EqualsAndHashCode
 @DynamicUpdate
-//@JsonIdentityInfo(
-//        generator = ObjectIdGenerators.PropertyGenerator.class,
-//        property = "id"
-//)
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "id"
+)
 public class HealthRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @OneToOne(mappedBy = "healthRecord")
+//    @JsonIdentityInfo(
+//            generator = ObjectIdGenerators.PropertyGenerator.class,
+//            property = "id")
+//    @JsonIdentityReference(alwaysAsId = true)
+//    @JsonTypeInfo(
+//            use = JsonTypeInfo.Id.NAME,
+//            include = JsonTypeInfo.As.PROPERTY,
+//            property = "type")
+//    @JsonSubTypes({
+//            @JsonSubTypes.Type(value = Cat.class, name = "cat"),
+//            @JsonSubTypes.Type(value = Dog.class, name = "dog")
+//    })
     private Pet pet;
 
     @OneToMany(mappedBy = "healthRecord", cascade = CascadeType.ALL)

@@ -21,11 +21,11 @@ public class HealthRecordController {
     private HealthRecordService healthRecordService;
 
     @PostMapping("weights/{petId}")
-    public ResponseEntity<HealthRecord> addWeightToPet(@PathVariable Long petId,
+    public ResponseEntity<String> addWeightToPet(@PathVariable Long petId,
                                                         @RequestParam LocalDate date,
                                                         @RequestParam double weightInKg) {
         healthRecordService.addWeightToPet(petId, date, weightInKg);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok("Weight added to pet");
     }
 
     @GetMapping("/{petId}")
@@ -34,8 +34,9 @@ public class HealthRecordController {
     }
 
     @DeleteMapping("/weights/{weightId}/{petId}")
-    public void removeWeightFromPet(@PathVariable Long weightId, @PathVariable Long petId) {
+    public  ResponseEntity<String> removeWeightFromPet(@PathVariable Long weightId, @PathVariable Long petId) {
         healthRecordService.removeWeightFromPet(weightId, petId);
+        return ResponseEntity.ok("Weight removed from pet");
     }
 
     @GetMapping("/weights/{petId}")

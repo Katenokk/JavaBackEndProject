@@ -1,5 +1,8 @@
 package com.pethealth.finalproject.model;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
@@ -16,10 +19,10 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)//comprobar equals!
 @DynamicUpdate
-//@JsonIdentityInfo(
-//        generator = ObjectIdGenerators.PropertyGenerator.class,
-//        property = "id"
-//)
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "id"
+)
 //evitar referencias circulares
 public class Weight {
     @Id
@@ -37,6 +40,7 @@ public class Weight {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "pet_health_record_id")
+    @JsonIdentityReference(alwaysAsId = true) //para que no salga json infinito
     private HealthRecord healthRecord;
 
     public Weight(LocalDate day, double weight, HealthRecord healthRecord) {

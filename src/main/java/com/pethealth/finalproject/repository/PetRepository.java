@@ -4,6 +4,8 @@ import com.pethealth.finalproject.model.Cat;
 import com.pethealth.finalproject.model.Dog;
 import com.pethealth.finalproject.model.Pet;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -17,4 +19,6 @@ public interface PetRepository extends JpaRepository<Pet, Long> {
 
     Optional<Pet> findByName(String name);
 
+    @Query("SELECT p FROM Pet p LEFT JOIN FETCH p.healthRecord h LEFT JOIN FETCH h.weights WHERE p.id = :id")
+    Optional<Pet> findByIdAndFetchWeightsEagerly(@Param("id") Long id);
 }
