@@ -36,7 +36,7 @@ public class HealthRecordService {
 //            weightRepository.save(weight);
 //        }
 
-    public void addWeightToPet(Long petId, LocalDate date, double weightInKg) {
+    public  void addWeightToPet(Long petId, LocalDate date, double weightInKg) {
         Pet pet = petRepository.findById(petId)
                 .orElseThrow(() -> new EntityNotFoundException("Pet not found with id " + petId));
 
