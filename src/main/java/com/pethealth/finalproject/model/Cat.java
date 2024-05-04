@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -19,7 +20,7 @@ import java.util.List;
 @Table(name = "cat")
 @PrimaryKeyJoinColumn(name="id")
 public class Cat extends Pet {
-    public Cat(String name, LocalDate dateOfBirth, boolean isSpayedOrNeutered, List<CatDiseases> chronicDiseases, CatBreeds catBreed, Owner owner, Veterinarian veterinarian) {
+    public Cat(String name, Date dateOfBirth, boolean isSpayedOrNeutered, List<CatDiseases> chronicDiseases, CatBreeds catBreed, Owner owner, Veterinarian veterinarian) {
         super(name, dateOfBirth, isSpayedOrNeutered, owner, veterinarian);
         this.chronicDiseases = chronicDiseases;
         this.catBreed = catBreed;

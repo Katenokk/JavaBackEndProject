@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,12 +43,17 @@ class HealthRecordRepositoryTest {
     void setUp() {
         owner = new Owner("New Owner", "new-owner", "1234", new ArrayList<>(), "owner@mail.com");
         userRepository.save(owner);
-        catto = new Cat("Catto", LocalDate.of(200, 1, 1), false, List.of(CatDiseases.IBD), CatBreeds.BENGAL, owner, null);
+        LocalDate dateOfBirth = LocalDate.of(200, 1, 1);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        catto = new Cat("Catto", dateOfBirthOld, false, List.of(CatDiseases.IBD), CatBreeds.BENGAL, owner, null);
         petRepository.save(catto);
 
         healthRecord1 = new HealthRecord(catto);
         healthRecordRepository.save(healthRecord1);
 
+
+//        LocalDate now = LocalDate.now();
+//        Date dateNow = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
         weight1 = new Weight( LocalDate.now(), 10.5, healthRecord1);
         weight2= new Weight( LocalDate.now(), 11.5, healthRecord1);
     }

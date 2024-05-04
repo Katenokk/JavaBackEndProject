@@ -2,6 +2,11 @@ package com.pethealth.finalproject.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.pethealth.finalproject.dtos.CatReadDTO;
+import com.pethealth.finalproject.dtos.DogReadDTO;
+import com.pethealth.finalproject.dtos.PetReadDTO;
 import com.pethealth.finalproject.model.*;
 import com.pethealth.finalproject.repository.HealthRecordRepository;
 import com.pethealth.finalproject.repository.PetRepository;
@@ -11,6 +16,9 @@ import jakarta.persistence.EntityManager;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -18,9 +26,12 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PetService {
+
+
 
     @Autowired
     private PetRepository petRepository;
@@ -36,7 +47,30 @@ public class PetService {
         return petRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found"));
     }
 
+    public String getCurrentUserName(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof AnonymousAuthenticationToken)) {
+            String currentUserName = authentication.getName();
+            return currentUserName;
+        }
+        return null;
+    }
+
     public Pet addNewPet(PetDTO petDTO) {
+        //sacar la id del usurario logeado (no es necesario pero es una seguridad extra)
+        String currentUserName = getCurrentUserName();
+        User currentUser = userRepository.findByUsername(currentUserName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+        //si es un owner se asigna automáticamente en el dto
+        if (!(currentUser instanceof Owner)) {
+            //entonces es un admin por lo que necesita pasar un owner en el json
+            if(petDTO.getOwner() == null || petDTO.getOwner().getId() == null){
+                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Owner is required to create a pet when adding as admin.");
+            }
+        } else {
+            petDTO.setOwner((Owner) currentUser);
+        }
+
         Pet pet;
 
         //map the dto to the corresponding entity
@@ -122,27 +156,90 @@ public class PetService {
         return dog;
     }
 
-    public List<Pet> findAllPets()  {
+//    public List<Pet> findAllPets()  {
+//        List<Pet> pets = petRepository.findAll();
+//
+//        if(pets.isEmpty()){
+//            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No pets found.");
+//        }
+//        return pets;
+//    }
+
+    public List<PetReadDTO> findAllPets() {
         List<Pet> pets = petRepository.findAll();
 
         if(pets.isEmpty()){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No pets found.");
-        } else {
-            pets.forEach(pet-> {
-                    Hibernate.initialize(pet);
-                }
-            );
-            ObjectMapper mapper = new ObjectMapper();
-            try{
-                String jsonData = mapper.writeValueAsString(pets);
-                System.out.println(jsonData);
-            } catch (JsonProcessingException e){
-                e.printStackTrace();
-            }
-
-            return pets;
         }
+
+        List<PetReadDTO> petReadDTOs = pets.stream()
+                .map(this::mapToPetReadDTO)
+                .collect(Collectors.toList());
+
+        return petReadDTOs;
     }
+
+    public PetReadDTO mapToPetReadDTO(Pet pet) {
+        PetReadDTO petReadDTO;
+        if (pet instanceof Cat) {
+            petReadDTO = new CatReadDTO();
+            ((CatReadDTO) petReadDTO).setChronicDiseases(((Cat) pet).getChronicDiseases());
+            ((CatReadDTO) petReadDTO).setCatBreed(((Cat) pet).getCatBreed());
+        } else if (pet instanceof Dog) {
+            petReadDTO = new DogReadDTO();
+            ((DogReadDTO) petReadDTO).setChronicDiseases(((Dog) pet).getChronicDiseases());
+            ((DogReadDTO) petReadDTO).setDogBreed(((Dog) pet).getDogBreed());
+        } else {
+            throw new IllegalArgumentException("Invalid pet type.");
+        }
+
+        petReadDTO.setName(pet.getName());
+        petReadDTO.setDateOfBirth(pet.getDateOfBirth());
+        petReadDTO.setSpayedOrNeutered(pet.isSpayedOrNeutered());
+        petReadDTO.setOwnerId(pet.getOwner().getId());
+        petReadDTO.setOwnerName(pet.getOwner().getName());
+
+        if(!(pet.getVeterinarian() == null)) {
+            petReadDTO.setVeterinarianId(pet.getVeterinarian().getId());
+            petReadDTO.setVeterinarianName(pet.getVeterinarian().getName());
+        }
+
+        return petReadDTO;
+    }
+
+//    @Transactional
+//    public List<Pet> findAllPetsByVeterinarian(Long vetId) {
+//        System.out.println("vet id: " + vetId);
+//        Veterinarian veterinarian = (Veterinarian) userRepository.findByIdAndFetchPetsEagerly(vetId)
+//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Veterinarian not found."));
+//
+//        List<Pet> pets = new ArrayList<>(veterinarian.getTreatedPets());
+//        System.out.println("number of pets: " + pets.size());
+//        if (pets.isEmpty()) {
+//            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No pets found.");
+//        }
+//        return pets;
+//    }
+
+    @Transactional
+    public List<PetReadDTO> findAllPetsByVeterinarian(Long vetId) {
+        System.out.println("vet id: " + vetId);
+        Veterinarian veterinarian = (Veterinarian) userRepository.findByIdAndFetchPetsEagerly(vetId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Veterinarian not found."));
+
+        List<Pet> pets = new ArrayList<>(veterinarian.getTreatedPets());
+        System.out.println("number of pets: " + pets.size());
+        if (pets.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No pets found.");
+        }
+
+        List<PetReadDTO> petReadDTOs = pets.stream()
+                .map(this::mapToPetReadDTO)
+                .collect(Collectors.toList());
+        return petReadDTOs;
+    }
+
+
 
 //    public void updatePet(Long id, Pet pet){
 //        if (pet instanceof Cat) {
@@ -167,9 +264,15 @@ public class PetService {
 //    }
 
     public void updatePet(Long id, PetDTO petDTO) {
+        String currentUserName = getCurrentUserName();
+        User currentUser = userRepository.findByUsername(currentUserName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
         Pet existingPet = petRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found."));
-
+        //comprobar si el owner es el mismo que el usuario logeado o es admin
+        if(!currentUser.equals(existingPet.getOwner()) || currentUser instanceof Admin){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Only the owner of the pet or admin can update pet.");
+        }
         Pet updatedPet;
         if (petDTO instanceof CatDTO) {
             updatedPet = mapToCatEntity((CatDTO) petDTO);
@@ -254,7 +357,7 @@ public class PetService {
     public Veterinarian addVeterinarianToPet(Long petId, Long vetId) {
         Pet pet = petRepository.findById(petId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found."));
-        Veterinarian veterinarian = (Veterinarian) userRepository.findById(vetId)
+        Veterinarian veterinarian = (Veterinarian) userRepository.findByIdAndFetchPetsEagerly(vetId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Veterinarian not found."));
 
         pet.setVeterinarian(veterinarian);
@@ -266,7 +369,9 @@ public class PetService {
         userRepository.save(veterinarian);
         petRepository.save(pet);
 
-        return userRepository.findById(vetId).map(user -> {
+//        Hibernate.initialize(veterinarian.getTreatedPets());
+
+        return userRepository.findByIdAndFetchPetsEagerly(vetId).map(user -> {
             Veterinarian vet = (Veterinarian) user;
             vet.getTreatedPets().size();
             return vet;

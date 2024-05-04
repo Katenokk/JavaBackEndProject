@@ -23,10 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.Mockito.*;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -347,7 +344,9 @@ class UserServiceTest {
     @Transactional
     void deleteOwnerWithPetTest(){
         Owner savedOwner = userRepository.save(newOwner);
-        Cat newCat = new Cat("Níobe", LocalDate.of(2010,06,01), true, List.of(CatDiseases.IBD), CatBreeds.MIXED, null, null);
+        LocalDate dateOfBirth = LocalDate.of(2010,06,01);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        Cat newCat = new Cat("Níobe", dateOfBirthOld, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, null, null);
 
         savedOwner.addPet(newCat);
         petRepository.save(newCat);
@@ -363,7 +362,9 @@ class UserServiceTest {
     @Test
     void deleteVeterinarianWithPetTest(){
         Veterinarian savedVet = userRepository.save(newVet);
-        Cat newCat = new Cat("Níobe", LocalDate.of(2010,06,01), true, List.of(CatDiseases.IBD), CatBreeds.MIXED, null, null);
+        LocalDate dateOfBirth = LocalDate.of(2010,06,01);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        Cat newCat = new Cat("Níobe", dateOfBirthOld, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, null, null);
 
         savedVet.addPet(newCat);
         petRepository.save(newCat);

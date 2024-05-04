@@ -7,12 +7,12 @@ import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
 
 import java.time.LocalDate;
+import java.util.Date;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
-//@AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @JsonIdentityInfo( generator = ObjectIdGenerators.PropertyGenerator.class,
         property = "id")
@@ -32,13 +32,14 @@ public abstract class Pet {
     @EqualsAndHashCode.Include
     @Past(message = "Date of birth must be in the past")
     @NotNull(message = "Date of birth is required")
-    private LocalDate dateOfBirth;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
+    private Date dateOfBirth;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "health_record_id", referencedColumnName = "id")
     private HealthRecord healthRecord;
 
-    public Pet(String name, LocalDate dateOfBirth, boolean isSpayedOrNeutered, Owner owner, Veterinarian veterinarian) {
+    public Pet(String name, Date dateOfBirth, boolean isSpayedOrNeutered, Owner owner, Veterinarian veterinarian) {
         this.name = name;
         this.dateOfBirth = dateOfBirth;
         this.isSpayedOrNeutered = isSpayedOrNeutered;

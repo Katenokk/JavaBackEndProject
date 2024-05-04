@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -44,7 +45,9 @@ class HealthRecordTest {
     void setUp() {
         owner = new Owner("New Owner", "new-owner", "1234", new ArrayList<>(), "owner@mail.com");
         userRepository.save(owner);
-        catto = new Cat("Catto", LocalDate.of(200, 1, 1), false, List.of(CatDiseases.IBD), CatBreeds.BENGAL, owner, null);
+        LocalDate dateOfBirth = LocalDate.of(2000,01,01);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        catto = new Cat("Catto", dateOfBirthOld, false, List.of(CatDiseases.IBD), CatBreeds.BENGAL, owner, null);
         petRepository.save(catto);
 
         healthRecord1 = new HealthRecord(catto);
@@ -70,7 +73,9 @@ class HealthRecordTest {
     void testPetHealthRecordAssociation() {
         HealthRecord healthRecord = new HealthRecord();
 
-        Cat testCat = new Cat("Catto", LocalDate.of(2000, 1, 1), false, List.of(CatDiseases.IBD), CatBreeds.BENGAL, owner, null);
+        LocalDate dateOfBirth = LocalDate.of(2000,01,01);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        Cat testCat = new Cat("Catto", dateOfBirthOld, false, List.of(CatDiseases.IBD), CatBreeds.BENGAL, owner, null);
 
         healthRecord.setPet(testCat);
         testCat.setHealthRecord(healthRecord);
@@ -87,24 +92,21 @@ class HealthRecordTest {
     @Test
     void testAddWeight() {
         catto = petRepository.save(catto);
-//        petRepository.flush(); // no hacen falta los flush
 
         catto = (Cat) petRepository.findById(catto.getId()).orElse(null);
-//importante crear el HealthRecord con un pet asignado
+        //importante crear el HealthRecord con un pet asignado
         HealthRecord healthRecord = new HealthRecord(catto);
         catto.setHealthRecord(healthRecord);
 
         catto = petRepository.save(catto);
         healthRecordRepository.save(healthRecord);
 
-//importante asignar el healthrecord a weight cuando se crea
+        //importante asignar el healthrecord a weight cuando se crea
         Weight weight = new Weight(LocalDate.now(), 10.5, healthRecord);
         weight = weightRepository.save(weight);
         healthRecord.addWeight(weight);
 
-//        healthRecordRepository.flush();
-
-        HealthRecord foundHealthRecord = healthRecordRepository.findById(healthRecord.getId()).orElse(null);
+        HealthRecord foundHealthRecord = healthRecordRepository.findByIdAndInitializeWeights(healthRecord.getId()).orElse(null);
 
         assertNotNull(foundHealthRecord);
         assertTrue(healthRecord.getWeights().contains(weight));

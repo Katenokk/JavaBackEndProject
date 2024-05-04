@@ -13,7 +13,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import java.util.Collections;
+
+import java.util.*;
+
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.ConstraintViolation;
@@ -22,10 +24,6 @@ import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -44,7 +42,8 @@ class CatTest {
     @BeforeEach
     void setUp() {
         LocalDate dateOfBirth = LocalDate.of(2010,06,01);
-        newCat = new Cat("Níobe", dateOfBirth, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, null, null);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        newCat = new Cat("Níobe", dateOfBirthOld, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, null, null);
         newOwner = new Owner("New Owner", "new_owner", "1234", new ArrayList<>(), "owner@mail.com");
         userRepository.save(newOwner);
         newVet = new Veterinarian("New Vet", "new_vet", "0000",  new ArrayList<>(), "vet@mail.com");
@@ -95,7 +94,9 @@ class CatTest {
     @DisplayName("Should validate incorrect names")
     @ValueSource(strings = {"", "12", "a", "ab", "abc1", "abc!", "abc*"})
     void testNameValidation_Invalid(String invalidName) {
-        Cat cat = new Cat(invalidName, LocalDate.of(2020, 1, 1), true, List.of(CatDiseases.IBD), CatBreeds.MIXED, newOwner, newVet);
+        LocalDate dateOfBirth = LocalDate.of(2020, 1, 1);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        Cat cat = new Cat(invalidName, dateOfBirthOld, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, newOwner, newVet);
         assertThrows(ConstraintViolationException.class, () -> petRepository.save(cat));
     }
 
@@ -103,19 +104,25 @@ class CatTest {
     @DisplayName("Should validate correct names")
     @ValueSource(strings = {"abc", "John Doe", "Ириска"})
     void testNameValidation_Valid(String validName) {
-        Cat cat = new Cat(validName, LocalDate.of(2020, 1, 1), true, List.of(CatDiseases.IBD), CatBreeds.MIXED, newOwner, newVet);
+        LocalDate dateOfBirth = LocalDate.of(2020, 1, 1);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        Cat cat = new Cat(validName, dateOfBirthOld, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, newOwner, newVet);
         assertDoesNotThrow(() -> petRepository.save(cat));
     }
 
     @Test
     void testDateOfBirthValidation_PastDate() {
-        Cat cat = new Cat("Valid Name", LocalDate.of(2000, 1, 1), true, List.of(CatDiseases.IBD), CatBreeds.MIXED, newOwner, newVet);
+        LocalDate dateOfBirth = LocalDate.of(2020, 1, 1);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        Cat cat = new Cat("Valid Name", dateOfBirthOld, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, newOwner, newVet);
         assertDoesNotThrow(() -> petRepository.save(cat));
     }
 
     @Test
     void testDateOfBirthValidation_FutureDate() {
-        Cat cat = new Cat("Valid Name", LocalDate.of(3000, 1, 1), true, List.of(CatDiseases.IBD), CatBreeds.MIXED, newOwner, newVet);
+        LocalDate dateOfBirth = LocalDate.of(2030, 1, 1);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        Cat cat = new Cat("Valid Name", dateOfBirthOld, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, newOwner, newVet);
         assertThrows(ConstraintViolationException.class, () -> petRepository.save(cat));
     }
 
@@ -127,19 +134,25 @@ class CatTest {
 
     @Test
     void testChronicDiseasesValidation_Null() {
-        Cat cat = new Cat("Valid Name", LocalDate.of(2000, 1, 1), true, null, CatBreeds.MIXED, newOwner, newVet);
+        LocalDate dateOfBirth = LocalDate.of(2000, 1, 1);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        Cat cat = new Cat("Valid Name", dateOfBirthOld, true, null, CatBreeds.MIXED, newOwner, newVet);
         assertThrows(ConstraintViolationException.class, () -> petRepository.save(cat));
     }
 
     @Test
     void testChronicDiseasesValidation_Empty() {
-        Cat cat = new Cat("Valid Name", LocalDate.of(2000, 1, 1), true, Collections.emptyList(), CatBreeds.MIXED, newOwner, newVet);
+        LocalDate dateOfBirth = LocalDate.of(2000, 1, 1);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        Cat cat = new Cat("Valid Name", dateOfBirthOld, true, Collections.emptyList(), CatBreeds.MIXED, newOwner, newVet);
         assertThrows(ConstraintViolationException.class, () -> petRepository.save(cat));
     }
 
     @Test
     void testChronicDiseasesValidation_NotEmpty() {
-        Cat cat = new Cat("Valid Name", LocalDate.of(2000, 1, 1), true, List.of(CatDiseases.IBD), CatBreeds.MIXED, newOwner, newVet);
+        LocalDate dateOfBirth = LocalDate.of(2000, 1, 1);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        Cat cat = new Cat("Valid Name", dateOfBirthOld, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, newOwner, newVet);
         assertDoesNotThrow(() -> petRepository.save(cat));
     }
 

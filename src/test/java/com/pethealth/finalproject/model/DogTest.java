@@ -8,12 +8,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import java.util.Collections;
+
+import java.util.*;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -33,7 +31,9 @@ class DogTest {
 
     @BeforeEach
     void setUp() {
-        newDog = new Dog("Bombo", LocalDate.of(2000, 01, 01), false, List.of(DogDiseases.ARTHRITIS), DogBreeds.HUSKY, null, null);
+        LocalDate dateOfBirth = LocalDate.of(2000,01,01);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        newDog = new Dog("Bombo", dateOfBirthOld, false, List.of(DogDiseases.ARTHRITIS), DogBreeds.HUSKY, null, null);
         newOwner = new Owner("New Owner", "new_owner", "1234",  new ArrayList<>(), "owner@mail.com");
         userRepository.save(newOwner);
         newVet = new Veterinarian("New Vet", "new_vet", "0000",  new ArrayList<>(), "vet@mail.com");
@@ -78,19 +78,25 @@ class DogTest {
 
     @Test
     void testChronicDiseasesValidation_Null_Dog() {
-        Dog dog = new Dog("Valid Name", LocalDate.of(2000, 1, 1), true, null, DogBreeds.MIXED, newOwner, newVet);
+        LocalDate dateOfBirth = LocalDate.of(2000,01,01);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        Dog dog = new Dog("Valid Name", dateOfBirthOld, true, null, DogBreeds.MIXED, newOwner, newVet);
         assertThrows(ConstraintViolationException.class, () -> petRepository.save(dog));
     }
 
     @Test
     void testChronicDiseasesValidation_Empty_Dog() {
-        Dog dog = new Dog("Valid Name", LocalDate.of(2000, 1, 1), true, Collections.emptyList(), DogBreeds.MIXED, newOwner, newVet);
+        LocalDate dateOfBirth = LocalDate.of(2000,01,01);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        Dog dog = new Dog("Valid Name", dateOfBirthOld, true, Collections.emptyList(), DogBreeds.MIXED, newOwner, newVet);
         assertThrows(ConstraintViolationException.class, () -> petRepository.save(dog));
     }
 
     @Test
     void testChronicDiseasesValidation_NotEmpty_Dog() {
-        Dog dog = new Dog("Valid Name", LocalDate.of(2000, 1, 1), true, List.of(DogDiseases.KIDNEY_DISEASE), DogBreeds.MIXED, newOwner, newVet);
+        LocalDate dateOfBirth = LocalDate.of(2000,01,01);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        Dog dog = new Dog("Valid Name", dateOfBirthOld, true, List.of(DogDiseases.KIDNEY_DISEASE), DogBreeds.MIXED, newOwner, newVet);
         assertDoesNotThrow(() -> petRepository.save(dog));
     }
 }

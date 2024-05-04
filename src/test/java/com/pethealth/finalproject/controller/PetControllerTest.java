@@ -14,6 +14,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -22,6 +25,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -59,8 +63,11 @@ class PetControllerTest {
         //no coge bien los json de los dto
 //        objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
         LocalDate dateOfBirth = LocalDate.of(2010,06,01);
-        newCat = new Cat("Níobe", dateOfBirth, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, null, null);
-        newDog = new Dog("Bombo", LocalDate.of(2000, 01, 01), false, List.of(DogDiseases.ARTHRITIS), DogBreeds.HUSKY, null, null);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        newCat = new Cat("Níobe", dateOfBirthOld, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, null, null);
+        LocalDate dateOfBirth2 = LocalDate.of(2000, 01, 01);
+        Date dateOfBirthOld2 = Date.from(dateOfBirth2.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        newDog = new Dog("Bombo", dateOfBirthOld2, false, List.of(DogDiseases.ARTHRITIS), DogBreeds.HUSKY, null, null);
         newOwner = new Owner("New Owner", "new_owner", "1234", new ArrayList<>(), "owner@mail.com");
         userRepository.save(newOwner);
         newVet = new Veterinarian("New Vet", "new_vet", "0000",  new ArrayList<>(), "vet@mail.com");
@@ -105,12 +112,23 @@ class PetControllerTest {
 
     @Test
     void addNewPet_Valid() throws Exception {
-        CatDTO newCatDTO = new CatDTO();
+        petRepository.deleteAll();
+        userRepository.deleteAll();
         userRepository.save(newOwner);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
+        CatDTO newCatDTO = new CatDTO();
+//        userRepository.save(newOwner);
         newCatDTO.setOwner(newOwner);
         newCatDTO.setName("Pipu");
         newCatDTO.setSpayedOrNeutered(true);
-        newCatDTO.setDateOfBirth(LocalDate.of(2010, 1, 1));
+        LocalDate dateOfBirth = LocalDate.of(2010, 1, 1);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        newCatDTO.setDateOfBirth(dateOfBirthOld);
         newCatDTO.setChronicDiseases(List.of(CatDiseases.IBD));
 
         String body = objectMapper.writeValueAsString(newCatDTO);
@@ -132,19 +150,32 @@ class PetControllerTest {
 
         assertNotNull(createdCat);
         assertEquals(createdCat.getName(), createdPetName);
-        assertEquals(createdCat.getDateOfBirth().toString(), createdPetDateOfBirth);
+        assertTrue(createdPetDateOfBirth.contains("2010-01-01"));
+
+        SecurityContextHolder.clearContext();
     }
 
 
     @Test
     void addNewPet_ThrowException_ExistingCat() throws Exception {
+        petRepository.deleteAll();
+        userRepository.deleteAll();
+        userRepository.save(newOwner);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
         petRepository.save(newCat);
         CatDTO newCatDTO = new CatDTO();
-        userRepository.save(newOwner);
+//        userRepository.save(newOwner);
         newCatDTO.setOwner(newOwner);
         newCatDTO.setName("Níobe");
         newCatDTO.setSpayedOrNeutered(true);
-        newCatDTO.setDateOfBirth(LocalDate.of(2010, 1, 1));
+        LocalDate dateOfBirth = LocalDate.of(2010, 1, 1);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        newCatDTO.setDateOfBirth(dateOfBirthOld);
         newCatDTO.setChronicDiseases(List.of(CatDiseases.IBD));
 
         String body = objectMapper.writeValueAsString(newCatDTO);
@@ -152,9 +183,20 @@ class PetControllerTest {
                 .content(body)
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(status().isUnprocessableEntity()).andReturn();
+
+        SecurityContextHolder.clearContext();
     }
     @Test
     void updatePets_Valid() throws Exception {
+        petRepository.deleteAll();
+        userRepository.deleteAll();
+        newOwner = userRepository.save(newOwner);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
         newCat.setOwner(newOwner);
         petRepository.save(newCat);
         Long existingCatId = newCat.getId();
@@ -163,7 +205,9 @@ class PetControllerTest {
         updatedCatDTO.setName("Updated Name");
         updatedCatDTO.setOwner(newOwner);
         updatedCatDTO.setSpayedOrNeutered(false);
-        updatedCatDTO.setDateOfBirth(LocalDate.of(2011, 1, 1));
+        LocalDate dateOfBirth = LocalDate.of(2010, 1, 1);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        updatedCatDTO.setDateOfBirth(dateOfBirthOld);
         updatedCatDTO.setChronicDiseases(List.of(CatDiseases.DIABETES));
 
         String body = objectMapper.writeValueAsString(updatedCatDTO);
@@ -179,15 +223,29 @@ class PetControllerTest {
         assertEquals(updatedCatDTO.getDateOfBirth(), updatedCat.getDateOfBirth());
         assertEquals(updatedCatDTO.isSpayedOrNeutered(), updatedCat.isSpayedOrNeutered());
         assertEquals(updatedCatDTO.isSpayedOrNeutered(), updatedCat.isSpayedOrNeutered());
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test
     void updatePets_ThrowException_CatNotFound() throws Exception {
+        petRepository.deleteAll();
+        userRepository.deleteAll();
+        newOwner = userRepository.save(newOwner);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
         CatDTO updatedCatDTO = new CatDTO();
         updatedCatDTO.setName("Updated Name");
         updatedCatDTO.setOwner(newOwner);
         updatedCatDTO.setSpayedOrNeutered(false);
-        updatedCatDTO.setDateOfBirth(LocalDate.of(2011, 1, 1));
+        updatedCatDTO.setSpayedOrNeutered(false);
+        LocalDate dateOfBirth = LocalDate.of(2011, 1, 1);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        updatedCatDTO.setDateOfBirth(dateOfBirthOld);
         updatedCatDTO.setChronicDiseases(List.of(CatDiseases.DIABETES));
 
         String body = objectMapper.writeValueAsString(updatedCatDTO);
@@ -195,6 +253,8 @@ class PetControllerTest {
                 .content(body)
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(status().isNotFound());
+
+        SecurityContextHolder.clearContext();
     }
 
 
@@ -229,7 +289,9 @@ class PetControllerTest {
         updatedCatDTO.setName("Updated Name");
         updatedCatDTO.setOwner(newOwner);
         updatedCatDTO.setSpayedOrNeutered(false);
-        updatedCatDTO.setDateOfBirth(LocalDate.of(2011, 1, 1));
+        LocalDate dateOfBirth = LocalDate.of(2011, 1, 1);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        updatedCatDTO.setDateOfBirth(dateOfBirthOld);
         updatedCatDTO.setChronicDiseases(List.of(CatDiseases.DIABETES));
 
         String body = objectMapper.writeValueAsString(updatedCatDTO);

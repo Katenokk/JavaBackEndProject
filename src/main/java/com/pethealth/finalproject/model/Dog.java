@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -18,7 +19,7 @@ import java.util.List;
 @PrimaryKeyJoinColumn(name="id")
 public class Dog extends Pet{
 
-    public Dog(String name, LocalDate dateOfBirth, boolean isSpayedOrNeutered, List<DogDiseases> chronicDiseases, DogBreeds dogBreed, Owner owner, Veterinarian veterinarian) {
+    public Dog(String name, Date dateOfBirth, boolean isSpayedOrNeutered, List<DogDiseases> chronicDiseases, DogBreeds dogBreed, Owner owner, Veterinarian veterinarian) {
         super(name, dateOfBirth, isSpayedOrNeutered, owner, veterinarian);
         this.chronicDiseases = chronicDiseases;
         this.dogBreed = dogBreed;
