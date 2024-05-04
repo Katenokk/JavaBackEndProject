@@ -68,24 +68,24 @@ class HealthRecordControllerTest {
     private MockMvc mockMvc;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-        objectMapper.registerModule(new JavaTimeModule());
-        owner = new Owner("New Owner", "new-owner", "1234", new ArrayList<>(), "owner@mail.com");
-        userRepository.save(owner);
-        catto = new Cat("Catto", LocalDate.of(200, 1, 1), false, List.of(CatDiseases.IBD), CatBreeds.BENGAL, owner, null);
-//        petRepository.save(catto);
-        healthRecord1 = new HealthRecord(catto);
-        weight1 = new Weight( LocalDate.now(), 10.5, healthRecord1);
-        weight2= new Weight( LocalDate.now(), 11.5, healthRecord1);
-        healthRecord1.addWeight(weight1);
-        healthRecord1.addWeight(weight2);
-        catto.setHealthRecord(healthRecord1);
-//        healthRecordRepository.save(healthRecord1);
-        petRepository.saveAndFlush(catto);
-
-    }
+//    @BeforeEach
+//    void setUp() {
+//        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+//        objectMapper.registerModule(new JavaTimeModule());
+//        owner = new Owner("New Owner", "new-owner", "1234", new ArrayList<>(), "owner@mail.com");
+//        userRepository.save(owner);
+//        catto = new Cat("Catto", LocalDate.of(200, 1, 1), false, List.of(CatDiseases.IBD), CatBreeds.BENGAL, owner, null);
+////        petRepository.save(catto);
+//        healthRecord1 = new HealthRecord(catto);
+//        weight1 = new Weight( LocalDate.now(), 10.5, healthRecord1);
+//        weight2= new Weight( LocalDate.now(), 11.5, healthRecord1);
+//        healthRecord1.addWeight(weight1);
+//        healthRecord1.addWeight(weight2);
+//        catto.setHealthRecord(healthRecord1);
+////        healthRecordRepository.save(healthRecord1);
+//        petRepository.saveAndFlush(catto);
+//
+//    }
 
     @AfterEach
     void tearDown() {

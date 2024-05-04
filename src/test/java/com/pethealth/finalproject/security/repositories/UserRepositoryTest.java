@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,7 +37,7 @@ class UserRepositoryTest {
     @BeforeEach
     void setUp() {
         testUser = new User("Test User", "test-user", "1234", new ArrayList<>());
-        newOwner = new Owner("Pepe", "pepito", "0000", new ArrayList<>(), "email.com");
+        newOwner = new Owner("Pepe", "pepito", "0000", new ArrayList<>(), "email@email.com");
         newVet = new Veterinarian("Oriol", "dr gato", "1111", new ArrayList<>(), "oriol@email.com");
         newAdmin = new Admin("Admin", "admin", "888", new ArrayList<>());
     }
@@ -58,7 +59,8 @@ class UserRepositoryTest {
     @Transactional
     void removeAssociationVeterinarianWithPet() {
         LocalDate dateOfBirth = LocalDate.of(2010,06,01);
-        Cat newCat = new Cat("Níobe", dateOfBirth, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, null, null);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        Cat newCat = new Cat("Níobe", dateOfBirthOld, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, null, null);
         newVet.addPet(newCat);
         userRepository.save(newVet);
         petRepository.save(newCat);
@@ -80,6 +82,6 @@ class UserRepositoryTest {
         userRepository.save(newVet);
         Optional<Veterinarian> retrievedVet = userRepository.findVetByEmail(newVet.getEmail());
         assertTrue(retrievedVet.isPresent());
-        assertEquals(newOwner.getName(), retrievedVet.get().getName());
+        assertEquals(newVet.getName(), retrievedVet.get().getName());
     }
 }

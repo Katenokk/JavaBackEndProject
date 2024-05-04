@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 @Getter
@@ -28,7 +29,8 @@ public class PetDTO {
 
     @Past(message = "Date of birth must be in the past")
     @NotNull(message = "Date of birth is required")
-    private LocalDate dateOfBirth;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
+    private Date dateOfBirth;
 
     @NotNull(message = "You must select is spayed or neutered, yes/no")
     private boolean isSpayedOrNeutered;

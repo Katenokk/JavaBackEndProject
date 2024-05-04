@@ -39,7 +39,8 @@ public class Veterinarian extends User {
     public Veterinarian(String name, String username, String password, Collection<Role> roles, String email) {
         super(name, username, password, roles);
         this.email = email;
-        this.treatedPets = new HashSet<>();
+//        this.treatedPets = new HashSet<>();
+        //probar si asi se añaden todos los pets a la lista
     }
 
     public void addPet(Pet pet) {

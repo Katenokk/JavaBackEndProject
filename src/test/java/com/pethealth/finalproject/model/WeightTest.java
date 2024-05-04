@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import jakarta.validation.ConstraintViolationException;
 
 import java.time.LocalDate;
+import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -31,26 +32,28 @@ class WeightTest {
     @Test
     void weightCreationTest() {
         Weight weight = new Weight();
+//        LocalDate dateOfBirth = LocalDate.of(2021, 10, 10);
+//        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
         weight.setDay(LocalDate.of(2021, 10, 10));
         weight.setWeight(10.5);
         assertNotNull(weight);
     }
 
-//    @Test
-//    void testDayValidation_FutureDate() {
-//        Weight weight = new Weight();
-//        weight.setDay(LocalDate.now().plusDays(1)); // set a future date
-//        weight.setWeight(10.0);
-//        assertThrows(ConstraintViolationException.class, () -> weightRepository.save(weight));
-//    }
-//
-//    @Test
-//    void testWeightValidation_NegativeWeight() {
-//        Weight weight = new Weight();
-//        weight.setDay(LocalDate.now());
-//        weight.setWeight(-10.0); // set a negative weight
-//        assertThrows(ConstraintViolationException.class, () -> weightRepository.save(weight));
-//    }
+    @Test
+    void testDayValidation_FutureDate() {
+        Weight weight = new Weight();
+        weight.setDay(LocalDate.now().plusDays(1)); // set a future date
+        weight.setWeight(10.0);
+        assertThrows(ConstraintViolationException.class, () -> weightRepository.save(weight));
+    }
+
+    @Test
+    void testWeightValidation_NegativeWeight() {
+        Weight weight = new Weight();
+        weight.setDay(LocalDate.now());
+        weight.setWeight(-10.0); // set a negative weight
+        assertThrows(ConstraintViolationException.class, () -> weightRepository.save(weight));
+    }
 
 
     @ParameterizedTest

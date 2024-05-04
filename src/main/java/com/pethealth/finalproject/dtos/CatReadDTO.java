@@ -1,8 +1,8 @@
-package com.pethealth.finalproject.model;
+package com.pethealth.finalproject.dtos;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.pethealth.finalproject.dtos.PetReadDTO;
+import com.pethealth.finalproject.model.CatBreeds;
+import com.pethealth.finalproject.model.CatDiseases;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -13,11 +13,7 @@ import java.util.List;
 @Getter
 @Setter
 @JsonTypeName("cat")
-public class CatDTO extends PetDTO {
-    @NotNull(message="chronic disease is required")
-    @NotEmpty(message = "At least one chronic disease is required")
+public class CatReadDTO extends PetReadDTO{
     private List<CatDiseases> chronicDiseases;
-
     private CatBreeds catBreed;
-
 }

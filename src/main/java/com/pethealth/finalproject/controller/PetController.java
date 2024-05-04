@@ -1,5 +1,6 @@
 package com.pethealth.finalproject.controller;
 
+import com.pethealth.finalproject.dtos.PetReadDTO;
 import com.pethealth.finalproject.model.*;
 import com.pethealth.finalproject.security.models.User;
 import com.pethealth.finalproject.security.services.impl.UserService;
@@ -28,8 +29,13 @@ public class PetController {
         return petService.findPetById(id);
     }
 
+//    @GetMapping("/pets")
+//    public List<Pet> findAllPets() {
+//        return petService.findAllPets();
+//    }
+
     @GetMapping("/pets")
-    public List<Pet> findAllPets() {
+    public List<PetReadDTO> findAllPets() {
         return petService.findAllPets();
     }
 
@@ -85,8 +91,18 @@ public class PetController {
         return ResponseEntity.ok("Veterinarian removed from pet successfully.");
     }
 
+//    @GetMapping("/pets/veterinarians/{vetId}/")
+//    public List<Pet> findAllPetsByVeterinarian(@PathVariable Long vetId) {
+//        return petService.findAllPetsByVeterinarian(vetId);
+//    }
+
+    @GetMapping("/pets/veterinarians/{vetId}")
+    public List<PetReadDTO> findAllPetsByVeterinarian(@PathVariable Long vetId) {
+        return petService.findAllPetsByVeterinarian(vetId);
+    }
 
 
-    //findByalgo breed, disease
+
+
 
 }

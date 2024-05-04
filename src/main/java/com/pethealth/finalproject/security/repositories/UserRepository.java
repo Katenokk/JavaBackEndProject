@@ -25,10 +25,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     Optional<User> findByUsername(String username);
 
-//    @Modifying
-//    @Query("UPDATE Patient p SET p.employee = null WHERE p.employee = :employee")
-//    void removeAssociationWithEmployee(@Param("employee") Employee employee);
-
     @Modifying
     @Query("UPDATE Pet p SET p.veterinarian = null WHERE p.veterinarian = :veterinarian")
     void removeAssociationVeterinarianWithPet(@Param("veterinarian") Veterinarian veterinarian);
@@ -36,4 +32,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<Owner> findOwnerByEmail(String email);
 
     Optional<Veterinarian> findVetByEmail(String email);
+
+    @Query("SELECT v FROM Veterinarian v LEFT JOIN FETCH v.treatedPets WHERE v.id = :id")
+    Optional<Veterinarian> findByIdAndFetchPetsEagerly(@Param("id") Long id);
 }
