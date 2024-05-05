@@ -1,5 +1,6 @@
 package com.pethealth.finalproject.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
@@ -12,6 +13,7 @@ import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
 
 import java.time.LocalDate;
+import java.util.Date;
 
 @Entity
 @Getter
@@ -32,7 +34,8 @@ public class Weight {
 
     @NotNull(message = "Day is required")
     @PastOrPresent(message = "Day must be in the past or present")
-    private LocalDate day;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
+    private Date day;
 
     @NotNull(message = "Weight is required")
     @Positive(message = "Weight must be positive")
@@ -43,7 +46,7 @@ public class Weight {
     @JsonIdentityReference(alwaysAsId = true) //para que no salga json infinito
     private HealthRecord healthRecord;
 
-    public Weight(LocalDate day, double weight, HealthRecord healthRecord) {
+    public Weight(Date day, double weight, HealthRecord healthRecord) {
         this.day = day;
         this.weight = weight;
         this.healthRecord = healthRecord;

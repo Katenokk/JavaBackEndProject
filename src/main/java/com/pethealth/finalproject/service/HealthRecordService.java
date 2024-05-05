@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -36,7 +37,7 @@ public class HealthRecordService {
 //            weightRepository.save(weight);
 //        }
 
-    public  void addWeightToPet(Long petId, LocalDate date, double weightInKg) {
+    public  void addWeightToPet(Long petId, Date date, double weightInKg) {
         Pet pet = petRepository.findById(petId)
                 .orElseThrow(() -> new EntityNotFoundException("Pet not found with id " + petId));
 
@@ -80,8 +81,8 @@ public class HealthRecordService {
         return dto;
     }
 
-    public List<Weight> findWeightsBetweenDates(Long petId, LocalDate startDate, LocalDate endDate) {
-        if(endDate.isBefore(startDate)){
+    public List<Weight> findWeightsBetweenDates(Long petId, Date startDate, Date endDate) {
+        if(endDate.before(startDate)){
             throw new IllegalArgumentException("End date must be after start date");
         }
         Pet pet = petRepository.findById(petId)
@@ -95,7 +96,7 @@ public class HealthRecordService {
     }
 
     //testear luego y añadir delete en controller
-    public void removeWeightFromPet(Long petId, Long weightId) {
+    public void removeWeightFromPet(Long weightId, Long petId) {
         Pet pet = petRepository.findById(petId)
                 .orElseThrow(() -> new EntityNotFoundException("Pet not found with id " + petId));
         HealthRecord healthRecord = pet.getHealthRecord();

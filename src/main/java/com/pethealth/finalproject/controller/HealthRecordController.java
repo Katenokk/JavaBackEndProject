@@ -11,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -22,7 +23,7 @@ public class HealthRecordController {
 
     @PostMapping("weights/{petId}")
     public ResponseEntity<String> addWeightToPet(@PathVariable Long petId,
-                                                        @RequestParam LocalDate date,
+                                                        @RequestParam @DateTimeFormat(pattern="yyyy-MM-dd HH:mm") Date date,
                                                         @RequestParam double weightInKg) {
         healthRecordService.addWeightToPet(petId, date, weightInKg);
         return ResponseEntity.ok("Weight added to pet");
@@ -41,8 +42,8 @@ public class HealthRecordController {
 
     @GetMapping("/weights/{petId}")
     public List<Weight> findWeightsBetweenDates(@PathVariable Long petId,
-                                                @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-                                                @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+                                                @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date startDate,
+                                                @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endDate) {
         return healthRecordService.findWeightsBetweenDates(petId, startDate, endDate);
     }
 }

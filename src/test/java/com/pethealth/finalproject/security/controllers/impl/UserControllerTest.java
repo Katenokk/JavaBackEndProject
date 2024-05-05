@@ -26,6 +26,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -67,20 +68,18 @@ class UserControllerTest {
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-//        objectMapper.registerModule(new JavaTimeModule());
         //para que pueda deserializar un userdto sin el campo email en el test
 //        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         testUser = new User("Test User", "test-user", "1234", new ArrayList<>());
         newOwner = new Owner("Pepe", "pepito", "0000", new ArrayList<>(), "email@email.com");
         newVet = new Veterinarian("Oriol", "dr gato", "1111", new ArrayList<>(), "oriol@email.com");
         newAdmin = new Admin("Admin", "admin", "8888", new ArrayList<>());
-//        LocalDate dateOfBirth = LocalDate.of(2010,06,01);
-//        newCat = new Cat("Níobe", dateOfBirth, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, null, null);
-//        newDog = new Dog("Bombo", LocalDate.of(2000, 01, 01), false, List.of(DogDiseases.ARTHRITIS), DogBreeds.HUSKY, null, null);
-//        newOwner = new Owner("New Owner", "new_owner", "1234", new ArrayList<>(), "owner@mail.com");
-//        userRepository.save(newOwner);
-//        newVet = new Veterinarian("New Vet", "new_vet", "0000",  new ArrayList<>(), "vet@mail.com");
-//        userRepository.save(newVet);
+        LocalDate dateOfBirth = LocalDate.of(2010,06,01);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        newCat = new Cat("Níobe", dateOfBirthOld, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, null, null);
+        LocalDate dateOfBirthDog = LocalDate.of(2000, 01, 01);
+        Date dateOfBirthDogOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        newDog = new Dog("Bombo", dateOfBirthDogOld, false, List.of(DogDiseases.ARTHRITIS), DogBreeds.HUSKY, null, null);
     }
 
     @AfterEach

@@ -52,10 +52,10 @@ class HealthRecordRepositoryTest {
         healthRecordRepository.save(healthRecord1);
 
 
-//        LocalDate now = LocalDate.now();
-//        Date dateNow = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
-        weight1 = new Weight( LocalDate.now(), 10.5, healthRecord1);
-        weight2= new Weight( LocalDate.now(), 11.5, healthRecord1);
+        LocalDate now = LocalDate.now();
+        Date dateNow = Date.from(now.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        weight1 = new Weight( dateNow, 10.5, healthRecord1);
+        weight2= new Weight( dateNow, 11.5, healthRecord1);
     }
 
     @AfterEach

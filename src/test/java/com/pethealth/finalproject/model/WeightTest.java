@@ -32,9 +32,9 @@ class WeightTest {
     @Test
     void weightCreationTest() {
         Weight weight = new Weight();
-//        LocalDate dateOfBirth = LocalDate.of(2021, 10, 10);
-//        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
-        weight.setDay(LocalDate.of(2021, 10, 10));
+        LocalDate date = LocalDate.of(2021, 10, 10);
+        Date dateDate = Date.from(date.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        weight.setDay(dateDate);
         weight.setWeight(10.5);
         assertNotNull(weight);
     }
@@ -42,7 +42,9 @@ class WeightTest {
     @Test
     void testDayValidation_FutureDate() {
         Weight weight = new Weight();
-        weight.setDay(LocalDate.now().plusDays(1)); // set a future date
+        LocalDate date = LocalDate.of(2051, 10, 10);
+        Date dateDate = Date.from(date.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        weight.setDay(dateDate); // set a future date
         weight.setWeight(10.0);
         assertThrows(ConstraintViolationException.class, () -> weightRepository.save(weight));
     }
@@ -50,7 +52,9 @@ class WeightTest {
     @Test
     void testWeightValidation_NegativeWeight() {
         Weight weight = new Weight();
-        weight.setDay(LocalDate.now());
+        LocalDate date = LocalDate.now();
+        Date dateDate = Date.from(date.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        weight.setDay(dateDate);
         weight.setWeight(-10.0); // set a negative weight
         assertThrows(ConstraintViolationException.class, () -> weightRepository.save(weight));
     }
@@ -60,7 +64,9 @@ class WeightTest {
     @ValueSource(doubles = {-10.0, 0.0})
     void testWeightValidation_NonPositiveWeight(double weightValue) {
         Weight weight = new Weight();
-        weight.setDay(LocalDate.now());
+        LocalDate date = LocalDate.now();
+        Date dateDate = Date.from(date.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        weight.setDay(dateDate);
         weight.setWeight(weightValue);
         assertThrows(ConstraintViolationException.class, () -> weightRepository.save(weight));
     }
@@ -69,7 +75,9 @@ class WeightTest {
     @ValueSource(longs = {1L, 2L, 3L})
     void testDayValidation_FutureDate(long daysToAdd) {
         Weight weight = new Weight();
-        weight.setDay(LocalDate.now().plusDays(daysToAdd));
+        LocalDate date = LocalDate.now().plusDays(daysToAdd);
+        Date dateDate = Date.from(date.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        weight.setDay(dateDate);
         weight.setWeight(10.0);
         assertThrows(ConstraintViolationException.class, () -> weightRepository.save(weight));
     }
