@@ -131,6 +131,12 @@ public class UserController {
         userService.updateOwner(id, owner);
     }
 
+//    @PutMapping("/admin/owners/{id}")
+//    @ResponseStatus(HttpStatus.NO_CONTENT)
+//    public void updateOwnerByAdmin(@PathVariable Long id, @RequestBody @Valid Owner owner) {
+//        userService.updateOwner(id, owner);
+//    }
+
     @PutMapping("/veterinarians/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateVeterinarian(@PathVariable Long id, @RequestBody @Valid Veterinarian veterinarian) {

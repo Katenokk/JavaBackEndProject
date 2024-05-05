@@ -13,6 +13,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -208,62 +211,124 @@ class UserServiceTest {
 
     @Test
     void updateOwnerValid(){
+        userRepository.deleteAll();
         userRepository.save(newOwner);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
         Owner updatedOwner = new Owner("Cambiado", "cambiado", "0000", new ArrayList<>(), "email@nuevo.com");
         userService.updateOwner(newOwner.getId(), updatedOwner);
         Owner fetchedOwner = (Owner) userRepository.findById(updatedOwner.getId()).orElse(null);
         assertNotNull(fetchedOwner);
         assertEquals("Cambiado", fetchedOwner.getName());
         assertEquals("cambiado", fetchedOwner.getUsername());
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test
     public void testUpdateOwnerNotFound() {
+        userRepository.deleteAll();
+        userRepository.save(newOwner);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
         Owner owner = new Owner();
         owner.setId(100L);
         owner.setUsername("testuser");
 
         assertThrows(ResponseStatusException.class, () -> userService.updateOwner(100L, owner));
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test
     void updateVeterinarianValid(){
+        userRepository.deleteAll();
         userRepository.save(newVet);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_VET"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newVet.getUsername(), newVet.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
         Veterinarian updatedVet = new Veterinarian("nuevo nombre", "nuevo usuario", "0000", new ArrayList<>(), "email@nuevo.com");
         userService.updateVeterinarian(newVet.getId(), updatedVet);
         Veterinarian fetchedVet = (Veterinarian) userRepository.findById(updatedVet.getId()).orElse(null);
         assertNotNull(fetchedVet);
         assertEquals("nuevo nombre", fetchedVet.getName());
         assertEquals("nuevo usuario", fetchedVet.getUsername());
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test
     public void testUpdateVeterinarianNotFound() {
+        userRepository.deleteAll();
+        userRepository.save(newVet);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_VET"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newVet.getUsername(), newVet.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
         Veterinarian vet = new Veterinarian();
         vet.setId(100L);
         vet.setUsername("testuser");
 
         assertThrows(ResponseStatusException.class, () -> userService.updateVeterinarian(100L, vet));
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test
     void updateAdminValid(){
+        userRepository.deleteAll();
         userRepository.save(newAdmin);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newAdmin.getUsername(), newAdmin.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
+
         Admin updatedAdmin = new Admin("Nuevo Admin", "nuevo admin", "0000", new ArrayList<>());
         userService.updateAdmin(newAdmin.getId(), updatedAdmin);
         Admin fetchedAdmin = (Admin) userRepository.findById(updatedAdmin.getId()).orElse(null);
         assertNotNull(fetchedAdmin);
         assertEquals("Nuevo Admin", fetchedAdmin.getName());
         assertEquals("nuevo admin", fetchedAdmin.getUsername());
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test
     public void testUpdateAdminNotFound() {
+        userRepository.deleteAll();
+        userRepository.save(newAdmin);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newAdmin.getUsername(), newAdmin.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
         Admin admin = new Admin();
         admin.setId(100L);
         admin.setUsername("testuser");
 
         assertThrows(ResponseStatusException.class, () -> userService.updateAdmin(100L, admin));
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test

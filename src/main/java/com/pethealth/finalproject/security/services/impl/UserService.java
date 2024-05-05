@@ -5,10 +5,12 @@ import com.pethealth.finalproject.model.Admin;
 import com.pethealth.finalproject.model.Owner;
 import com.pethealth.finalproject.model.Pet;
 import com.pethealth.finalproject.model.Veterinarian;
+import com.pethealth.finalproject.repository.PetRepository;
 import com.pethealth.finalproject.security.dtos.AdminDTO;
 import com.pethealth.finalproject.security.dtos.OwnerDTO;
 import com.pethealth.finalproject.security.dtos.UserDTO;
 import com.pethealth.finalproject.security.dtos.VeterinarianDTO;
+import com.pethealth.finalproject.security.models.CustomUserDetails;
 import com.pethealth.finalproject.security.models.Role;
 import com.pethealth.finalproject.security.models.User;
 import com.pethealth.finalproject.security.repositories.RoleRepository;
@@ -18,7 +20,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -44,6 +49,45 @@ public class UserService implements UserServiceInterface, UserDetailsService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private PetRepository petRepository;
+
+    public String getCurrentUserName(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof AnonymousAuthenticationToken)) {
+            String currentUserName = authentication.getName();
+            return currentUserName;
+        }
+        return null;
+    }
+
+
+
+
+
+    public User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof AnonymousAuthenticationToken)) {
+            String currentUserName = authentication.getName();
+            return userRepository.findByUsername(currentUserName)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+        }
+        return null; // or throw an exception
+    }
+
+
+    public Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof AnonymousAuthenticationToken)) {
+            Object principal = authentication.getPrincipal();
+            if (principal instanceof CustomUserDetails) {
+                CustomUserDetails currentUser = (CustomUserDetails) principal;
+                return currentUser.getId();
+            }
+        }
+        return null;
+    }
 
     /**
      * Loads the user by its username
@@ -71,6 +115,7 @@ public class UserService implements UserServiceInterface, UserDetailsService {
             });
             // Return the user details, including the username, password, and authorities
             return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), authorities);
+//            return new CustomUserDetails(user.getUsername(), user.getPassword(), authorities, user.getId());
         }
     }
 
@@ -197,16 +242,35 @@ public class UserService implements UserServiceInterface, UserDetailsService {
         return userRepository.findByUsername(username).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Username not found"));
     }
 
-    /**
-     * Retrieves all users from the database
-     *
-     * @return a list of all users
-     */
+    //solo se puede consultar veterinarios:
 //    @Override
-//    public List<User> getUsers() {
-//        log.info("Fetching all users");
-//        return userRepository.findAll();
+//    public User getUser(String username) {
+//        // Retrieve the currently logged-in user
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String currentUserName = authentication.getName();
+//        User currentUser = userRepository.findByUsername(currentUserName)
+//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Current user not found"));
+//
+//        // Retrieve the user to be fetched
+//        User userToFetch = userRepository.findByUsername(username)
+//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+//
+//        // Check the roles of the current user
+//        if (currentUser instanceof Admin) {
+//            // If the current user is an admin, they can fetch any user
+//            log.info("Fetching user {}", username);
+//            return userToFetch;
+//        } else if (currentUser instanceof Owner && userToFetch instanceof Veterinarian) {
+//            // If the current user is an owner, they can only fetch veterinarians
+//            log.info("Fetching veterinarian {}", username);
+//            return userToFetch;
+//        } else {
+//            // If the current user is an owner trying to fetch a non-veterinarian, throw an exception
+//            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Owners can only fetch veterinarians");
+//        }
 //    }
+
+
 
     @Transactional
     @Override
@@ -268,33 +332,71 @@ public class UserService implements UserServiceInterface, UserDetailsService {
     }
 
     public void updateOwner(Long id, Owner owner){
+        String currentUserName = getCurrentUserName();
+        User currentUser = userRepository.findByUsername(currentUserName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Owner not found."));
+
+        // Check if the current user is the owner of the account they are trying to update
+        if (!currentUser.getId().equals(existingUser.getId()) && !(currentUser instanceof Admin)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You can only update your own account or an admin can update any account.");
+        }
+
         if(existingUser instanceof Owner){
             owner.setId(id);
-            saveOwner(owner);
+            //ignora el array de pets
+            Set<Pet> existingPets = ((Owner) existingUser).getOwnedPets();
+            owner.setOwnedPets(existingPets);
+            updateOwnerInDB(owner);
+
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid JSON. Expected Owner.");
         }
     }
 
     public void updateVeterinarian(Long id, Veterinarian veterinarian){
-        User existingVet = userRepository.findById(id)
+        String currentUserName = getCurrentUserName();
+        User currentUser = userRepository.findByUsername(currentUserName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+
+        User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Veterinarian not found."));
-        if(existingVet instanceof  Veterinarian){
+
+        // Check if the current user is the owner of the account they are trying to update
+        if (!currentUser.getId().equals(existingUser.getId()) && !(currentUser instanceof Admin)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You can only update your own account or an admin can update any account.");
+        }
+
+        if(existingUser instanceof  Veterinarian){
             veterinarian.setId(id);
-            saveVeterinarian(veterinarian);
+            //ignora el array de pets
+            Set<Pet> existingPets = ((Veterinarian) existingUser).getTreatedPets();
+            veterinarian.setTreatedPets(existingPets);
+            updateVeterinarianInDB(veterinarian);
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid JSON. Expected Veterinarian.");
         }
     }
 
     public void updateAdmin(Long id, Admin admin){
+        //revisar si vale con user o id
+        String currentUserName = getCurrentUserName();
+        User currentUser = userRepository.findByUsername(currentUserName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+
+        // Check if the current user is an admin
+        if (!(currentUser instanceof Admin)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Only an admin can update admin accounts.");
+        }
+
         User existingAdmin = userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Admin not found."));
+
         if(existingAdmin instanceof Admin){
             admin.setId(id);
-            saveAdmin(admin);
+            updateAdminInDB(admin);
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid JSON. Expected Admin.");
         }
@@ -302,26 +404,41 @@ public class UserService implements UserServiceInterface, UserDetailsService {
 
     //put de varios campos a la vez
     public void partialUpdateOwner(Long id, String name, String username, String password, String email){
-        User owner = userRepository.findById(id)
+        User authorizedUser = getCurrentUser();
+        Long currentUserId = authorizedUser.getId();
+
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+
+        User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Owner not found."));
-        if(owner instanceof Owner){
+
+        // Check if the current user is the owner of the account they are trying to update
+        if (!currentUser.getId().equals(existingUser.getId()) && !(currentUser instanceof Admin)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You can only update your own account or an admin can update any account.");
+        }
+
+
+//        User owner = userRepository.findById(id)
+//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Owner not found."));
+        if(existingUser instanceof Owner){
             if(name != null){
-                owner.setName(name);
+                existingUser.setName(name);
             }
             if(username != null){
-                owner.setUsername(username);
+                existingUser.setUsername(username);
             }
             if(password != null){
                 String encodedPassword = passwordEncoder.encode(password);
-                owner.setPassword(encodedPassword);
+                existingUser.setPassword(encodedPassword);
             }
             if(email != null){
-                ((Owner) owner).setEmail(email);
+                ((Owner) existingUser).setEmail(email);
             }
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid JSON. Expected Owner.");
         }
-        updateOwnerInDB((Owner) owner);
+        updateOwnerInDB((Owner) existingUser);
     }
 
     //para poder actulizar cualquier campo y que no salte que el owner ya existe
