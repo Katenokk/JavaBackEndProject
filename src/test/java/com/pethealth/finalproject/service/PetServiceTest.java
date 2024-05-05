@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -73,11 +74,23 @@ class PetServiceTest {
     }
 
     @Test
-    void findPetById() {
+    void findPetById_Valid() {
+        newOwner = userRepository.save(newOwner);
+        newCat.setOwner(newOwner);
         petRepository.save(newCat);
-        Optional<Pet> retrievedPet = petRepository.findById(newCat.getId());
-        assertTrue(retrievedPet.isPresent());
-        assertEquals(newCat.getName(), retrievedPet.get().getName());
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_VET"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
+        Pet retrievedPet = petService.findPetById(newCat.getId());
+        assertNotNull(retrievedPet);
+        assertEquals(newCat.getName(), retrievedPet.getName());
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -170,6 +183,7 @@ class PetServiceTest {
 
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
@@ -191,7 +205,6 @@ class PetServiceTest {
         assertEquals(catDTO.getCatBreed(), CatBreeds.BENGAL);
 
         SecurityContextHolder.clearContext();
-
     }
 
     @Test
@@ -200,6 +213,7 @@ class PetServiceTest {
 
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
@@ -222,6 +236,7 @@ class PetServiceTest {
         userRepository.save(newOwner);
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
@@ -238,6 +253,7 @@ class PetServiceTest {
 
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
@@ -266,6 +282,7 @@ class PetServiceTest {
 
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
@@ -288,6 +305,7 @@ class PetServiceTest {
 
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
@@ -303,10 +321,10 @@ class PetServiceTest {
         petRepository.save(newDog);
         userRepository.save(newOwner);
 
-        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+//        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+//        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+//        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
+//        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
         List<Pet> pets = petRepository.findAll();
         assertFalse(pets.isEmpty());
@@ -321,6 +339,11 @@ class PetServiceTest {
         vet = userRepository.save(vet);
         userRepository.save(newOwner);
 
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_VET"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(vet.getUsername(), vet.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
         LocalDate cattoDateBirth = LocalDate.of(2010,06,01);
         Date cattoDate = Date.from(cattoDateBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
         LocalDate kittyDateBirth = LocalDate.of(2011,06,01);
@@ -329,21 +352,60 @@ class PetServiceTest {
         Cat cat1 = new Cat("Catto", cattoDate, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, newOwner, vet);
         Cat cat2 = new Cat("Kitty", kittyDate, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, newOwner, vet);
 
-        cat1 = petRepository.save(cat1);
-        cat2 = petRepository.save(cat2);
-
         vet.addPet(cat1);
         vet.addPet(cat2);
 
+        cat1 = petRepository.save(cat1);
+        cat2 = petRepository.save(cat2);
 
         vet = userRepository.save(vet);
 
-        List<PetReadDTO> pets = petService.findAllPetsByVeterinarian(vet.getId());
+        testEntityManager.flush();
+        testEntityManager.clear();
+
+        List<PetReadDTO> pets = petService.findAllPetsByVeterinarian();
 
         assertNotNull(pets);
 //        assertEquals(2, pets.size());
 //        assertTrue(pets.contains(cat1));
 //        assertTrue(pets.contains(cat2));
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    @Transactional
+    void findAllPetsByOwnerTest() {
+        Owner owner = new Owner("Test Owner", "test-owner", "1234", new ArrayList<>(), "owner@mail.com");
+        owner = userRepository.save(owner);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(owner.getUsername(), owner.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
+        LocalDate cattoDateBirth = LocalDate.of(2010,06,01);
+        Date cattoDate = Date.from(cattoDateBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        LocalDate doggoDateBirth = LocalDate.of(2011,06,01);
+        Date doggoDate = Date.from(doggoDateBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        Cat cat = new Cat("Test Cat", cattoDate, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, owner, null);
+        Dog dog = new Dog("Test Dog", doggoDate, false, List.of(DogDiseases.ARTHRITIS), DogBreeds.HUSKY, owner, null);
+
+        cat = petRepository.save(cat);
+        dog = petRepository.save(dog);
+
+        testEntityManager.flush();
+        testEntityManager.clear();
+
+        List<PetReadDTO> petReadDTOs = petService.findAllPetsByOwner();
+
+        assertNotNull(petReadDTOs);
+        assertEquals(2, petReadDTOs.size());
+
+        List<String> petNames = petReadDTOs.stream().map(PetReadDTO::getName).collect(Collectors.toList());
+        assertTrue(petNames.contains(cat.getName()));
+        assertTrue(petNames.contains(dog.getName()));
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -354,6 +416,7 @@ class PetServiceTest {
 
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
@@ -372,6 +435,8 @@ class PetServiceTest {
 
         assertEquals("updated cat", updatedCat.get().getName());
         assertEquals(CatBreeds.BENGAL, updatedCat.get().getCatBreed());
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -382,10 +447,9 @@ class PetServiceTest {
 
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
-
-
 
         DogDTO dogDTO = new DogDTO();
         dogDTO.setDogBreed(DogBreeds.GOLDEN_RETRIEVER);
@@ -402,17 +466,26 @@ class PetServiceTest {
 
         assertEquals("updated dog", updatedDog.get().getName());
         assertEquals(DogBreeds.GOLDEN_RETRIEVER, updatedDog.get().getDogBreed());
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test
     void partialUpdate_Valid(){
-
+        newOwner = userRepository.save(newOwner);
+        newCat.setOwner(newOwner);
         petRepository.save(newCat);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
         CatDTO catDTO = new CatDTO();
         catDTO.setName("patched cat");
         catDTO.setCatBreed(CatBreeds.SIAMESE);
         catDTO.setSpayedOrNeutered(false);
-
 
         petService.partialUpdate(newCat.getId(), catDTO);
 
@@ -420,24 +493,48 @@ class PetServiceTest {
 
         assertEquals("patched cat", patchedCat.get().getName());
         assertEquals(CatBreeds.SIAMESE, patchedCat.get().getCatBreed());
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test
     void partialUpdate_Invalid(){
+        newOwner = userRepository.save(newOwner);
+        newCat.setOwner(newOwner);
         petRepository.save(newCat);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
+
         CatDTO catDTO = new CatDTO();
         catDTO.setName("patched cat");
         catDTO.setCatBreed(CatBreeds.SIAMESE);
         catDTO.setSpayedOrNeutered(false);
 
         assertThrows(ResponseStatusException.class, () -> petService.partialUpdate(200L, catDTO));
+
+        SecurityContextHolder.clearContext();
     }
 
     //repetir con dog
 
     @Test
     void patchToDog_Valid(){
+        newOwner = userRepository.save(newOwner);
+        newDog.setOwner(newOwner);
         petRepository.save(newDog);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
+
         DogDTO dogDTO = new DogDTO();
         dogDTO.setName("patched dog");
         dogDTO.setDogBreed(DogBreeds.GERMAN_SHEPHERD);
@@ -449,11 +546,22 @@ class PetServiceTest {
 
         assertEquals("patched dog", patchedDog.get().getName());
         assertEquals(DogBreeds.GERMAN_SHEPHERD, patchedDog.get().getDogBreed());
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test
     void patchToCat_Valid(){
+        newOwner = userRepository.save(newOwner);
+        newCat.setOwner(newOwner);
         petRepository.save(newCat);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
         CatDTO catDTO = new CatDTO();
         catDTO.setName("patched cat");
         catDTO.setCatBreed(CatBreeds.SIAMESE);
@@ -465,21 +573,43 @@ class PetServiceTest {
 
         assertEquals("patched cat", patchedCat.get().getName());
         assertEquals(CatBreeds.SIAMESE, patchedCat.get().getCatBreed());
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test
     void deletePet(){
+        newOwner = userRepository.save(newOwner);
+        newCat.setOwner(newOwner);
         petRepository.save(newCat);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
+
         petService.deletePet(newCat.getId());
         Optional<Pet> deletedPet = petRepository.findById(newCat.getId());
         assertFalse(deletedPet.isPresent());
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test
     void addVeterinarianToPet(){
-
+        newOwner = userRepository.save(newOwner);
+        newCat.setOwner(newOwner);
         petRepository.save(newCat);
         userRepository.save(newVet);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
         Veterinarian updatedVet = petService.addVeterinarianToPet(newCat.getId(), newVet.getId());
 //        Pet updatedPet = petRepository.findById(newCat.getId()).orElse(null);
         Pet updatedPet = petService.getPetWithInitializedVeterinarian(newCat.getId());
@@ -488,18 +618,30 @@ class PetServiceTest {
         assertFalse(updatedVet.getTreatedPets().isEmpty());
         assertTrue(updatedVet.getTreatedPets().contains(updatedPet));
         assertEquals(updatedVet, updatedPet.getVeterinarian()); // solo funciona con el helper
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test
     void removeVeterinarianFromPet(){
+        newOwner = userRepository.save(newOwner);
+        newCat.setOwner(newOwner);
         petRepository.save(newCat);
-        userRepository.save(newVet);
         newCat.setVeterinarian(newVet);
-        petRepository.save(newCat);
+        userRepository.save(newVet);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
 
         Pet updatedPet = petService.removeVeterinarianFromPet(newCat.getId(), newVet.getId());
         assertNotNull(updatedPet);
         assertNull(updatedPet.getVeterinarian());
         assertNull(newVet.getTreatedPets());
+
+        SecurityContextHolder.clearContext();
     }
 }

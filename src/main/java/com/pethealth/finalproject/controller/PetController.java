@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController //mejor que controller??
+@RestController
 @RequestMapping("/api")
 public class PetController {
 
@@ -64,8 +64,6 @@ public class PetController {
         petService.updatePet(id, petDTO);
     }
 
-
-
     @PatchMapping("pets/{id}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     public void patchPets(@PathVariable Long id, @RequestBody PetDTO petDTO){
@@ -96,9 +94,14 @@ public class PetController {
 //        return petService.findAllPetsByVeterinarian(vetId);
 //    }
 
-    @GetMapping("/pets/veterinarians/{vetId}")
-    public List<PetReadDTO> findAllPetsByVeterinarian(@PathVariable Long vetId) {
-        return petService.findAllPetsByVeterinarian(vetId);
+    @GetMapping("/pets/veterinarians")
+    public List<PetReadDTO> findAllPetsByVeterinarian() {
+        return petService.findAllPetsByVeterinarian();
+    }
+
+    @GetMapping("/pets/owners")
+    public List<PetReadDTO> findAllPetsByOwner() {
+        return petService.findAllPetsByOwner();
     }
 
 
