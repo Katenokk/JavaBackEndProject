@@ -53,8 +53,10 @@ class HealthRecordTest {
         healthRecord1 = new HealthRecord(catto);
         healthRecordRepository.save(healthRecord1);
 
-        weight1 = new Weight( LocalDate.now(), 10.5, healthRecord1);
-        weight2= new Weight( LocalDate.now(), 11.5, healthRecord1);
+        LocalDate now = LocalDate.now();
+        Date dateNow = Date.from(now.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        weight1 = new Weight( dateNow, 10.5, healthRecord1);
+        weight2= new Weight( dateNow, 11.5, healthRecord1);
     }
 
     @AfterEach
@@ -102,7 +104,9 @@ class HealthRecordTest {
         healthRecordRepository.save(healthRecord);
 
         //importante asignar el healthrecord a weight cuando se crea
-        Weight weight = new Weight(LocalDate.now(), 10.5, healthRecord);
+        LocalDate now = LocalDate.now();
+        Date dateNow = Date.from(now.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        Weight weight = new Weight(dateNow, 10.5, healthRecord);
         weight = weightRepository.save(weight);
         healthRecord.addWeight(weight);
 

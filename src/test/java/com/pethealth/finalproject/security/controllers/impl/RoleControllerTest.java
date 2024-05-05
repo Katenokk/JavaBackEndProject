@@ -55,8 +55,9 @@ class RoleControllerTest {
     @Test
     void addRoleToUser() throws Exception {
         User testUser = new User();
-        testUser.setName("Test 1");
+        testUser.setName("Test One");
         testUser.setUsername("test1");
+        testUser.setPassword(("1234"));
         userRepository.save(testUser);
         RoleToUserDTO roleToUserDTO = new RoleToUserDTO();
         roleToUserDTO.setUsername("test1");

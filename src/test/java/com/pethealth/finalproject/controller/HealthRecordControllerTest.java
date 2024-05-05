@@ -27,8 +27,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -68,28 +70,33 @@ class HealthRecordControllerTest {
     private MockMvc mockMvc;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-//    @BeforeEach
-//    void setUp() {
-//        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-//        objectMapper.registerModule(new JavaTimeModule());
-//        owner = new Owner("New Owner", "new-owner", "1234", new ArrayList<>(), "owner@mail.com");
-//        userRepository.save(owner);
-//        catto = new Cat("Catto", LocalDate.of(200, 1, 1), false, List.of(CatDiseases.IBD), CatBreeds.BENGAL, owner, null);
-////        petRepository.save(catto);
-//        healthRecord1 = new HealthRecord(catto);
-//        weight1 = new Weight( LocalDate.now(), 10.5, healthRecord1);
-//        weight2= new Weight( LocalDate.now(), 11.5, healthRecord1);
-//        healthRecord1.addWeight(weight1);
-//        healthRecord1.addWeight(weight2);
-//        catto.setHealthRecord(healthRecord1);
-////        healthRecordRepository.save(healthRecord1);
-//        petRepository.saveAndFlush(catto);
-//
-//    }
+    @BeforeEach
+    void setUp() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+        objectMapper.registerModule(new JavaTimeModule());
+        owner = new Owner("New Owner", "new-owner", "1234", new ArrayList<>(), "owner@mail.com");
+        userRepository.save(owner);
+        LocalDate dateOfBirth = LocalDate.of(200, 1, 1);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        catto = new Cat("Catto", dateOfBirthOld, false, List.of(CatDiseases.IBD), CatBreeds.BENGAL, owner, null);
+//        petRepository.save(catto);
+        healthRecord1 = new HealthRecord(catto);
+        LocalDate localNow = LocalDate.now();
+        Date now = Date.from(localNow.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        weight1 = new Weight( now, 10.5, healthRecord1);
+        weight2= new Weight( now, 11.5, healthRecord1);
+        healthRecord1.addWeight(weight1);
+        healthRecord1.addWeight(weight2);
+        catto.setHealthRecord(healthRecord1);
+//        healthRecordRepository.save(healthRecord1);
+        petRepository.saveAndFlush(catto);
+
+    }
 
     @AfterEach
     void tearDown() {
         weightRepository.deleteAll();
+        petRepository.deleteAll();
     }
     @Test
     @Transactional
@@ -98,13 +105,17 @@ class HealthRecordControllerTest {
         weightRepository.deleteAll();
         TestTransaction.flagForCommit(); //para solo tener que comprobar un weight
         Long petId = catto.getId();
-        LocalDate date = LocalDate.now();
+        LocalDate localNow = LocalDate.now();
+        Date date = Date.from(localNow.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
         double weightInKg = 10.0;
 
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        String formattedDate = formatter.format(date);
+
         MvcResult result = mockMvc.perform(post("/health-records/weights/" + petId)
-                        .param("date", date.toString())
-                        .param("weightInKg", String.valueOf(weightInKg))
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .param("date", formattedDate)
+                        .param("weightInKg", String.valueOf(weightInKg)))
+
                 .andExpect(status().isOk())
                 .andReturn();
         TestTransaction.flagForCommit();
@@ -134,9 +145,37 @@ class HealthRecordControllerTest {
         assertEquals(healthRecord1.getWeights().size(), healthRecordDTO.getWeights().size());
     }
 
+//    @Test
+//    @Transactional
+//    void testRemoveWeightFromPet() throws Exception {
+////        petRepository.deleteAll();
+//        LocalDate dateOfBirth = LocalDate.of(2001, 7, 7);
+//        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+//        Cat kitty = new Cat("Kitty", dateOfBirthOld, false, List.of(CatDiseases.IBD), CatBreeds.BENGAL, owner, null);
+//        petRepository.save(kitty);
+//        kitty.getHealthRecord().addWeight(weight1);
+////        petRepository.save(kitty);
+//
+////        weightRepository.save(weight1);
+//
+//        Long petId = kitty.getId();
+//        Long weightId = weight1.getId();
+//
+//        mockMvc.perform(delete("/health-records/weights/" + weightId + "/" + petId)
+//                        .contentType(MediaType.APPLICATION_JSON))
+//                .andExpect(status().isOk());
+//        assertFalse(weightRepository.existsById(weightId));
+//        Optional<Pet> pet = petRepository.findByIdAndFetchWeightsEagerly(petId);
+//        assertTrue(pet.isPresent());
+//
+//        pet.get().getHealthRecord().getWeights().size();
+//        assertTrue(pet.get().getHealthRecord().getWeights().stream().noneMatch(weight -> weight.getId().equals(weightId)));
+//    }
+
     @Test
+    @Transactional
     void testRemoveWeightFromPet() throws Exception {
-        petRepository.save(catto);
+//        petRepository.save(catto);
         weightRepository.save(weight1);
         Long petId = catto.getId();
         Long weightId = weight1.getId();
