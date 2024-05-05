@@ -26,6 +26,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,9 +44,7 @@ public class PetService {
 
     @Autowired
     private EntityManager entityManager;
-    public Pet findPetById(Long id){
-        return petRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found"));
-    }
+
 
     public String getCurrentUserName(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -55,6 +54,27 @@ public class PetService {
         }
         return null;
     }
+
+//    public Pet findPetById(Long id){
+//        return petRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found"));
+//    }
+public Pet findPetById(Long id){
+    String currentUserName = getCurrentUserName();
+    User currentUser = userRepository.findByUsername(currentUserName)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+
+    Pet pet = petRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found"));
+
+    if (!(currentUser.equals(pet.getOwner()) || currentUser.equals(pet.getVeterinarian()))) {
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access is denied.");
+    } else if (currentUser instanceof Admin){
+        return pet;
+    }
+
+    return pet;
+}
+
 
     public Pet addNewPet(PetDTO petDTO) {
         //sacar la id del usurario logeado (no es necesario pero es una seguridad extra)
@@ -156,16 +176,9 @@ public class PetService {
         return dog;
     }
 
-//    public List<Pet> findAllPets()  {
-//        List<Pet> pets = petRepository.findAll();
-//
-//        if(pets.isEmpty()){
-//            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No pets found.");
-//        }
-//        return pets;
-//    }
-
+//método con endpoint aparte para admins:
     public List<PetReadDTO> findAllPets() {
+
         List<Pet> pets = petRepository.findAll();
 
         if(pets.isEmpty()){
@@ -178,6 +191,43 @@ public class PetService {
 
         return petReadDTOs;
     }
+
+//public List<PetReadDTO> findAllPets() {
+//    String currentUserName = getCurrentUserName();
+//    User currentUser = userRepository.findByUsername(currentUserName)
+//            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+//
+//    List<Pet> pets = petRepository.findAll();
+//
+//    if(currentUser instanceof Admin) {
+//       //admin can see all pets
+//        if(pets.isEmpty()){
+//            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No pets found.");
+//        }
+//    } else if(currentUser instanceof Owner) {
+//        // If the user is an owner, filter the pets
+//        pets = pets.stream()
+//                .filter(pet -> pet.getOwner().equals(currentUser))
+//                .collect(Collectors.toList());
+//    } else if(currentUser instanceof Veterinarian) {
+//        // If the user is a veterinarian, filter the pets
+//        pets = pets.stream()
+//                .filter(pet -> pet.getVeterinarian().equals(currentUser))
+//                .collect(Collectors.toList());
+//    } else {
+//        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access is denied.");
+//    }
+//
+//    if(pets.isEmpty()){
+//        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No pets found.");
+//    }
+//
+//    List<PetReadDTO> petReadDTOs = pets.stream()
+//            .map(this::mapToPetReadDTO)
+//            .collect(Collectors.toList());
+//
+//    return petReadDTOs;
+//}
 
     public PetReadDTO mapToPetReadDTO(Pet pet) {
         PetReadDTO petReadDTO;
@@ -222,12 +272,21 @@ public class PetService {
 //    }
 
     @Transactional
-    public List<PetReadDTO> findAllPetsByVeterinarian(Long vetId) {
-        System.out.println("vet id: " + vetId);
-        Veterinarian veterinarian = (Veterinarian) userRepository.findByIdAndFetchPetsEagerly(vetId)
+    public List<PetReadDTO> findAllPetsByVeterinarian() {
+        String currentUsername = getCurrentUserName();
+        User user = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+        if(!(user instanceof Veterinarian)){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is not a veterinarian.");
+        }
+//        Veterinarian veterinarian = (Veterinarian) user;
+        //para ver si asi carga todos los pet para que pase el test
+        Veterinarian veterinarian = (Veterinarian) userRepository.findByIdAndFetchPetsEagerly(user.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Veterinarian not found."));
+        Hibernate.initialize(veterinarian.getTreatedPets());
 
         List<Pet> pets = new ArrayList<>(veterinarian.getTreatedPets());
+
         System.out.println("number of pets: " + pets.size());
         if (pets.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No pets found.");
@@ -239,29 +298,27 @@ public class PetService {
         return petReadDTOs;
     }
 
+    @Transactional
+    public List<PetReadDTO> findAllPetsByOwner() {
+        String currentUsername = getCurrentUserName();
+        User user = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
 
+        if(!(user instanceof Owner)){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is not an owner.");
+        }
+        Owner owner = (Owner) user;
+        List<Pet> pets = new ArrayList<>(owner.getOwnedPets());
+        System.out.println("number of pets: " + pets.size());
+        if (pets.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No pets found.");
+        }
 
-//    public void updatePet(Long id, Pet pet){
-//        if (pet instanceof Cat) {
-//            updateCat(id, (Cat) pet);
-//        } else if (pet instanceof Dog) {
-//            updateDog(id, (Dog) pet);
-//        } else {
-//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid pet type. Only Cat and Dog are allowed.");
-//        }
-//    }
-
-//    private void updateCat(Long id, Cat cat){
-//        Cat existingCat = petRepository.findCatById(id).orElseThrow( ()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cat not found."));
-//        cat.setId(id);
-//        petRepository.save(cat);
-//    }
-//
-//    private void updateDog(Long id, Dog dog){
-//        Dog existingDog = petRepository.findDogById(id).orElseThrow( ()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Dog not found."));
-//        dog.setId(id);
-//        petRepository.save(dog);
-//    }
+        List<PetReadDTO> petReadDTOs = pets.stream()
+                .map(this::mapToPetReadDTO)
+                .collect(Collectors.toList());
+        return petReadDTOs;
+    }
 
     public void updatePet(Long id, PetDTO petDTO) {
         String currentUserName = getCurrentUserName();
@@ -288,8 +345,16 @@ public class PetService {
     }
 
     public void partialUpdate(Long id, PetDTO petDTO){
+        String currentUserName = getCurrentUserName();
+        User currentUser = userRepository.findByUsername(currentUserName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
         Pet existingPet = petRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found."));
+        //comprobar si el owner es el mismo que el usuario logeado o es admin
+        if(!currentUser.equals(existingPet.getOwner()) || currentUser instanceof Admin){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Only the owner of the pet or admin can update pet.");
+        }
+
         Pet patchedPet;
         if (petDTO instanceof CatDTO) {
             patchedPet = patchCatEntity((CatDTO) petDTO, (Cat) existingPet);
@@ -339,8 +404,15 @@ public class PetService {
 
     @Transactional
     public void deletePet(Long id){
+        String currentUserName = getCurrentUserName();
+        User currentUser = userRepository.findByUsername(currentUserName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+
         Pet pet = petRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found."));
+        if(!(currentUser.equals(pet.getOwner()) || currentUser instanceof Admin)){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Only the owner of the pet or admin can delete pet.");
+        }
 
             if (pet.getOwner() != null) {
                 pet.getOwner().getOwnedPets().remove(pet);
@@ -355,8 +427,17 @@ public class PetService {
     //add and remove veterinarians from pets
     @Transactional
     public Veterinarian addVeterinarianToPet(Long petId, Long vetId) {
+        String currentUserName = getCurrentUserName();
+        User currentUser = userRepository.findByUsername(currentUserName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+
         Pet pet = petRepository.findById(petId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found."));
+
+        if(!(currentUser.equals(pet.getOwner()) || currentUser instanceof Admin)){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Only the owner of the pet or admin can assign a veterinarian.");
+        }
+
         Veterinarian veterinarian = (Veterinarian) userRepository.findByIdAndFetchPetsEagerly(vetId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Veterinarian not found."));
 
@@ -368,9 +449,7 @@ public class PetService {
 
         userRepository.save(veterinarian);
         petRepository.save(pet);
-
 //        Hibernate.initialize(veterinarian.getTreatedPets());
-
         return userRepository.findByIdAndFetchPetsEagerly(vetId).map(user -> {
             Veterinarian vet = (Veterinarian) user;
             vet.getTreatedPets().size();
@@ -392,8 +471,17 @@ public class PetService {
 
     @Transactional
     public Pet removeVeterinarianFromPet(Long petId, Long vetId) {
+        String currentUserName = getCurrentUserName();
+        User currentUser = userRepository.findByUsername(currentUserName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+
         Pet pet = petRepository.findById(petId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found."));
+
+        if(!(currentUser.equals(pet.getOwner()) || currentUser instanceof Admin)){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Only the owner of the pet or admin can remove a veterinarian from a pet.");
+        }
+
         Veterinarian veterinarian = (Veterinarian) userRepository.findById(vetId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Veterinarian not found."));
 
