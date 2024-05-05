@@ -2,6 +2,7 @@ package com.pethealth.finalproject.security.config;
 
 import com.pethealth.finalproject.security.config.filters.CustomAuthenticationFilter;
 import com.pethealth.finalproject.security.config.filters.CustomAuthorizationFilter;
+import com.pethealth.finalproject.security.services.impl.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -33,6 +34,9 @@ public class SecurityConfig {
     // UserDetailsService is an interface provided by Spring Security that defines a way to retrieve user information
     @Autowired
     private UserDetailsService userDetailsService;
+
+    @Autowired
+    private UserService userService; //quitar despues
 
     // Autowired instance of the AuthenticationManagerBuilder
     @Autowired
@@ -81,11 +85,14 @@ public class SecurityConfig {
         http.authorizeHttpRequests((requests) -> requests
                 .requestMatchers("/api/login/**").permitAll()
                 .requestMatchers("/api/register/**").permitAll()
-                .requestMatchers(GET, "/api/users/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                .requestMatchers(GET, "/api/users").hasAnyAuthority("ROLE_ADMIN")
+                .requestMatchers(GET, "/api/users/username").hasAnyAuthority("ROLE_ADMIN")
                 .requestMatchers(POST, "/api/users").hasAnyAuthority("ROLE_ADMIN")
                 .requestMatchers(POST, "/api/owners").hasAnyAuthority("ROLE_ADMIN")
                 .requestMatchers(POST, "/api/veterinarians").hasAnyAuthority("ROLE_ADMIN")
                 .requestMatchers(POST, "/api/admins").hasAnyAuthority("ROLE_ADMIN")
+                .requestMatchers(PUT, "/api/owners").hasAnyAuthority("ROLE_USER")
+
                 .requestMatchers(GET, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(PUT, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(POST, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
