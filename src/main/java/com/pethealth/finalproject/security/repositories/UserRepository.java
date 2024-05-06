@@ -35,4 +35,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT v FROM Veterinarian v LEFT JOIN FETCH v.treatedPets WHERE v.id = :id")
     Optional<Veterinarian> findByIdAndFetchPetsEagerly(@Param("id") Long id);
+
+    @Query("SELECT u FROM User u WHERE u.email = :email")
+    Optional<User> findByEmail(@Param("email") String email);
 }
