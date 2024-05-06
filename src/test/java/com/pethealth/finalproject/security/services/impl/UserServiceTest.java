@@ -3,6 +3,7 @@ package com.pethealth.finalproject.security.services.impl;
 import com.pethealth.finalproject.model.*;
 import com.pethealth.finalproject.repository.PetRepository;
 import com.pethealth.finalproject.security.dtos.UserDTO;
+import com.pethealth.finalproject.security.models.CustomUserDetails;
 import com.pethealth.finalproject.security.models.Role;
 import com.pethealth.finalproject.security.models.User;
 import com.pethealth.finalproject.security.repositories.RoleRepository;
@@ -217,7 +218,8 @@ class UserServiceTest {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
+        CustomUserDetails mockUser = new CustomUserDetails(newOwner.getUsername(), newOwner.getPassword(), authorities, newOwner.getId());
+//        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
         Owner updatedOwner = new Owner("Cambiado", "cambiado", "0000", new ArrayList<>(), "email@nuevo.com");
@@ -258,7 +260,8 @@ class UserServiceTest {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_VET"));
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newVet.getUsername(), newVet.getPassword(), authorities);
+        CustomUserDetails mockUser = new CustomUserDetails(newVet.getUsername(), newVet.getPassword(), authorities, newVet.getId());
+//        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newVet.getUsername(), newVet.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
         Veterinarian updatedVet = new Veterinarian("nuevo nombre", "nuevo usuario", "0000", new ArrayList<>(), "email@nuevo.com");
@@ -298,7 +301,8 @@ class UserServiceTest {
 
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newAdmin.getUsername(), newAdmin.getPassword(), authorities);
+        CustomUserDetails mockUser = new CustomUserDetails(newAdmin.getUsername(), newAdmin.getPassword(), authorities, newAdmin.getId());
+//        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newAdmin.getUsername(), newAdmin.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
 
@@ -333,7 +337,16 @@ class UserServiceTest {
 
     @Test
     void partialUpdateOwnerTest() {
+
+
+        userRepository.deleteAll();
         userRepository.save(newOwner);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        CustomUserDetails mockUser = new CustomUserDetails(newOwner.getUsername(), newOwner.getPassword(), authorities, newOwner.getId());
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
         Long ownerId = newOwner.getId();
         String updatedName = "Updated Owner";
@@ -350,6 +363,8 @@ class UserServiceTest {
         assertEquals(updatedUsername, updatedOwner.getUsername());
         assertEquals(updatedEmail, updatedOwner.getEmail());
         assertTrue(passwordEncoder.matches(updatedPassword, updatedOwner.getPassword()));
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test
