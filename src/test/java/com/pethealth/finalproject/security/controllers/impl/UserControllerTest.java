@@ -9,6 +9,7 @@ import com.pethealth.finalproject.model.*;
 import com.pethealth.finalproject.repository.PetRepository;
 import com.pethealth.finalproject.security.dtos.UserDTO;
 import com.pethealth.finalproject.security.dtos.UserUpdateDTO;
+import com.pethealth.finalproject.security.models.Role;
 import com.pethealth.finalproject.security.models.User;
 import com.pethealth.finalproject.security.repositories.UserRepository;
 import com.pethealth.finalproject.security.services.impl.UserService;
@@ -19,9 +20,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDate;
@@ -68,18 +71,27 @@ class UserControllerTest {
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-        //para que pueda deserializar un userdto sin el campo email en el test
-//        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+        userService.saveRole(new Role(null, "ROLE_USER"));
+        userService.saveRole(new Role(null, "ROLE_ADMIN"));
+        userService.saveRole(new Role(null, "ROLE_VET"));
+
         testUser = new User("Test User", "test-user", "1234", new ArrayList<>());
         newOwner = new Owner("Pepe", "pepito", "0000", new ArrayList<>(), "email@email.com");
         newVet = new Veterinarian("Oriol", "dr gato", "1111", new ArrayList<>(), "oriol@email.com");
         newAdmin = new Admin("Admin", "admin", "8888", new ArrayList<>());
+        userRepository.save(newAdmin);
+        userService.addRoleToUser("admin", "ROLE_ADMIN");
+
+
         LocalDate dateOfBirth = LocalDate.of(2010,06,01);
         Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
         newCat = new Cat("Níobe", dateOfBirthOld, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, null, null);
         LocalDate dateOfBirthDog = LocalDate.of(2000, 01, 01);
         Date dateOfBirthDogOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
         newDog = new Dog("Bombo", dateOfBirthDogOld, false, List.of(DogDiseases.ARTHRITIS), DogBreeds.HUSKY, null, null);
+
+
     }
 
     @AfterEach
@@ -348,18 +360,22 @@ class UserControllerTest {
     }
 
     @Test
+    @Transactional
+    @WithMockUser(username = "admin", password = "8888", roles = "ADMIN")
     void updateAdmin_Valid() throws Exception {
-        Admin existingAdmin = new Admin("Existing Admin", "existing_admin", "1234", new ArrayList<>());
-        userRepository.save(existingAdmin);
 
-        Admin updatedAdmin = new Admin("Updated Admin", "updated_admin", "5678", new ArrayList<>());
+
+
+        Admin updatedAdmin = new Admin("Updated Admin", "updated-admin", "5678", new ArrayList<>());
         String adminJson = objectMapper.writeValueAsString(updatedAdmin);
 
-        mockMvc.perform(put("/api/admins/" + existingAdmin.getId())
+        mockMvc.perform(put("/api/admins/" + newAdmin.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(adminJson))
                 .andExpect(status().isNoContent());
 
+        userRepository.delete(newAdmin);
+        userRepository.flush();
         Optional<User> savedAdmin = userRepository.findByUsername("updated_admin");
         assertNotNull(savedAdmin);
         assertEquals("Updated Admin", savedAdmin.get().getName());

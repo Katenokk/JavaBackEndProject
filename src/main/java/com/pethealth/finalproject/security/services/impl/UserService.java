@@ -331,6 +331,33 @@ public class UserService implements UserServiceInterface, UserDetailsService {
         return petReadDTOs;
     }
 
+    public List<Veterinarian> getAllVeterinarians(){
+        Long currentUserId = getCurrentUserId();
+        if(currentUserId == null){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You must be logged in to update an account.");
+        }
+
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+
+        // Check if the current user is the owner of the account they are trying to update
+        if (!(currentUser instanceof Owner) && !(currentUser instanceof Admin)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Only owners and admins can see all veterinarians.");
+        }
+
+        List<Veterinarian> allVeterinarians = new ArrayList<>();
+        for(User user : userRepository.findAll()){
+            if(user instanceof Veterinarian){
+                allVeterinarians.add((Veterinarian) user);
+            }
+        }
+        if(allVeterinarians.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No veterinarians found.");
+        }
+
+        return allVeterinarians;
+    }
+
     public void updateOwner(Long id, Owner owner){
         Long currentUserId = getCurrentUserId();
         if(currentUserId == null){
@@ -361,6 +388,8 @@ public class UserService implements UserServiceInterface, UserDetailsService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid JSON. Expected Owner.");
         }
     }
+
+
 
     public void updateVeterinarian(Long id, Veterinarian veterinarian){
         Long currentUserId = getCurrentUserId();
@@ -432,6 +461,8 @@ public class UserService implements UserServiceInterface, UserDetailsService {
         }
 
         if(existingUser instanceof Admin){
+            System.out.println("username!!!");
+            System.out.println(admin.getUsername());
             // Check if the new username already exists in the database
             if (!admin.getUsername().equals(existingUser.getUsername()) && userRepository.findByUsername(admin.getUsername()).isPresent()) {
                 throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Username already exists");
@@ -455,7 +486,7 @@ public class UserService implements UserServiceInterface, UserDetailsService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Owner not found."));
 
         // Check if the current user is the owner of the account they are trying to update
-        if (!currentUserId.equals(existingUser.getId()) && !(existingUser instanceof Admin)) {
+        if (!currentUserId.equals(existingUser.getId()) && !(currentUser instanceof Admin)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You can only update your own account or an admin can update any account.");
         }
 
@@ -507,7 +538,7 @@ public class UserService implements UserServiceInterface, UserDetailsService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Veterinarian not found."));
 
         // Check if the current user is the owner of the account they are trying to update
-        if (!currentUserId.equals(existingUser.getId()) && !(existingUser instanceof Admin)) {
+        if (!currentUserId.equals(existingUser.getId()) && !(currentUser instanceof Admin)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You can only update your own account or an admin can update any account.");
         }
 
@@ -595,24 +626,66 @@ public class UserService implements UserServiceInterface, UserDetailsService {
 
     @Transactional
     public void deleteOwner(Long id){
-        Owner owner = (Owner) userRepository.findById(id)
+        Long currentUserId = getCurrentUserId();
+        if(currentUserId == null){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You must be logged in to delete an account.");
+        }
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+        User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Owner not found."));
+
+        // Check if the current user is the owner of the account they are trying to delete
+        if (!currentUserId.equals(existingUser.getId()) && !(currentUser instanceof Admin)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You can only delete your own account or an admin can delete any account.");
+        }
+
         userRepository.deleteById(id);
     }
 
     @Transactional
     public void deleteVeterinarian(Long id){
-        Veterinarian vet = (Veterinarian) userRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Veterinarian not found."));
-        if (!vet.getTreatedPets().isEmpty()) {
-            userRepository.removeAssociationVeterinarianWithPet(vet);
+        Long currentUserId = getCurrentUserId();
+        if(currentUserId == null){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You must be logged in to delete an account.");
         }
+
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Veterinarian not found."));
+
+        // Check if the current user is the owner of the account they are trying to update
+        if (!currentUserId.equals(user.getId()) && !(currentUser instanceof Admin)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You can only delete your own account or an admin can delete any account.");
+        }
+
+        Veterinarian existingVeterinarian = (Veterinarian) user;
+        if (!existingVeterinarian.getTreatedPets().isEmpty()) {
+            userRepository.removeAssociationVeterinarianWithPet(existingVeterinarian);
+        }
+
         userRepository.deleteById(id);
     }
 
     public void deleteAdmin(Long id){
-        Admin admin = (Admin) userRepository.findById(id)
+        Long currentUserId = getCurrentUserId();
+        if(currentUserId == null){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You must be logged in to delete an account.");
+        }
+
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+
+        User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Admin not found."));
+
+        // Check if the current user is an admin
+        if (!(currentUser instanceof Admin)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Only an admin can delete admin accounts.");
+        }
+
         userRepository.deleteById(id);
     }
 

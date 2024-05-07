@@ -47,6 +47,12 @@ public class UserController {
         return userService.getUsers();
     }
 
+    @GetMapping("/veterinarians")
+    @ResponseStatus(HttpStatus.OK)
+    public List<Veterinarian> getAllVeterinarians() {
+        return userService.getAllVeterinarians();
+    }
+
     @GetMapping("/users/username")
     @ResponseStatus(HttpStatus.OK)
     public User finUserByUsername(@RequestParam String username) {

@@ -86,11 +86,12 @@ public class SecurityConfig {
                 .requestMatchers("/api/login/**").permitAll()
                 .requestMatchers("/api/register/**").permitAll()
                 .requestMatchers(GET, "/api/users").hasAnyAuthority("ROLE_ADMIN")
+                .requestMatchers(GET, "/api/veterinarians").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(GET, "/api/users/username").hasAnyAuthority("ROLE_ADMIN")
                 .requestMatchers(POST, "/api/users").hasAnyAuthority("ROLE_ADMIN")
                 .requestMatchers(POST, "/api/owners").hasAnyAuthority("ROLE_ADMIN")
                 .requestMatchers(POST, "/api/veterinarians").hasAnyAuthority("ROLE_ADMIN")
-                .requestMatchers(POST, "/api/admins").hasAnyAuthority("ROLE_ADMIN")
+                .requestMatchers(POST, "/api/admins/**").hasAnyAuthority("ROLE_ADMIN")
                 .requestMatchers(PUT, "/api/owners").hasAnyAuthority("ROLE_USER")
 
                 .requestMatchers(GET, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
