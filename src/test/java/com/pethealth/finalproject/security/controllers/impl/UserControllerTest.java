@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.pethealth.finalproject.TokenAuthenticationService;
 import com.pethealth.finalproject.model.*;
 import com.pethealth.finalproject.repository.PetRepository;
 import com.pethealth.finalproject.security.dtos.UserDTO;
@@ -17,10 +18,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -38,7 +41,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
+
+
 @SpringBootTest
+@AutoConfigureMockMvc
 class UserControllerTest {
 
     @Autowired
@@ -360,19 +366,22 @@ class UserControllerTest {
     }
 
     @Test
-    @Transactional
+//    @Transactional
     void updateAdmin_Valid() throws Exception {
         Admin updatedAdmin = new Admin("Updated Admin", "updated-admin", "5678", new ArrayList<>());
         String adminJson = objectMapper.writeValueAsString(updatedAdmin);
 
+        String jwt = TokenAuthenticationService.createToken("admin", "ROLE_ADMIN");
+
         mockMvc.perform(put("/api/admins/" + newAdmin.getId())
+                        .header("Authorization", "Bearer " + jwt)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(adminJson))
                 .andExpect(status().isNoContent());
 
         userRepository.delete(newAdmin);
         userRepository.flush();
-        Optional<User> savedAdmin = userRepository.findByUsername("updated_admin");
+        Optional<User> savedAdmin = userRepository.findByUsername("updated-admin");
         assertNotNull(savedAdmin);
         assertEquals("Updated Admin", savedAdmin.get().getName());
         assertEquals("updated-admin", savedAdmin.get().getUsername());
