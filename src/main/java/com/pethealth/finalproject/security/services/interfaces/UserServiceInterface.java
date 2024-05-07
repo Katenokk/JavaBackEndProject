@@ -81,4 +81,5 @@ public interface UserServiceInterface {
     void deleteAdmin(Long id);
 
 
+    List<Veterinarian> getAllVeterinarians();
 }
