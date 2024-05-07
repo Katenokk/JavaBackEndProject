@@ -361,11 +361,7 @@ class UserControllerTest {
 
     @Test
     @Transactional
-    @WithMockUser(username = "admin", password = "8888", roles = "ADMIN")
     void updateAdmin_Valid() throws Exception {
-
-
-
         Admin updatedAdmin = new Admin("Updated Admin", "updated-admin", "5678", new ArrayList<>());
         String adminJson = objectMapper.writeValueAsString(updatedAdmin);
 
@@ -379,7 +375,7 @@ class UserControllerTest {
         Optional<User> savedAdmin = userRepository.findByUsername("updated_admin");
         assertNotNull(savedAdmin);
         assertEquals("Updated Admin", savedAdmin.get().getName());
-        assertEquals("updated_admin", savedAdmin.get().getUsername());
+        assertEquals("updated-admin", savedAdmin.get().getUsername());
         assertTrue(passwordEncoder.matches("5678", savedAdmin.get().getPassword()));
     }
     @Test
