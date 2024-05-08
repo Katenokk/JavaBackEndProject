@@ -36,20 +36,20 @@ public class FinalProjectApplication {
 	@Bean
 	CommandLineRunner run(UserService userService) {
 		return args -> {
-//			userService.saveRole(new Role(null, "ROLE_USER"));
-//			userService.saveRole(new Role(null, "ROLE_ADMIN"));
-//			userService.saveRole(new Role(null, "ROLE_VET"));
-////
-//			Owner katia = new Owner("Katia", "katia", "1234", new ArrayList<>(), "katia@mail.com");
-//			userService.saveUser(katia);
-//			userService.saveUser(new Veterinarian("Laia Fernández", "laia", "1234", new ArrayList<>(), "laia@pethealth.com"));
-//			userService.saveUser(new Admin("Super Admin", "admin", "1234", new ArrayList<>()));
-////
-//			userService.addRoleToUser("katia", "ROLE_USER");
-//			userService.addRoleToUser("katia", "ROLE_ADMIN");
-//			userService.addRoleToUser("laia", "ROLE_VET");
-//			userService.addRoleToUser("laia", "ROLE_USER");
-//			userService.addRoleToUser("admin", "ROLE_ADMIN");
+			userService.saveRole(new Role(null, "ROLE_USER"));
+			userService.saveRole(new Role(null, "ROLE_ADMIN"));
+			userService.saveRole(new Role(null, "ROLE_VET"));
+//
+			Owner katia = new Owner("Katia", "katia", "1234", new ArrayList<>(), "katia@mail.com");
+			userService.saveUser(katia);
+			userService.saveUser(new Veterinarian("Laia Fernández", "laia", "1234", new ArrayList<>(), "laia@pethealth.com"));
+			userService.saveUser(new Admin("Super Admin", "admin", "1234", new ArrayList<>()));
+//
+			userService.addRoleToUser("katia", "ROLE_USER");
+			userService.addRoleToUser("katia", "ROLE_ADMIN");
+			userService.addRoleToUser("laia", "ROLE_VET");
+			userService.addRoleToUser("laia", "ROLE_USER");
+			userService.addRoleToUser("admin", "ROLE_ADMIN");
 		};
 	}
 
