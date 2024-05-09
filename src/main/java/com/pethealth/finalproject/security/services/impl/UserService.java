@@ -62,10 +62,6 @@ public class UserService implements UserServiceInterface, UserDetailsService {
         return null;
     }
 
-
-
-
-
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof AnonymousAuthenticationToken)) {
@@ -242,35 +238,6 @@ public class UserService implements UserServiceInterface, UserDetailsService {
         return userRepository.findByUsername(username).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Username not found"));
     }
 
-    //solo se puede consultar veterinarios:
-//    @Override
-//    public User getUser(String username) {
-//        // Retrieve the currently logged-in user
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        String currentUserName = authentication.getName();
-//        User currentUser = userRepository.findByUsername(currentUserName)
-//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Current user not found"));
-//
-//        // Retrieve the user to be fetched
-//        User userToFetch = userRepository.findByUsername(username)
-//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-//
-//        // Check the roles of the current user
-//        if (currentUser instanceof Admin) {
-//            // If the current user is an admin, they can fetch any user
-//            log.info("Fetching user {}", username);
-//            return userToFetch;
-//        } else if (currentUser instanceof Owner && userToFetch instanceof Veterinarian) {
-//            // If the current user is an owner, they can only fetch veterinarians
-//            log.info("Fetching veterinarian {}", username);
-//            return userToFetch;
-//        } else {
-//            // If the current user is an owner trying to fetch a non-veterinarian, throw an exception
-//            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Owners can only fetch veterinarians");
-//        }
-//    }
-
-
 
     @Transactional
     @Override
@@ -331,13 +298,40 @@ public class UserService implements UserServiceInterface, UserDetailsService {
         return petReadDTOs;
     }
 
+//    public List<Veterinarian> getAllVeterinarians(){
+//        Long currentUserId = getCurrentUserId();
+//        if(currentUserId == null){
+//            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You must be logged in to update an account.");
+//        }
+//
+//        User currentUser = userRepository.findById(currentUserId)
+//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+//
+//        // Check if the current user is the owner of the account they are trying to update
+//        if (!(currentUser instanceof Owner) && !(currentUser instanceof Admin)) {
+//            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Only owners and admins can see all veterinarians.");
+//        }
+//
+//        List<Veterinarian> allVeterinarians = new ArrayList<>();
+//        for(User user : userRepository.findAll()){
+//            if(user instanceof Veterinarian){
+//                allVeterinarians.add((Veterinarian) user);
+//            }
+//        }
+//        if(allVeterinarians.isEmpty()){
+//            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No veterinarians found.");
+//        }
+//
+//        return allVeterinarians;
+//    }
+
     public List<Veterinarian> getAllVeterinarians(){
-        Long currentUserId = getCurrentUserId();
-        if(currentUserId == null){
+        String currentUsername = getCurrentUserName();
+        if(currentUsername == null){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You must be logged in to update an account.");
         }
 
-        User currentUser = userRepository.findById(currentUserId)
+        User currentUser = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
 
         // Check if the current user is the owner of the account they are trying to update
@@ -359,29 +353,35 @@ public class UserService implements UserServiceInterface, UserDetailsService {
     }
 
     public void updateOwner(Long id, Owner owner){
-        Long currentUserId = getCurrentUserId();
-        if(currentUserId == null){
+        String currentUsername = getCurrentUserName();
+        if(currentUsername == null){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You must be logged in to update an account.");
         }
 
-        User currentUser = userRepository.findById(currentUserId)
+        User currentUser = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
 
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Owner not found."));
 
         // Check if the current user is the owner of the account they are trying to update
-        if (!currentUserId.equals(existingUser.getId()) && !(currentUser instanceof Admin)) {
+        if (!currentUser.getId().equals(existingUser.getId()) && !(currentUser instanceof Admin)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You can only update your own account or an admin can update any account.");
         }
 
         if(existingUser instanceof Owner){
             Owner existingOwner = (Owner) existingUser;
-            checkUsernameAndEmailOwner(existingOwner, owner);
+            checkEmailOwner(existingOwner, owner);
+            if(owner.getPassword() != null){
+                String encodedPassword = passwordEncoder.encode(owner.getPassword());
+                owner.setPassword(encodedPassword);
+            }
             owner.setId(id);
             //ignora el array de pets
             Set<Pet> existingPets = ((Owner) existingUser).getOwnedPets();
             owner.setOwnedPets(existingPets);
+            //ingora el campo username si es diferente
+            owner.setUsername(existingOwner.getUsername());
             updateOwnerInDB(owner);
 
         } else {
@@ -392,51 +392,49 @@ public class UserService implements UserServiceInterface, UserDetailsService {
 
 
     public void updateVeterinarian(Long id, Veterinarian veterinarian){
-        Long currentUserId = getCurrentUserId();
-        if(currentUserId == null){
+        String currentUsername = getCurrentUserName();
+        if(currentUsername == null){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You must be logged in to update an account.");
         }
 
-        User currentUser = userRepository.findById(currentUserId)
+        User currentUser = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
 
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Veterinarian not found."));
 
         // Check if the current user is the owner of the account they are trying to update
-        if (!currentUserId.equals(existingUser.getId()) && !(currentUser instanceof Admin)) {
+        if (!currentUser.getId().equals(existingUser.getId()) && !(currentUser instanceof Admin)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You can only update your own account or an admin can update any account.");
         }
 
         if(existingUser instanceof  Veterinarian){
             Veterinarian existingVeterinarian = (Veterinarian) existingUser;
-            checkUsernameAndEmailVet(existingVeterinarian, veterinarian);
+            checkEmailVet(existingVeterinarian, veterinarian);
+            if(veterinarian.getPassword() != null){
+                String encodedPassword = passwordEncoder.encode(veterinarian.getPassword());
+                veterinarian.setPassword(encodedPassword);
+            }
             veterinarian.setId(id);
             //ignora el array de pets
             Set<Pet> existingPets = ((Veterinarian) existingUser).getTreatedPets();
             veterinarian.setTreatedPets(existingPets);
+            //ignora el campo username si es diferente
+            veterinarian.setUsername(existingVeterinarian.getUsername());
             updateVeterinarianInDB(veterinarian);
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid JSON. Expected Veterinarian.");
         }
     }
-    //helpers para verificar si el username y email no están ya en la base de datos
-    private void checkUsernameAndEmailVet(Veterinarian existingVeterinarian, Veterinarian veterinarian) {
-        // Check if the new username already exists in the database
-        if (!veterinarian.getUsername().equals(existingVeterinarian.getUsername()) && userRepository.findByUsername(veterinarian.getUsername()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Username already exists");
-        }
+    //helpers para verificar si el email no está ya en la base de datos
+    private void checkEmailVet(Veterinarian existingVeterinarian, Veterinarian veterinarian) {
         // Check if the new email already exists in the database
         if (!veterinarian.getEmail().equals(existingVeterinarian.getEmail()) && userRepository.findByEmail(veterinarian.getEmail()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Email already exists");
         }
     }
 
-    private void checkUsernameAndEmailOwner(Owner existingOwner, Owner owner) {
-        // Check if the new username already exists in the database
-        if (!owner.getUsername().equals(existingOwner.getUsername()) && userRepository.findByUsername(owner.getUsername()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Username already exists");
-        }
+    private void checkEmailOwner(Owner existingOwner, Owner owner) {
         // Check if the new email already exists in the database
         if (!owner.getEmail().equals(existingOwner.getEmail()) && userRepository.findOwnerByEmail(owner.getEmail()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Email already exists");
@@ -444,12 +442,12 @@ public class UserService implements UserServiceInterface, UserDetailsService {
     }
 
     public void updateAdmin(Long id, Admin admin){
-        Long currentUserId = getCurrentUserId();
-        if(currentUserId == null){
+        String currentUsername = getCurrentUserName();
+        if(currentUsername == null){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You must be logged in to update an account.");
         }
 
-        User currentUser = userRepository.findById(currentUserId)
+        User currentUser = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
 
         User existingUser = userRepository.findById(id)
@@ -467,7 +465,12 @@ public class UserService implements UserServiceInterface, UserDetailsService {
             if (!admin.getUsername().equals(existingUser.getUsername()) && userRepository.findByUsername(admin.getUsername()).isPresent()) {
                 throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Username already exists");
             }
+            if(admin.getPassword() != null){
+                String encodedPassword = passwordEncoder.encode(admin.getPassword());
+                admin.setPassword(encodedPassword);
+            }
             admin.setId(id);
+            admin.setUsername(existingUser.getUsername());
             updateAdminInDB(admin);
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid JSON. Expected Admin.");
@@ -475,18 +478,18 @@ public class UserService implements UserServiceInterface, UserDetailsService {
     }
 
     //patch de owner
-    public void partialUpdateOwner(Long id, String name, String username, String password, String email){
-        Long currentUserId = getCurrentUserId();
-        if(currentUserId == null){
+    public void partialUpdateOwner(Long id, String name, String password, String email){
+        String currentUsername = getCurrentUserName();
+        if(currentUsername == null){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You must be logged in to update an account.");
         }
-        User currentUser = userRepository.findById(currentUserId)
+        User currentUser = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Owner not found."));
 
         // Check if the current user is the owner of the account they are trying to update
-        if (!currentUserId.equals(existingUser.getId()) && !(currentUser instanceof Admin)) {
+        if (!currentUser.getId().equals(existingUser.getId()) && !(currentUser instanceof Admin)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You can only update your own account or an admin can update any account.");
         }
 
@@ -494,12 +497,6 @@ public class UserService implements UserServiceInterface, UserDetailsService {
             Owner existingOwner = (Owner) existingUser;
             if(name != null){
                 existingUser.setName(name);
-            }
-            if(username != null){
-                if (!username.equals(existingOwner.getUsername()) && userRepository.findByUsername(username).isPresent()) {
-                    throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Username already exists");
-                }
-                existingUser.setUsername(username);
             }
             if(password != null){
                 String encodedPassword = passwordEncoder.encode(password);
@@ -525,20 +522,20 @@ public class UserService implements UserServiceInterface, UserDetailsService {
         return userRepository.save(owner);
     }
 
-    public void partialUpdateVeterinarian(Long id, String name, String username, String password, String email){
-        Long currentUserId = getCurrentUserId();
-        if(currentUserId == null){
+    public void partialUpdateVeterinarian(Long id, String name, String password, String email){
+        String currentUsername = getCurrentUserName();
+        if(currentUsername == null){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You must be logged in to update an account.");
         }
 
-        User currentUser = userRepository.findById(currentUserId)
+        User currentUser = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
 
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Veterinarian not found."));
 
         // Check if the current user is the owner of the account they are trying to update
-        if (!currentUserId.equals(existingUser.getId()) && !(currentUser instanceof Admin)) {
+        if (!currentUser.getId().equals(existingUser.getId()) && !(currentUser instanceof Admin)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You can only update your own account or an admin can update any account.");
         }
 
@@ -546,13 +543,6 @@ public class UserService implements UserServiceInterface, UserDetailsService {
             Veterinarian existingVeterinarian = (Veterinarian) existingUser;
             if(name != null){
                 existingUser.setName(name);
-            }
-            if(username != null){
-                //comprobar si ya existe
-                if (!username.equals(existingVeterinarian.getUsername()) && userRepository.findByUsername(username).isPresent()) {
-                    throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Username already exists");
-                }
-                existingUser.setUsername(username);
             }
             if(password != null){
                 String encodedPassword = passwordEncoder.encode(password);
@@ -578,13 +568,13 @@ public class UserService implements UserServiceInterface, UserDetailsService {
         return userRepository.save(veterinarian);
     }
 
-    public void partialUpdateAdmin(Long id, String name, String username, String password){
-        Long currentUserId = getCurrentUserId();
-        if(currentUserId == null){
+    public void partialUpdateAdmin(Long id, String name, String password){
+        String currentUsername = getCurrentUserName();
+        if(currentUsername == null){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You must be logged in to update an account.");
         }
 
-        User currentUser = userRepository.findById(currentUserId)
+        User currentUser = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
 
         User existingUser = userRepository.findById(id)
@@ -599,12 +589,6 @@ public class UserService implements UserServiceInterface, UserDetailsService {
             Admin existingAdmin = (Admin) existingUser;
             if(name != null){
                 existingUser.setName(name);
-            }
-            if(username != null){
-                if (!username.equals(existingAdmin.getUsername()) && userRepository.findByUsername(username).isPresent()) {
-                    throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Username already exists");
-                }
-                existingUser.setUsername(username);
             }
             if(password != null){
                 String encodedPassword = passwordEncoder.encode(password);
@@ -626,17 +610,17 @@ public class UserService implements UserServiceInterface, UserDetailsService {
 
     @Transactional
     public void deleteOwner(Long id){
-        Long currentUserId = getCurrentUserId();
-        if(currentUserId == null){
+        String currentUsername = getCurrentUserName();
+        if(currentUsername == null){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You must be logged in to delete an account.");
         }
-        User currentUser = userRepository.findById(currentUserId)
+        User currentUser = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Owner not found."));
 
         // Check if the current user is the owner of the account they are trying to delete
-        if (!currentUserId.equals(existingUser.getId()) && !(currentUser instanceof Admin)) {
+        if (!currentUser.getId().equals(existingUser.getId()) && !(currentUser instanceof Admin)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You can only delete your own account or an admin can delete any account.");
         }
 
@@ -645,19 +629,19 @@ public class UserService implements UserServiceInterface, UserDetailsService {
 
     @Transactional
     public void deleteVeterinarian(Long id){
-        Long currentUserId = getCurrentUserId();
-        if(currentUserId == null){
+        String currentUsername = getCurrentUserName();
+        if(currentUsername == null){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You must be logged in to delete an account.");
         }
 
-        User currentUser = userRepository.findById(currentUserId)
+        User currentUser = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
 
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Veterinarian not found."));
 
         // Check if the current user is the owner of the account they are trying to update
-        if (!currentUserId.equals(user.getId()) && !(currentUser instanceof Admin)) {
+        if (!currentUser.getId().equals(user.getId()) && !(currentUser instanceof Admin)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You can only delete your own account or an admin can delete any account.");
         }
 
@@ -670,12 +654,12 @@ public class UserService implements UserServiceInterface, UserDetailsService {
     }
 
     public void deleteAdmin(Long id){
-        Long currentUserId = getCurrentUserId();
-        if(currentUserId == null){
+        String currentUsername = getCurrentUserName();
+        if(currentUsername == null){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You must be logged in to delete an account.");
         }
 
-        User currentUser = userRepository.findById(currentUserId)
+        User currentUser = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
 
         User existingUser = userRepository.findById(id)
