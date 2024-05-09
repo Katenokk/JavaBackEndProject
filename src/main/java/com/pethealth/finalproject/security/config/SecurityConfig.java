@@ -94,8 +94,10 @@ public class SecurityConfig {
                 .requestMatchers(POST, "/api/admins/**").hasAnyAuthority("ROLE_ADMIN")
                 .requestMatchers(PUT, "/api/owners/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(PUT, "/api/veterinarians/**").hasAnyAuthority("ROLE_VET", "ROLE_ADMIN")
+                .requestMatchers(PUT, "/api/admins/**").hasAnyAuthority("ROLE_ADMIN")
                 .requestMatchers(PATCH, "/api/owners/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(PATCH, "/api/admins/**").hasAnyAuthority("ROLE_ADMIN")
+                .requestMatchers(PATCH, "/api/veterinarians/**").hasAnyAuthority("ROLE_VET", "ROLE_ADMIN")
 
                 .requestMatchers(GET, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(PUT, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")

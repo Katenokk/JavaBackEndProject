@@ -89,6 +89,9 @@ class UserControllerTest {
         userRepository.save(newAdmin);
         userService.addRoleToUser("admin", "ROLE_ADMIN");
 
+        userRepository.save(newOwner);
+        userRepository.save(newVet);
+
 
         LocalDate dateOfBirth = LocalDate.of(2010,06,01);
         Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
@@ -366,28 +369,24 @@ class UserControllerTest {
     }
 
     @Test
-//    @Transactional
+    @WithMockUser(username = "admin", authorities = {"ROLE_ADMIN"})
     void updateAdmin_Valid() throws Exception {
         Admin updatedAdmin = new Admin("Updated Admin", "updated-admin", "5678", new ArrayList<>());
         String adminJson = objectMapper.writeValueAsString(updatedAdmin);
 
-        String jwt = TokenAuthenticationService.createToken("admin", "ROLE_ADMIN");
-
         mockMvc.perform(put("/api/admins/" + newAdmin.getId())
-                        .header("Authorization", "Bearer " + jwt)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(adminJson))
                 .andExpect(status().isNoContent());
 
-        userRepository.delete(newAdmin);
-        userRepository.flush();
-        Optional<User> savedAdmin = userRepository.findByUsername("updated-admin");
+        Optional<User> savedAdmin = userRepository.findByUsername("admin");
         assertNotNull(savedAdmin);
         assertEquals("Updated Admin", savedAdmin.get().getName());
-        assertEquals("updated-admin", savedAdmin.get().getUsername());
+        assertNotEquals("updated-admin", savedAdmin.get().getUsername());
         assertTrue(passwordEncoder.matches("5678", savedAdmin.get().getPassword()));
     }
     @Test
+    @WithMockUser(username = "admin", authorities = {"ROLE_ADMIN"})
     void updateAdmin_NotFound() throws Exception {
         Admin existingAdmin = new Admin("Existing Admin", "existing_admin", "1234", new ArrayList<>());
         userRepository.save(existingAdmin);
@@ -402,31 +401,27 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "pepito", authorities = {"ROLE_USER"})
     void updateOwner_Valid() throws Exception {
-        Owner existingOwner = new Owner("Existing Owner", "existing_owner", "1234", new ArrayList<>(), "owner@mail.com");
-        userRepository.save(existingOwner);
-
         Owner updatedOwner = new Owner("Updated Owner", "updated_owner", "5678", new ArrayList<>(), "updated_owner@mail.com");
         String ownerJson = objectMapper.writeValueAsString(updatedOwner);
 
-        mockMvc.perform(put("/api/owners/" + existingOwner.getId())
+        mockMvc.perform(put("/api/owners/" + newOwner.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(ownerJson))
                 .andExpect(status().isNoContent());
 
-        Optional<User> savedOwner = userRepository.findByUsername("updated_owner");
+        Optional<User> savedOwner = userRepository.findByUsername("pepito");
 
         assertNotNull(savedOwner);
         assertEquals("Updated Owner", savedOwner.get().getName());
-        assertEquals("updated_owner", savedOwner.get().getUsername());
+        assertNotEquals("updated_owner", savedOwner.get().getUsername());
         assertTrue(passwordEncoder.matches("5678", savedOwner.get().getPassword()));
         assertEquals("updated_owner@mail.com", ((Owner)savedOwner.get()).getEmail());
     }
     @Test
+    @WithMockUser(username = "pepito", authorities = {"ROLE_USER"})
     void updateOwner_NotFound() throws Exception {
-        Owner existingOwner = new Owner("Existing Owner", "existing_owner", "1234", new ArrayList<>(), "owner@mail.com");
-        userRepository.save(existingOwner);
-
         Owner updatedOwner = new Owner("Updated Owner", "updated_owner", "5678", new ArrayList<>(), "updated_owner@mail.com");
         String ownerJson = objectMapper.writeValueAsString(updatedOwner);
 
@@ -437,23 +432,21 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "dr gato", authorities = {"ROLE_VET"})
     void updateVeterinarian_Valid() throws Exception {
-        Veterinarian existingVeterinarian = new Veterinarian("Existing Vet", "existing-vet", "1234", new ArrayList<>(), "veterinarian@mail.com");
-        userRepository.save(existingVeterinarian);
-
         Veterinarian updatedVeterinarian = new Veterinarian("Updated Vet", "updated-vet", "5678", new ArrayList<>(), "updatedveterinarian@mail.com");
         String veterinarianJson = objectMapper.writeValueAsString(updatedVeterinarian);
 
-        mockMvc.perform(put("/api/veterinarians/" + existingVeterinarian.getId())
+        mockMvc.perform(put("/api/veterinarians/" + newVet.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(veterinarianJson))
                 .andExpect(status().isNoContent());
 
-        Optional<User> savedVeterinarian = userRepository.findByUsername("updated-vet");
+        Optional<User> savedVeterinarian = userRepository.findByUsername("dr gato");
 
         assertNotNull(savedVeterinarian);
         assertEquals("Updated Vet", savedVeterinarian.get().getName());
-        assertEquals("updated-vet", savedVeterinarian.get().getUsername());
+        assertNotEquals("updated-vet", savedVeterinarian.get().getUsername());
         assertTrue(passwordEncoder.matches("5678", savedVeterinarian.get().getPassword()));
         assertEquals("updatedveterinarian@mail.com", ((Veterinarian)savedVeterinarian.get()).getEmail());
     }
@@ -479,7 +472,6 @@ class UserControllerTest {
 
         UserUpdateDTO updatedOwner = new UserUpdateDTO();
         updatedOwner.setName("Updated Owner");
-        updatedOwner.setUsername("updated-owner");
         updatedOwner.setPassword("5678");
         updatedOwner.setEmail("updatedowner@mail.com");
 
@@ -494,7 +486,6 @@ class UserControllerTest {
 
         assertNotNull(savedOwner);
         assertEquals("Updated Owner", savedOwner.get().getName());
-        assertEquals("updated-owner", savedOwner.get().getUsername());
         assertTrue(passwordEncoder.matches("5678", savedOwner.get().getPassword()));
         assertEquals("updatedowner@mail.com", ((Owner)savedOwner.get()).getEmail());
     }
@@ -506,7 +497,6 @@ class UserControllerTest {
 
         UserUpdateDTO updatedOwner = new UserUpdateDTO();
         updatedOwner.setName("Updated Owner");
-        updatedOwner.setUsername("updated_owner");
         updatedOwner.setPassword("5678");
         updatedOwner.setEmail("updated_owner@mail.com");
 

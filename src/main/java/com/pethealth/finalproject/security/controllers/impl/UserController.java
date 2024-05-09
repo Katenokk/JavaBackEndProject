@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import javax.servlet.http.HttpSession;
 
 
 import java.util.List;
@@ -39,6 +40,13 @@ public class UserController {
 //    @ResponseStatus(HttpStatus.OK)
 //    public List<User> getUsers() {
 //        return userService.getUsers();
+//    }
+
+//ver como usar en postman
+//    @GetMapping("/logout")
+//    public String logout(HttpSession session) {
+//        session.invalidate();
+//        return "redirect:/login";
 //    }
 
     @GetMapping("/users")
@@ -152,19 +160,19 @@ public class UserController {
     @PatchMapping("/owners/{id}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     public void partialUpdateOwner(@PathVariable Long id, @RequestBody @Valid UserUpdateDTO userUpdateDTO) {
-        userService.partialUpdateOwner(id, userUpdateDTO.getName(), userUpdateDTO.getUsername(), userUpdateDTO.getPassword(), userUpdateDTO.getEmail());
+        userService.partialUpdateOwner(id, userUpdateDTO.getName(), userUpdateDTO.getPassword(), userUpdateDTO.getEmail());
     }
 
     @PatchMapping("/veterinarians/{id}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     public void partialUpdateVeterinarian(@PathVariable Long id, @RequestBody @Valid UserUpdateDTO userUpdateDTO) {
-        userService.partialUpdateVeterinarian(id, userUpdateDTO.getName(), userUpdateDTO.getUsername(), userUpdateDTO.getPassword(), userUpdateDTO.getEmail());
+        userService.partialUpdateVeterinarian(id, userUpdateDTO.getName(), userUpdateDTO.getPassword(), userUpdateDTO.getEmail());
     }
 
     @PatchMapping("/admins/{id}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     public void partialUpdateAdmin(@PathVariable Long id, @RequestBody @Valid UserUpdateDTO userUpdateDTO) {
-        userService.partialUpdateAdmin(id, userUpdateDTO.getName(), userUpdateDTO.getUsername(),  userUpdateDTO.getPassword());
+        userService.partialUpdateAdmin(id, userUpdateDTO.getName(),  userUpdateDTO.getPassword());
     }
 
 

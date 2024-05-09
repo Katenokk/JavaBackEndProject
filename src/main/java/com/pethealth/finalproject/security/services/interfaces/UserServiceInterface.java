@@ -68,11 +68,11 @@ public interface UserServiceInterface {
 
     void updateVeterinarian(Long id, Veterinarian veterinarian);
 
-    void partialUpdateOwner(Long id, String name, String username, String password, String email);
+    void partialUpdateOwner(Long id, String name, String username, String password);
 
-    void partialUpdateVeterinarian(Long id, String name, String username, String password, String email);
+    void partialUpdateVeterinarian(Long id, String name, String password, String email);
 
-    void partialUpdateAdmin(Long id, String name, String username, String password);
+    void partialUpdateAdmin(Long id, String name, String password);
 
     void deleteOwner(Long id);
 
