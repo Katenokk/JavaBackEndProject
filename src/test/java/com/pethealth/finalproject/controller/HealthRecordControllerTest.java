@@ -1,5 +1,6 @@
 package com.pethealth.finalproject.controller;
 
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.pethealth.finalproject.dtos.HealthRecordDTO;
@@ -18,6 +19,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.Commit;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.transaction.TestTransaction;
@@ -34,9 +36,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+
 
 @SpringBootTest
 @Import(TestEntityManager.class)
@@ -64,6 +70,8 @@ class HealthRecordControllerTest {
     private Cat catto;
     private Dog newDog;
     private Owner owner;
+
+    private Veterinarian oriol;
     private Weight weight1;
     private Weight weight2;
     private HealthRecord healthRecord1;
@@ -75,16 +83,21 @@ class HealthRecordControllerTest {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
         objectMapper.registerModule(new JavaTimeModule());
         owner = new Owner("New Owner", "new-owner", "1234", new ArrayList<>(), "owner@mail.com");
+        oriol = new Veterinarian("Oriol", "oriol", "1234", new ArrayList<>(), "owner@mail.com");
         userRepository.save(owner);
         LocalDate dateOfBirth = LocalDate.of(200, 1, 1);
         Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
-        catto = new Cat("Catto", dateOfBirthOld, false, List.of(CatDiseases.IBD), CatBreeds.BENGAL, owner, null);
-//        petRepository.save(catto);
+        catto = new Cat("Catto", dateOfBirthOld, false, List.of(CatDiseases.IBD), CatBreeds.BENGAL, owner, oriol);
+        userRepository.save(oriol);
         healthRecord1 = new HealthRecord(catto);
-        LocalDate localNow = LocalDate.now();
-        Date now = Date.from(localNow.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
-        weight1 = new Weight( now, 10.5, healthRecord1);
-        weight2= new Weight( now, 11.5, healthRecord1);
+//        LocalDate localNow = LocalDate.now();
+//        Date now = Date.from(localNow.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        LocalDate localDate1 = LocalDate.of(2024, 1, 5);
+        LocalDate localDate2 = LocalDate.of(2024, 1, 20);
+        Date date1 = Date.from(localDate1.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        Date date2 = Date.from(localDate2.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        weight1 = new Weight( date1, 10.5, healthRecord1);
+        weight2= new Weight( date2, 11.5, healthRecord1);
         healthRecord1.addWeight(weight1);
         healthRecord1.addWeight(weight2);
         catto.setHealthRecord(healthRecord1);
@@ -100,6 +113,7 @@ class HealthRecordControllerTest {
     }
     @Test
     @Transactional
+    @WithMockUser(username = "new-owner", authorities = {"ROLE_USER"})
     void testAddWeightToPet() throws Exception {
         catto.getHealthRecord().getWeights().clear();
         weightRepository.deleteAll();
@@ -131,6 +145,7 @@ class HealthRecordControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "new-owner", authorities = {"ROLE_USER"})
     void testGetPetHealthRecord()  throws Exception {
         Long petId = catto.getId();
         MvcResult result = mockMvc.perform(get("/health-records/" + petId)
@@ -191,7 +206,58 @@ class HealthRecordControllerTest {
         assertTrue(pet.get().getHealthRecord().getWeights().stream().noneMatch(weight -> weight.getId().equals(weightId)));
     }
 
+    @Test
+    @WithMockUser(username = "oriol", authorities = {"ROLE_VET"})
+    void testFindWeightsBetweenDates_Vet() throws Exception {
+        Long petId = catto.getId();
+        LocalDate startDate = LocalDate.of(2024, 1, 1);
+        LocalDate endDate = LocalDate.of(2024, 1, 31);
+        Date start = Date.from(startDate.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        Date end = Date.from(endDate.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
 
-    //falta get between dates
+        mockMvc.perform(get("/health-records/weights/" + petId)
+                        .param("startDate", startDate.toString())
+                        .param("endDate", endDate.toString())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(greaterThan(0))))
+                .andExpect(jsonPath("$[0].day", is(notNullValue())))
+                .andExpect(jsonPath("$[0].weight", is(notNullValue())));
+
+        // Convert the response to a list of Weights
+//        String content = result.getResponse().getContentAsString();
+//        JavaType type = objectMapper.getTypeFactory().constructCollectionType(List.class, Weight.class);
+//        List<Weight> returnedWeights = objectMapper.readValue(content, type);
+
+
+//        assertNotNull(returnedWeights);
+//        assertFalse(returnedWeights.isEmpty());
+//        for (Weight weight : returnedWeights) {
+//            assertTrue(weight.getDay().after(start) && weight.getDay().before(end));
+//        }
+    }
+
+    @Test
+    @WithMockUser(username = "new-owner", authorities = {"ROLE_USER"})
+    void testFindWeightsBetweenDates_Owner() throws Exception {
+        Long petId = catto.getId();
+        LocalDate startDate = LocalDate.of(2024, 1, 1);
+        LocalDate endDate = LocalDate.of(2024, 1, 31);
+        Date start = Date.from(startDate.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        Date end = Date.from(endDate.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+
+        mockMvc.perform(get("/health-records/weights/" + petId)
+                        .param("startDate", startDate.toString())
+                        .param("endDate", endDate.toString())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(greaterThan(0))))
+                .andExpect(jsonPath("$[0].day", is(notNullValue())))
+                .andExpect(jsonPath("$[0].weight", is(notNullValue())));
+
+    }
+
+
+
 
 }

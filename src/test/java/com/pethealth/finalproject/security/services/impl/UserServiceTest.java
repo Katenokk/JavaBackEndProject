@@ -73,7 +73,6 @@ class UserServiceTest {
         newVet = new Veterinarian("Oriol", "dr gato", "1111", new ArrayList<>(), "oriol@email.com");
         newAdmin = new Admin("Admin", "admin", "8888", new ArrayList<>());
         testAdmin = new Admin("Delete Admin", "deleted-admin", "1234", new ArrayList<>());
-//        testAdmin = userRepository.save(testAdmin);
     }
 
     @AfterEach
@@ -519,7 +518,7 @@ class UserServiceTest {
         assertFalse(deletedVet.isPresent());
         Optional<Cat> existingCat = petRepository.findCatById(newCat.getId());
         assertTrue(existingCat.isPresent());
-
+        assertNull(existingCat.get().getVeterinarian());
         SecurityContextHolder.clearContext();
     }
 
@@ -541,22 +540,22 @@ class UserServiceTest {
         SecurityContextHolder.clearContext();
     }
 //falla cuando se ejecuta junto con los demás
-//    @Test
-//    void deleteAdminTest(){
-//        Admin deleteAdmin = userRepository.save(testAdmin);
-//
-//        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-//        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-//        CustomUserDetails mockUser = new CustomUserDetails(newAdmin.getUsername(), newAdmin.getPassword(), authorities, newAdmin.getId());
-//        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
-//
-//        userService.deleteAdmin(deleteAdmin.getId());
-//
-//        Optional<User> deletedAdmin =  userRepository.findById(deleteAdmin.getId());
-//        assertFalse(deletedAdmin.isPresent());
-//
-//        SecurityContextHolder.clearContext();
-//    }
+    @Test
+    void deleteAdminTest(){
+        Admin deleteAdmin = userRepository.save(testAdmin);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        CustomUserDetails mockUser = new CustomUserDetails(testAdmin.getUsername(), testAdmin.getPassword(), authorities, testAdmin.getId());
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
+        userService.deleteAdmin(deleteAdmin.getId());
+
+        Optional<User> deletedAdmin =  userRepository.findById(deleteAdmin.getId());
+        assertFalse(deletedAdmin.isPresent());
+
+        SecurityContextHolder.clearContext();
+    }
 
 
 

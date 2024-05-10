@@ -13,6 +13,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -45,14 +48,18 @@ class HealthRecordServiceTest {
 
     private Cat catto;
     private Owner owner;
+
+    private Veterinarian vet;
     @BeforeEach
     void setUp() {
         owner = new Owner("New Owner", "new-owner", "1234", new ArrayList<>(), "owner@mail.com");
         userRepository.save(owner);
+        vet = new Veterinarian("New Vet", "new-vet", "1234", new ArrayList<>(), "vet@mail.com");
+
         LocalDate dateOfBirth = LocalDate.of(200, 1, 1);
         Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
-        catto = new Cat("Catto", dateOfBirthOld, false, List.of(CatDiseases.IBD), CatBreeds.BENGAL, owner, null);
-
+        catto = new Cat("Catto", dateOfBirthOld, false, List.of(CatDiseases.IBD), CatBreeds.BENGAL, owner, vet);
+        userRepository.save(vet);
 
         healthRecord1 = new HealthRecord(catto);
         healthRecordRepository.save(healthRecord1);
@@ -87,8 +94,13 @@ class HealthRecordServiceTest {
     @Test
     @Transactional
     void addWeightToPet() {
-
         petRepository.save(catto);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(owner.getUsername(), owner.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
         LocalDate now = LocalDate.now();
         Date dateNow = Date.from(now.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
@@ -102,17 +114,26 @@ class HealthRecordServiceTest {
         boolean weightAdded = foundPet.getHealthRecord().getWeights().stream()
                 .anyMatch(weight -> weight.getDay().equals(dateNow) && weight.getWeight() == weightInKg);
         assertTrue(weightAdded);
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test
     @Transactional
     void addWeightToPet_InvalidWeight(){
         petRepository.save(catto);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(owner.getUsername(), owner.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
         LocalDate date = LocalDate.now().plusDays(1);
         Date futureDate = Date.from(date.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
         double weightInKg = -10.5;
 
         assertThrows(IllegalArgumentException.class, () -> healthRecordService.addWeightToPet(catto.getId(), futureDate, weightInKg));
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -130,11 +151,19 @@ class HealthRecordServiceTest {
 
         healthRecordRepository.saveAndFlush(healthRecord1);
 
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(owner.getUsername(), owner.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
         HealthRecordDTO healthRecordDTO = healthRecordService.getPetHealthRecord(catto.getId());
 
         assertNotNull(healthRecordDTO);
         assertEquals(healthRecord1.getId(), healthRecordDTO.getId());
         assertEquals(2, healthRecordDTO.getWeights().size());
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -152,6 +181,12 @@ class HealthRecordServiceTest {
 
         healthRecordRepository.saveAndFlush(healthRecord1);
 
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(owner.getUsername(), owner.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
         LocalDate startDate = LocalDate.now().minusDays(1);
         LocalDate endDate = LocalDate.now().plusDays(1);
         Date startPastDate = Date.from(startDate.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
@@ -161,6 +196,39 @@ class HealthRecordServiceTest {
 
         assertNotNull(weights);
         assertEquals(2, weights.size());
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    @Transactional
+    void findWeightsBetweenDates_Valid_VetRole(){
+        petRepository.save(catto);
+        healthRecordRepository.save(healthRecord1);
+        catto.setHealthRecord(healthRecord1);
+
+        healthRecord1.addWeight(weight1);
+        healthRecord1.addWeight(weight2);
+
+        weightRepository.save(weight1);
+        weightRepository.save(weight2);
+
+        healthRecordRepository.saveAndFlush(healthRecord1);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_VET"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(vet.getUsername(), vet.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
+        LocalDate startDate = LocalDate.now().minusDays(1);
+        LocalDate endDate = LocalDate.now().plusDays(1);
+        Date startPastDate = Date.from(startDate.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        Date endFutureDate = Date.from(endDate.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+
+        List<Weight> weights = healthRecordService.findWeightsBetweenDates(catto.getId(), startPastDate, endFutureDate);
+
+        assertNotNull(weights);
+        assertEquals(2, weights.size());
+        SecurityContextHolder.clearContext();
     }
 
     @Test
