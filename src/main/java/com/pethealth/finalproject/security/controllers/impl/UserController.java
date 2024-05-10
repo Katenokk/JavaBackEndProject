@@ -13,7 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-import javax.servlet.http.HttpSession;
+//import javax.servlet.http.HttpSession;
 
 
 import java.util.List;
@@ -36,11 +36,6 @@ public class UserController {
      *
      * @return list of all users
      */
-//    @GetMapping("/users")
-//    @ResponseStatus(HttpStatus.OK)
-//    public List<User> getUsers() {
-//        return userService.getUsers();
-//    }
 
 //ver como usar en postman
 //    @GetMapping("/logout")
@@ -144,12 +139,6 @@ public class UserController {
     public void updateOwner(@PathVariable Long id, @RequestBody @Valid Owner owner) {
         userService.updateOwner(id, owner);
     }
-
-//    @PutMapping("/admin/owners/{id}")
-//    @ResponseStatus(HttpStatus.NO_CONTENT)
-//    public void updateOwnerByAdmin(@PathVariable Long id, @RequestBody @Valid Owner owner) {
-//        userService.updateOwner(id, owner);
-//    }
 
     @PutMapping("/veterinarians/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)

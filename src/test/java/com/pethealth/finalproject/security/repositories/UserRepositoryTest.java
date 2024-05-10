@@ -4,6 +4,7 @@ import com.pethealth.finalproject.model.*;
 import com.pethealth.finalproject.repository.PetRepository;
 import com.pethealth.finalproject.security.models.User;
 import com.pethealth.finalproject.security.services.impl.UserService;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,9 @@ class UserRepositoryTest {
     private UserRepository userRepository;
     @Autowired
     private PetRepository petRepository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     private User testUser;
 
@@ -66,7 +70,9 @@ class UserRepositoryTest {
         petRepository.save(newCat);
         assertTrue(newVet.getTreatedPets().contains(newCat));
         userRepository.removeAssociationVeterinarianWithPet(newVet);
-        assertNull(newCat.getVeterinarian());
+        entityManager.clear();
+        Cat fromRepoCat = (Cat) petRepository.findById(newCat.getId()).get();
+        assertNull(fromRepoCat.getVeterinarian());
     }
 
     @Test
@@ -84,4 +90,6 @@ class UserRepositoryTest {
         assertTrue(retrievedVet.isPresent());
         assertEquals(newVet.getName(), retrievedVet.get().getName());
     }
+
+    //añadir findByIdAndFetchPetsEagerly si se implementa
 }

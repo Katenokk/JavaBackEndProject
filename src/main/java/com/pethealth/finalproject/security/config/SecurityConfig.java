@@ -98,11 +98,16 @@ public class SecurityConfig {
                 .requestMatchers(PATCH, "/api/owners/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(PATCH, "/api/admins/**").hasAnyAuthority("ROLE_ADMIN")
                 .requestMatchers(PATCH, "/api/veterinarians/**").hasAnyAuthority("ROLE_VET", "ROLE_ADMIN")
+                .requestMatchers(DELETE, "/api/owners/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                .requestMatchers(DELETE, "/api/admins/**").hasAnyAuthority("ROLE_ADMIN")
+                .requestMatchers(DELETE, "/api/veterinarians/**").hasAnyAuthority("ROLE_VET", "ROLE_ADMIN")
 
                 .requestMatchers(GET, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(PUT, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(POST, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(PATCH, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                .requestMatchers(GET, "/health-records/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_VET")
+                .requestMatchers(POST, "/health-records/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(POST, "/health-records/**").permitAll()
                 .requestMatchers("/error/**").permitAll()
 

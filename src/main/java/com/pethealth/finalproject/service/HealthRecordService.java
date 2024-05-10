@@ -2,22 +2,31 @@ package com.pethealth.finalproject.service;
 
 import com.pethealth.finalproject.dtos.HealthRecordDTO;
 import com.pethealth.finalproject.dtos.WeightDTO;
+import com.pethealth.finalproject.model.Admin;
 import com.pethealth.finalproject.model.HealthRecord;
 import com.pethealth.finalproject.model.Pet;
 import com.pethealth.finalproject.model.Weight;
 import com.pethealth.finalproject.repository.PetRepository;
 import com.pethealth.finalproject.repository.WeightRepository;
+import com.pethealth.finalproject.security.models.User;
+import com.pethealth.finalproject.security.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.time.LocalDate;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.*;
 
 @Service
 public class HealthRecordService {
@@ -27,23 +36,44 @@ public class HealthRecordService {
         @Autowired
         private WeightRepository weightRepository;
 
-//        public void addWeightToPet(Long petId, Weight weight) {
-//            Pet pet = petRepository.findById(petId)
-//                    .orElseThrow(() -> new EntityNotFoundException("Pet not found with id " + petId));
-//
-//            HealthRecord healthRecord = pet.getHealthRecord();
-//            healthRecord.addWeight(weight);
-//
-//            weightRepository.save(weight);
-//        }
+        @Autowired
+        private UserRepository userRepository;
+
+    public String getCurrentUserName(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof AnonymousAuthenticationToken)) {
+            String currentUserName = authentication.getName();
+            return currentUserName;
+        }
+        return null;
+    }
 
     public  void addWeightToPet(Long petId, Date date, double weightInKg) {
+        String currentUserName = getCurrentUserName();
+        User currentUser = userRepository.findByUsername(currentUserName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+
         Pet pet = petRepository.findById(petId)
                 .orElseThrow(() -> new EntityNotFoundException("Pet not found with id " + petId));
 
+        if (!(currentUser.equals(pet.getOwner()) || currentUser instanceof Admin)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access is denied.");
+        }
+
         HealthRecord healthRecord = pet.getHealthRecord();
-        Weight weight = new Weight(date, weightInKg, healthRecord);
-        //
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        // Change the time zone of the Calendar object to UTC
+        calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        // The Calendar's time is now the same instant in UTC
+        Date utcDate = calendar.getTime();
+
+        Weight weight = new Weight(utcDate, weightInKg, healthRecord);
+
+//        Weight weight = new Weight(date, weightInKg, healthRecord);
+
         Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
         Set<ConstraintViolation<Weight>> violations = validator.validate(weight);
 
@@ -57,8 +87,18 @@ public class HealthRecordService {
     }
 
     public HealthRecordDTO getPetHealthRecord(Long petId) {
+        String currentUserName = getCurrentUserName();
+        User currentUser = userRepository.findByUsername(currentUserName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+
         Pet pet = petRepository.findById(petId)
                 .orElseThrow(() -> new EntityNotFoundException("Pet not found with id " + petId));
+
+
+        if (!(currentUser.equals(pet.getOwner()) || currentUser.equals(pet.getVeterinarian()) || currentUser instanceof Admin)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access is denied.");
+        }
+
         HealthRecord healthRecord = pet.getHealthRecord();
         return convertToDTO(healthRecord);
     }
@@ -82,11 +122,21 @@ public class HealthRecordService {
     }
 
     public List<Weight> findWeightsBetweenDates(Long petId, Date startDate, Date endDate) {
+        String currentUserName = getCurrentUserName();
+        User currentUser = userRepository.findByUsername(currentUserName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+
+        Pet pet = petRepository.findById(petId)
+                .orElseThrow(() -> new EntityNotFoundException("Pet not found with id " + petId));
+
+        if (!(currentUser.equals(pet.getOwner()) || currentUser.equals(pet.getVeterinarian()) || currentUser instanceof Admin)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access is denied.");
+        }
+
         if(endDate.before(startDate)){
             throw new IllegalArgumentException("End date must be after start date");
         }
-        Pet pet = petRepository.findById(petId)
-                .orElseThrow(() -> new EntityNotFoundException("Pet not found with id " + petId));
+
         HealthRecord healthRecord = pet.getHealthRecord();
         List<Weight> weights = weightRepository.findAllByHealthRecordAndDayBetween(healthRecord, startDate, endDate);
         if(weights.isEmpty()){

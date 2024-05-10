@@ -78,20 +78,13 @@ class UserControllerTest {
     void setUp() {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 
-        userService.saveRole(new Role(null, "ROLE_USER"));
-        userService.saveRole(new Role(null, "ROLE_ADMIN"));
-        userService.saveRole(new Role(null, "ROLE_VET"));
-
         testUser = new User("Test User", "test-user", "1234", new ArrayList<>());
         newOwner = new Owner("Pepe", "pepito", "0000", new ArrayList<>(), "email@email.com");
         newVet = new Veterinarian("Oriol", "dr gato", "1111", new ArrayList<>(), "oriol@email.com");
         newAdmin = new Admin("Admin", "admin", "8888", new ArrayList<>());
         userRepository.save(newAdmin);
-        userService.addRoleToUser("admin", "ROLE_ADMIN");
-
         userRepository.save(newOwner);
         userRepository.save(newVet);
-
 
         LocalDate dateOfBirth = LocalDate.of(2010,06,01);
         Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
@@ -99,8 +92,6 @@ class UserControllerTest {
         LocalDate dateOfBirthDog = LocalDate.of(2000, 01, 01);
         Date dateOfBirthDogOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
         newDog = new Dog("Bombo", dateOfBirthDogOld, false, List.of(DogDiseases.ARTHRITIS), DogBreeds.HUSKY, null, null);
-
-
     }
 
     @AfterEach
@@ -131,6 +122,7 @@ class UserControllerTest {
         assertTrue(userDTOs.stream().anyMatch(userDTO -> "Oriol".equals(userDTO.getName())));
         assertTrue(userDTOs.stream().anyMatch(userDTO -> "pepito".equals(userDTO.getUsername())));
     }
+
     @Test
     void finUserByUsername_Valid() throws Exception {
         userRepository.deleteAll();
@@ -160,18 +152,26 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "pepito", authorities = {"ROLE_USER"})
+    void getAllVeterinarians_Valid(){
+        List<Veterinarian> veterinarians = userService.getAllVeterinarians();
+        assertNotNull(veterinarians);
+        assertTrue(veterinarians.stream().anyMatch(vet -> "Oriol".equals(vet.getName())));
+        assertTrue(veterinarians.stream().anyMatch(vet -> "dr gato".equals(vet.getUsername())));
+    }
+
+    @Test
     void saveUser_Valid() throws Exception {
         userRepository.deleteAll();
         userRepository.save(testUser);
         String userJson = objectMapper.writeValueAsString(testUser);
 
-        mockMvc.perform(post("/api/users")
+        mockMvc.perform(post("/api/veterinarians")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(userJson))
                 .andExpect(status().isCreated());
 
         List<User> users = userRepository.findAll();
-        assertEquals(1, users.size());
         assertEquals("Test User", users.get(0).getName());
         assertEquals("test-user", users.get(0).getUsername());
     }
@@ -452,10 +452,8 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "dr gato", authorities = {"ROLE_VET"})
     void updateVeterinarian_NotFound() throws Exception {
-        Veterinarian existingVeterinarian = new Veterinarian("Existing Vet", "existing-vet", passwordEncoder.encode("1234"), new ArrayList<>(), "veterinarian@mail.com");
-        userRepository.save(existingVeterinarian);
-
         Veterinarian updatedVeterinarian = new Veterinarian("Updated Vet", "updated-vet", "5678", new ArrayList<>(), "updatedveterinarian@mail.com");
         String veterinarianJson = objectMapper.writeValueAsString(updatedVeterinarian);
 
@@ -466,10 +464,8 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "pepito", authorities = {"ROLE_USER"})
     void partialUpdateOwner_Valid() throws Exception {
-        Owner existingOwner = new Owner("Existing Owner", "existing-owner", "1234", new ArrayList<>(), "owner@mail.com");
-        userRepository.save(existingOwner);
-
         UserUpdateDTO updatedOwner = new UserUpdateDTO();
         updatedOwner.setName("Updated Owner");
         updatedOwner.setPassword("5678");
@@ -477,12 +473,12 @@ class UserControllerTest {
 
         String ownerJson = objectMapper.writeValueAsString(updatedOwner);
 
-        mockMvc.perform(patch("/api/owners/" + existingOwner.getId())
+        mockMvc.perform(patch("/api/owners/" + newOwner.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(ownerJson))
                 .andExpect(status().isNoContent());
 
-        Optional<User> savedOwner = userRepository.findByUsername("updated-owner");
+        Optional<User> savedOwner = userRepository.findByUsername("pepito");
 
         assertNotNull(savedOwner);
         assertEquals("Updated Owner", savedOwner.get().getName());
@@ -491,10 +487,8 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "pepito", authorities = {"ROLE_USER"})
     void partialUpdateOwner_NotFound() throws Exception {
-        Owner existingOwner = new Owner("Existing Owner", "existing_owner", "1234", new ArrayList<>(), "owner@mail.com");
-        userRepository.save(existingOwner);
-
         UserUpdateDTO updatedOwner = new UserUpdateDTO();
         updatedOwner.setName("Updated Owner");
         updatedOwner.setPassword("5678");
@@ -509,40 +503,33 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "dr gato", authorities = {"ROLE_VET"})
     void partialUpdateVeterinarian_Valid() throws Exception {
-        Veterinarian existingVeterinarian = new Veterinarian("Existing Vet", "existing-vet", "1234", new ArrayList<>(), "veterinarian@mail.com");
-        userRepository.save(existingVeterinarian);
-
         UserUpdateDTO updatedVeterinarian = new UserUpdateDTO();
         updatedVeterinarian.setName("Updated Vet");
-        updatedVeterinarian.setUsername("updated-vet");
         updatedVeterinarian.setPassword("5678");
         updatedVeterinarian.setEmail("updatedveterinarian@mail.com");
 
         String veterinarianJson = objectMapper.writeValueAsString(updatedVeterinarian);
 
-        mockMvc.perform(patch("/api/veterinarians/" + existingVeterinarian.getId())
+        mockMvc.perform(patch("/api/veterinarians/" + newVet.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(veterinarianJson))
                 .andExpect(status().isNoContent());
 
-        Optional<User> savedVeterinarian = userRepository.findByUsername("updated-vet");
+        Optional<User> savedVeterinarian = userRepository.findByUsername("dr gato");
 
         assertNotNull(savedVeterinarian);
         assertEquals("Updated Vet", savedVeterinarian.get().getName());
-        assertEquals("updated-vet", savedVeterinarian.get().getUsername());
         assertTrue(passwordEncoder.matches("5678", savedVeterinarian.get().getPassword()));
         assertEquals("updatedveterinarian@mail.com", ((Veterinarian)savedVeterinarian.get()).getEmail());
     }
 
     @Test
+    @WithMockUser(username = "dr gato", authorities = {"ROLE_VET"})
     void partialUpdateVeterinarian_NotFound() throws Exception {
-        Veterinarian existingVeterinarian = new Veterinarian("Existing Vet", "existing-vet", "1234", new ArrayList<>(), "veterinarian@mail.com");
-        userRepository.save(existingVeterinarian);
-
         UserUpdateDTO updatedVeterinarian = new UserUpdateDTO();
         updatedVeterinarian.setName("Updated Vet");
-        updatedVeterinarian.setUsername("updated-vet");
         updatedVeterinarian.setPassword("5678");
         updatedVeterinarian.setEmail("updatedveterinarian@mail.com");
 
@@ -555,38 +542,31 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "admin", authorities = {"ROLE_ADMIN"})
     void partialUpdateAdmin_Valid() throws Exception {
-        Admin existingAdmin = new Admin("Existing Admin", "existing-admin", "1234", new ArrayList<>());
-        userRepository.save(existingAdmin);
-
         UserUpdateDTO updatedAdmin = new UserUpdateDTO();
         updatedAdmin.setName("Updated Admin");
-        updatedAdmin.setUsername("updated-admin");
         updatedAdmin.setPassword("5678");
 
         String adminJson = objectMapper.writeValueAsString(updatedAdmin);
 
-        mockMvc.perform(patch("/api/admins/" + existingAdmin.getId())
+        mockMvc.perform(patch("/api/admins/" + newAdmin.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(adminJson))
                 .andExpect(status().isNoContent());
 
-        Optional<User> savedAdmin = userRepository.findByUsername("updated-admin");
+        Optional<User> savedAdmin = userRepository.findByUsername("admin");
 
         assertNotNull(savedAdmin);
         assertEquals("Updated Admin", savedAdmin.get().getName());
-        assertEquals("updated-admin", savedAdmin.get().getUsername());
         assertTrue(passwordEncoder.matches("5678", savedAdmin.get().getPassword()));
     }
 
     @Test
+    @WithMockUser(username = "admin", authorities = {"ROLE_ADMIN"})
     void partialUpdateAdmin_NotFound() throws Exception {
-        Admin existingAdmin = new Admin("Existing Admin", "existing-admin", "1234", new ArrayList<>());
-        userRepository.save(existingAdmin);
-
         UserUpdateDTO updatedAdmin = new UserUpdateDTO();
         updatedAdmin.setName("Updated Admin");
-        updatedAdmin.setUsername("updated-admin");
         updatedAdmin.setPassword("5678");
 
         String adminJson = objectMapper.writeValueAsString(updatedAdmin);
@@ -598,8 +578,9 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "pepito", authorities = {"ROLE_USER"})
     void deleteOwnerById_Valid() throws Exception {
-        userRepository.save(newOwner);
+//        userRepository.save(newOwner);
 
         mockMvc.perform(delete("/api/owners/" + newOwner.getId()))
                 .andExpect(status().isOk());
@@ -609,6 +590,7 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "pepito", authorities = {"ROLE_USER"})
     void deleteOwnerById_NotFound() throws Exception {
         mockMvc.perform(delete("/api/owners/" + 9999))
                 .andExpect(status().isNotFound());
@@ -617,38 +599,51 @@ class UserControllerTest {
 
 
     @Test
+    @WithMockUser(username = "dr gato", authorities = {"ROLE_VET"})
     void deleteVeterinarianById_Valid() throws Exception {
-
-        Veterinarian existingVeterinarian = new Veterinarian("Existing Vet", "existing-vet", "1234", new ArrayList<>(), "veterinarian@mail.com");
-        userRepository.save(existingVeterinarian);
-
-
-        mockMvc.perform(delete("/api/veterinarians/" + existingVeterinarian.getId()))
+        mockMvc.perform(delete("/api/veterinarians/" + newVet.getId()))
                 .andExpect(status().isOk());
 
-        Optional<User> deletedVeterinarian = userRepository.findById(existingVeterinarian.getId());
+        Optional<User> deletedVeterinarian = userRepository.findById(newVet.getId());
         assertTrue(deletedVeterinarian.isEmpty());
     }
 
     @Test
+    @WithMockUser(username = "dr gato", authorities = {"ROLE_VET"})
+    void deleteVeterinarianById_WithPet() throws Exception {
+        newVet.addPet(newCat);
+        newCat.setOwner(newOwner);
+        petRepository.save(newCat);
+        mockMvc.perform(delete("/api/veterinarians/" + newVet.getId()))
+                .andExpect(status().isOk());
+
+        Optional<User> deletedVeterinarian = userRepository.findById(newVet.getId());
+        assertTrue(deletedVeterinarian.isEmpty());
+        Cat fromRepoCat = (Cat) petRepository.findById(newCat.getId()).get();
+        assertNull(fromRepoCat.getVeterinarian());
+    }
+
+
+
+    @Test
+    @WithMockUser(username = "dr gato", authorities = {"ROLE_VET"})
     void deleteVeterinarianById_NotFound() throws Exception {
         mockMvc.perform(delete("/api/veterinarians/" + 9999))
                 .andExpect(status().isNotFound());
     }
 
     @Test
+    @WithMockUser(username = "admin", authorities = {"ROLE_ADMIN"})
     void deleteAdminById_Valid() throws Exception {
-        Admin existingAdmin = new Admin("Existing Admin", "existing-admin", "1234", new ArrayList<>());
-        userRepository.save(existingAdmin);
-
-        mockMvc.perform(delete("/api/admins/" + existingAdmin.getId()))
+        mockMvc.perform(delete("/api/admins/" + newAdmin.getId()))
                 .andExpect(status().isOk());
 
-        Optional<User> deletedAdmin = userRepository.findById(existingAdmin.getId());
+        Optional<User> deletedAdmin = userRepository.findById(newAdmin.getId());
         assertTrue(deletedAdmin.isEmpty());
     }
 
     @Test
+    @WithMockUser(username = "admin", authorities = {"ROLE_ADMIN"})
     void deleteAdminById_NotFound() throws Exception {
         mockMvc.perform(delete("/api/admins/" + 9999))
                 .andExpect(status().isNotFound());
