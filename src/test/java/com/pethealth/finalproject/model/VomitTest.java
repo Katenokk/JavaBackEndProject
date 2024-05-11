@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDate;
+import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,9 +23,21 @@ class VomitTest {
 
     @Test
     void testVomitCreation() {
-        Vomit vomit = new Vomit(LocalDate.now(), "Vomit", true, true);
+        LocalDate localDate1 = LocalDate.of(2010,06,01);
+        Date date1 = Date.from(localDate1.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        Vomit vomit = new Vomit(date1, "Vomit", true, true);
         assertEquals("Vomit", vomit.getComment());
         assertTrue(vomit.isHasFood());
         assertTrue(vomit.isHasHairball());
+    }
+
+    @Test
+    void testAssociationWithHealthRecord() {
+        LocalDate localDate1 = LocalDate.of(2010,06,01);
+        Date date1 = Date.from(localDate1.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        HealthRecord healthRecord = new HealthRecord();
+        Vomit vomit = new Vomit(date1, "Vomit", true, true);
+        vomit.setPetHealthRecord(healthRecord);
+        assertEquals(healthRecord, vomit.getPetHealthRecord());
     }
 }

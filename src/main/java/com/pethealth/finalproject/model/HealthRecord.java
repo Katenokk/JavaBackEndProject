@@ -42,21 +42,18 @@ public class HealthRecord {
     @OneToMany(mappedBy = "healthRecord", cascade = CascadeType.ALL)
     private List<Weight> weights;
 
-//    @PostLoad
-//    private void initWeights(){
-//        Hibernate.initialize(this.weights);
-//    }
 // implementar luego:
 //    @OneToMany(mappedBy = "petHealthRecord", cascade = CascadeType.ALL)
 //    private List<Medication> medications;
 //
-//    @OneToMany(mappedBy = "petHealthRecord", cascade = CascadeType.ALL)
-//    private List<Event> events;
+    @OneToMany(mappedBy = "petHealthRecord", cascade = CascadeType.ALL)
+    private List<Event> events;
 
 
     public HealthRecord(Pet pet) {
         this.pet = pet;
         this.weights = new ArrayList<>();
+        this.events = new ArrayList<>();
     }
 
     public void addWeight(Weight weight) {
@@ -71,5 +68,18 @@ public class HealthRecord {
     public void removeWeight(Weight weight) {
         weights.remove(weight);
         weight.setHealthRecord(null);
+    }
+
+    public void addEvent(Event event) {
+        if(events == null) {
+            events = new ArrayList<>();
+        } else {
+            events.add(event);
+            event.setPetHealthRecord(this);
+        }
+    }
+
+    public void removeEvent(Event event) {
+        events.remove(event);
     }
 }

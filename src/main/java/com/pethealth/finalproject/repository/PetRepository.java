@@ -21,4 +21,8 @@ public interface PetRepository extends JpaRepository<Pet, Long> {
 
     @Query("SELECT p FROM Pet p LEFT JOIN FETCH p.healthRecord h LEFT JOIN FETCH h.weights WHERE p.id = :id")
     Optional<Pet> findByIdAndFetchWeightsEagerly(@Param("id") Long id);
+
+    //para poder inicializar los eventos para añadir eventos a pet
+    @Query("SELECT p FROM Pet p LEFT JOIN FETCH p.healthRecord h LEFT JOIN FETCH h.events WHERE p.id = :id")
+    Optional<Pet> findByIdAndFetchEventsEagerly(@Param("id") Long id);
 }

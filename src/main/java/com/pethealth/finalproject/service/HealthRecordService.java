@@ -20,6 +20,7 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
@@ -48,6 +49,7 @@ public class HealthRecordService {
         return null;
     }
 
+
     public  void addWeightToPet(Long petId, Date date, double weightInKg) {
         String currentUserName = getCurrentUserName();
         User currentUser = userRepository.findByUsername(currentUserName)
@@ -71,8 +73,6 @@ public class HealthRecordService {
         Date utcDate = calendar.getTime();
 
         Weight weight = new Weight(utcDate, weightInKg, healthRecord);
-
-//        Weight weight = new Weight(date, weightInKg, healthRecord);
 
         Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
         Set<ConstraintViolation<Weight>> violations = validator.validate(weight);
@@ -120,6 +120,8 @@ public class HealthRecordService {
         dto.setWeight(weight.getWeight());
         return dto;
     }
+
+    //faltaria un convertEventToDTO
 
     public List<Weight> findWeightsBetweenDates(Long petId, Date startDate, Date endDate) {
         String currentUserName = getCurrentUserName();

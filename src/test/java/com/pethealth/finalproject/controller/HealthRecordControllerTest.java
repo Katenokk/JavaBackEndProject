@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.pethealth.finalproject.dtos.HealthRecordDTO;
 import com.pethealth.finalproject.model.*;
+import com.pethealth.finalproject.repository.EventRepository;
 import com.pethealth.finalproject.repository.HealthRecordRepository;
 import com.pethealth.finalproject.repository.PetRepository;
 import com.pethealth.finalproject.repository.WeightRepository;
@@ -31,10 +32,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -67,6 +65,9 @@ class HealthRecordControllerTest {
 
     @Autowired
     private WeightRepository weightRepository;
+
+    @Autowired
+    private EventRepository eventRepository;
     private Cat catto;
     private Dog newDog;
     private Owner owner;
@@ -249,7 +250,131 @@ class HealthRecordControllerTest {
         assertTrue(pet.get().getHealthRecord().getWeights().stream().anyMatch(weight -> weight.getId().equals(weightId)));
     }
 
+    @Test
+//    @Transactional
+    void testAddEventToPet_Valid() throws Exception {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.YEAR, 2024);
+        calendar.set(Calendar.MONTH, Calendar.JANUARY);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, 12);
+        calendar.set(Calendar.MINUTE, 30);
+        Date date1 = calendar.getTime();
 
+        Vomit vomit1 = new Vomit(date1, "Vomit", true, false);
 
+        String body = objectMapper.writeValueAsString(vomit1);
+        MvcResult mvcResult = mockMvc.perform(post("/health-records/events/" + catto.getId())
+                .content(body)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isOk()).andReturn();
+
+//        String content = mvcResult.getResponse().getContentAsString();
+
+        Pet fromRepoCat = petRepository.findByIdAndFetchEventsEagerly(catto.getId()).get();
+        HealthRecord fromRepoHealthRecord = fromRepoCat.getHealthRecord();
+        Vomit savedVomit = (Vomit) fromRepoHealthRecord.getEvents().get(0);
+        //problemas con el formato de las fechas
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        String formattedVomit1Date = formatter.format(vomit1.getDate());
+        String formattedSavedEventDate = formatter.format(savedVomit.getDate());
+
+        assertEquals(vomit1.getComment(), savedVomit.getComment());
+        assertEquals(formattedVomit1Date, formattedSavedEventDate);
+        assertEquals(vomit1.isHasFood(), savedVomit.isHasFood());
+        assertEquals(vomit1.isHasHairball(), savedVomit.isHasHairball());
+    }
+
+    @Test
+    void testFindEventsByPet() throws Exception {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.YEAR, 2024);
+        calendar.set(Calendar.MONTH, Calendar.JANUARY);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, 12);
+        calendar.set(Calendar.MINUTE, 30);
+        Date date2 = calendar.getTime();
+
+        Vomit vomit2 = new Vomit(date2, "Vomit", true, false);
+        Fever fever1 = new Fever(date2, "Fever", 39.5);
+        eventRepository.save(vomit2);
+        eventRepository.save(fever1);
+        catto.getHealthRecord().addEvent(vomit2);
+        catto.getHealthRecord().addEvent(fever1);
+        petRepository.save(catto);
+
+        MvcResult result = mockMvc.perform(get("/health-records/events/" + catto.getId())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Pet fromRepoCat = petRepository.findByIdAndFetchEventsEagerly(catto.getId()).get();
+        HealthRecord fromRepoHealthRecord = fromRepoCat.getHealthRecord();
+        List<Event> savedEvents = fromRepoHealthRecord.getEvents();
+
+        assertFalse(savedEvents.isEmpty());
+        assertTrue(savedEvents.contains(vomit2));
+        assertTrue(savedEvents.contains(fever1));
+    }
+
+    @Test
+    void testUpdateEvent_Valid() throws Exception {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.YEAR, 2024);
+        calendar.set(Calendar.MONTH, Calendar.JANUARY);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, 12);
+        calendar.set(Calendar.MINUTE, 30);
+        Date date3 = calendar.getTime();
+
+        Vomit vomit3 = new Vomit(date3, "Vomit", true, false);
+        eventRepository.save(vomit3);
+        catto.getHealthRecord().addEvent(vomit3);
+        petRepository.save(catto);
+
+        Vomit newVomit = new Vomit(date3, "updated", false, true);
+
+        String body = objectMapper.writeValueAsString(newVomit);
+
+        mockMvc.perform(put("/health-records/events/" + catto.getId())
+                .content(body)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isOk());
+
+        Optional<Event> fromRepoVomit = eventRepository.findById(vomit3.getId());
+
+        assertTrue(fromRepoVomit.isPresent());
+        assertEquals("updated", fromRepoVomit.get().getComment());
+        assertEquals(newVomit.isHasHairball(), ((Vomit) fromRepoVomit.get()).isHasHairball());
+        assertEquals(newVomit.isHasFood(), ((Vomit) fromRepoVomit.get()).isHasFood());
+    }
+
+    @Test
+    void testDeleteEvent_Valid() throws Exception {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.YEAR, 2024);
+        calendar.set(Calendar.MONTH, Calendar.JANUARY);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, 12);
+        calendar.set(Calendar.MINUTE, 30);
+        Date date4 = calendar.getTime();
+
+        Vomit vomit4 = new Vomit(date4, "Vomit", true, false);
+        eventRepository.save(vomit4);
+        catto.getHealthRecord().addEvent(vomit4);
+        petRepository.save(catto);
+
+        //assert that vomit4 was added to pet
+        Cat fromRepoCat = (Cat) petRepository.findByIdAndFetchEventsEagerly(catto.getId()).get();
+        HealthRecord fromRepoHealthRecord = fromRepoCat.getHealthRecord();
+        assertTrue(fromRepoHealthRecord.getEvents().contains(vomit4));
+
+        mockMvc.perform(delete("/health-records/events/" + vomit4.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isOk());
+
+        Optional<Event> fromRepoEvent = eventRepository.findById(vomit4.getId());
+        assertFalse(fromRepoEvent.isPresent());
+    }
 
 }

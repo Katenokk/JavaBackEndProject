@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.Date;
 
 @Getter
 @Setter
@@ -20,7 +21,7 @@ public class Vomit extends Event {
     private boolean hasFood;
 
     private boolean hasHairball;
-    public Vomit(LocalDate date, String comment, boolean hasFood, boolean hasHairball) {
+    public Vomit(Date date, String comment, boolean hasFood, boolean hasHairball) {
         super(date, comment);
         this.hasFood = hasFood;
         this.hasHairball = hasHairball;
