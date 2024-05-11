@@ -54,7 +54,7 @@ public class HealthRecordService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
 
         Pet pet = petRepository.findById(petId)
-                .orElseThrow(() -> new EntityNotFoundException("Pet not found with id " + petId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found with id " + petId));
 
         if (!(currentUser.equals(pet.getOwner()) || currentUser instanceof Admin)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access is denied.");
@@ -92,7 +92,7 @@ public class HealthRecordService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
 
         Pet pet = petRepository.findById(petId)
-                .orElseThrow(() -> new EntityNotFoundException("Pet not found with id " + petId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found with id " + petId));
 
 
         if (!(currentUser.equals(pet.getOwner()) || currentUser.equals(pet.getVeterinarian()) || currentUser instanceof Admin)) {
@@ -127,7 +127,7 @@ public class HealthRecordService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
 
         Pet pet = petRepository.findById(petId)
-                .orElseThrow(() -> new EntityNotFoundException("Pet not found with id " + petId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found with id " + petId));
 
         if (!(currentUser.equals(pet.getOwner()) || currentUser.equals(pet.getVeterinarian()) || currentUser instanceof Admin)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access is denied.");
@@ -145,13 +145,20 @@ public class HealthRecordService {
         return weights;
     }
 
-    //testear luego y añadir delete en controller
     public void removeWeightFromPet(Long weightId, Long petId) {
+        String currentUserName = getCurrentUserName();
+        User currentUser = userRepository.findByUsername(currentUserName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+
         Pet pet = petRepository.findById(petId)
-                .orElseThrow(() -> new EntityNotFoundException("Pet not found with id " + petId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found with id " + petId));
+
+        if (!(currentUser.equals(pet.getOwner()) || currentUser instanceof Admin)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access is denied.");
+        }
         HealthRecord healthRecord = pet.getHealthRecord();
         Weight weight = weightRepository.findById(weightId)
-                .orElseThrow(() -> new EntityNotFoundException("Weight not found with id " + weightId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Weight not found with id " + weightId));
         healthRecord.removeWeight(weight);
         weightRepository.delete(weight);
     }

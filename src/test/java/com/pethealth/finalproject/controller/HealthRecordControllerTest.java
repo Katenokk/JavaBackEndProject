@@ -110,6 +110,7 @@ class HealthRecordControllerTest {
     void tearDown() {
         weightRepository.deleteAll();
         petRepository.deleteAll();
+        userRepository.deleteAll();
     }
     @Test
     @Transactional
@@ -160,51 +161,8 @@ class HealthRecordControllerTest {
         assertEquals(healthRecord1.getWeights().size(), healthRecordDTO.getWeights().size());
     }
 
-//    @Test
-//    @Transactional
-//    void testRemoveWeightFromPet() throws Exception {
-////        petRepository.deleteAll();
-//        LocalDate dateOfBirth = LocalDate.of(2001, 7, 7);
-//        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
-//        Cat kitty = new Cat("Kitty", dateOfBirthOld, false, List.of(CatDiseases.IBD), CatBreeds.BENGAL, owner, null);
-//        petRepository.save(kitty);
-//        kitty.getHealthRecord().addWeight(weight1);
-////        petRepository.save(kitty);
-//
-////        weightRepository.save(weight1);
-//
-//        Long petId = kitty.getId();
-//        Long weightId = weight1.getId();
-//
-//        mockMvc.perform(delete("/health-records/weights/" + weightId + "/" + petId)
-//                        .contentType(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isOk());
-//        assertFalse(weightRepository.existsById(weightId));
-//        Optional<Pet> pet = petRepository.findByIdAndFetchWeightsEagerly(petId);
-//        assertTrue(pet.isPresent());
-//
-//        pet.get().getHealthRecord().getWeights().size();
-//        assertTrue(pet.get().getHealthRecord().getWeights().stream().noneMatch(weight -> weight.getId().equals(weightId)));
-//    }
 
-    @Test
-    @Transactional
-    void testRemoveWeightFromPet() throws Exception {
-//        petRepository.save(catto);
-        weightRepository.save(weight1);
-        Long petId = catto.getId();
-        Long weightId = weight1.getId();
 
-        mockMvc.perform(delete("/health-records/weights/" + weightId + "/" + petId)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
-        assertFalse(weightRepository.existsById(weightId));
-        Optional<Pet> pet = petRepository.findByIdAndFetchWeightsEagerly(petId);
-        assertTrue(pet.isPresent());
-
-        pet.get().getHealthRecord().getWeights().size();
-        assertTrue(pet.get().getHealthRecord().getWeights().stream().noneMatch(weight -> weight.getId().equals(weightId)));
-    }
 
     @Test
     @WithMockUser(username = "oriol", authorities = {"ROLE_VET"})
@@ -255,6 +213,40 @@ class HealthRecordControllerTest {
                 .andExpect(jsonPath("$[0].day", is(notNullValue())))
                 .andExpect(jsonPath("$[0].weight", is(notNullValue())));
 
+    }
+
+    @Test
+    @WithMockUser(username = "new-owner", authorities = {"ROLE_USER"})
+    void testRemoveWeightFromPet_Valid_Owner() throws Exception {
+        Long petId = catto.getId();
+        Long weightId = weight1.getId();
+
+        mockMvc.perform(delete("/health-records/weights/" + weightId + "/" + petId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+        assertFalse(weightRepository.existsById(weightId));
+        Optional<Pet> pet = petRepository.findByIdAndFetchWeightsEagerly(petId);
+        assertTrue(pet.isPresent());
+
+        pet.get().getHealthRecord().getWeights().size();
+        assertTrue(pet.get().getHealthRecord().getWeights().stream().noneMatch(weight -> weight.getId().equals(weightId)));
+    }
+
+    @Test
+    @WithMockUser(username = "oriol", authorities = {"ROLE_VET"})
+    void testRemoveWeightFromPet_Invalid_Vet() throws Exception {
+        Long petId = catto.getId();
+        Long weightId = weight1.getId();
+
+        mockMvc.perform(delete("/health-records/weights/" + weightId + "/" + petId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+        assertTrue(weightRepository.existsById(weightId));
+        Optional<Pet> pet = petRepository.findByIdAndFetchWeightsEagerly(petId);
+        assertTrue(pet.isPresent());
+
+        pet.get().getHealthRecord().getWeights().size();
+        assertTrue(pet.get().getHealthRecord().getWeights().stream().anyMatch(weight -> weight.getId().equals(weightId)));
     }
 
 
