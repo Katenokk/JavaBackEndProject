@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.pethealth.finalproject.dtos.HealthRecordDTO;
+import com.pethealth.finalproject.dtos.VomitDTO;
 import com.pethealth.finalproject.model.*;
 import com.pethealth.finalproject.repository.EventRepository;
 import com.pethealth.finalproject.repository.HealthRecordRepository;
@@ -414,6 +415,58 @@ void testAddWeightToPet() throws Exception {
         assertEquals("updated", fromRepoVomit.get().getComment());
         assertEquals(newVomit.isHasHairball(), ((Vomit) fromRepoVomit.get()).isHasHairball());
         assertEquals(newVomit.isHasFood(), ((Vomit) fromRepoVomit.get()).isHasFood());
+    }
+
+    @Test
+    @WithMockUser(username = "new-owner", authorities = {"ROLE_USER"})
+    void testPartialUpdateEvent_Valid() throws Exception {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.YEAR, 2024);
+        calendar.set(Calendar.MONTH, Calendar.JANUARY);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, 12);
+        calendar.set(Calendar.MINUTE, 30);
+        Date date3 = calendar.getTime();
+
+        Calendar calendar2 = Calendar.getInstance();
+        calendar2.set(Calendar.YEAR, 2024);
+        calendar2.set(Calendar.MONTH, Calendar.JANUARY);
+        calendar2.set(Calendar.DAY_OF_MONTH, 5);
+        calendar2.set(Calendar.HOUR_OF_DAY, 16);
+        calendar2.set(Calendar.MINUTE, 30);
+        calendar2.setTimeZone(TimeZone.getTimeZone("UTC"));
+        Date date4 = calendar.getTime();
+
+        Vomit exisistingVomit = new Vomit(date3, "existing vomit", true, false);
+        eventRepository.save(exisistingVomit);
+        catto.getHealthRecord().addEvent(exisistingVomit);
+        petRepository.save(catto);
+
+        VomitDTO patchVomitDto = new VomitDTO();
+        patchVomitDto.setComment("patched");
+        patchVomitDto.setDate(date4);
+        patchVomitDto.setHasFood(false);
+        patchVomitDto.setHasHairball(true);
+
+        String body = objectMapper.writeValueAsString(patchVomitDto);
+
+        mockMvc.perform(patch("/health-records/events/" + exisistingVomit.getId())
+                .content(body)
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isOk());
+
+        Optional<Event> fromRepoVomit = eventRepository.findById(exisistingVomit.getId());
+
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        String expectedDate = formatter.format(date4);
+        String actualDate = formatter.format(fromRepoVomit.get().getDate());
+
+        assertTrue(fromRepoVomit.isPresent());
+        assertEquals("patched", fromRepoVomit.get().getComment());
+        assertEquals(expectedDate, actualDate);
+        assertEquals(patchVomitDto.isHasHairball(), ((Vomit) fromRepoVomit.get()).isHasHairball());
+        assertEquals(patchVomitDto.isHasFood(), ((Vomit) fromRepoVomit.get()).isHasFood());
+
     }
 
     @Test

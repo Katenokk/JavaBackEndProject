@@ -1,5 +1,8 @@
 package com.pethealth.finalproject.service;
 
+import com.pethealth.finalproject.dtos.EventDTO;
+import com.pethealth.finalproject.dtos.FeverDTO;
+import com.pethealth.finalproject.dtos.VomitDTO;
 import com.pethealth.finalproject.model.*;
 import com.pethealth.finalproject.repository.EventRepository;
 import com.pethealth.finalproject.repository.HealthRecordRepository;
@@ -129,6 +132,60 @@ public class EventService {
         return eventRepository.save(event);
     }
 
+    @Transactional
+    public void partialUpdateEvent(Long eventId, EventDTO eventDto){
+        String currentUserName = getCurrentUserName();
+        User currentUser = userRepository.findByUsername(currentUserName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+        Event existingEvent = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found with id " + eventId));
+        //no funcionaba con el discriminator :(
+        if ((eventDto instanceof FeverDTO) && !(existingEvent instanceof Fever)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The type of the provided event does not match the type of the existing event");
+        } else if ((eventDto instanceof VomitDTO) && !(existingEvent instanceof Vomit)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The type of the provided event does not match the type of the existing event");
+        } else if (!(eventDto instanceof FeverDTO) && !(eventDto instanceof VomitDTO)) {
+            throw new IllegalArgumentException("Invalid event type.");
+        }
+
+        Pet pet = petRepository.findById(existingEvent.getPetHealthRecord().getPet().getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found"));
+
+        if (!(currentUser.equals(pet.getOwner()) || currentUser instanceof Admin)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access is denied.");
+        }
+
+        Event patchedEvent;
+        if (eventDto instanceof VomitDTO) {
+            patchedEvent = patchVomitEntity((VomitDTO) eventDto, (Vomit) existingEvent);
+        } else if (eventDto instanceof FeverDTO) {
+            patchedEvent = patchFeverEntity((FeverDTO) eventDto, (Fever) existingEvent);
+        } else {
+            throw new IllegalArgumentException("Invalid event type.");
+        }
+        //update common fields
+        if (eventDto.getComment() != null) {
+            existingEvent.setComment(eventDto.getComment());
+        }
+        if (eventDto.getDate() != null) {
+            existingEvent.setDate(eventDto.getDate());
+        }
+
+        eventRepository.save(patchedEvent);
+    }
+
+    private Vomit patchVomitEntity(VomitDTO vomitDto, Vomit existingVomit) {
+        existingVomit.setHasHairball(vomitDto.isHasHairball());
+        existingVomit.setHasFood(vomitDto.isHasFood());
+        return existingVomit;
+    }
+
+    private Fever patchFeverEntity(FeverDTO feverDto, Fever existingFever) {
+        if (feverDto.getDegrees() != null) {
+            existingFever.setDegrees(feverDto.getDegrees());
+        }
+        return existingFever;
+    }
 
 
     public void deleteEvent(Long eventId) {

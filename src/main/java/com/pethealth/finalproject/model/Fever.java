@@ -17,9 +17,9 @@ import java.util.Date;
 @Entity
 @PrimaryKeyJoinColumn(name = "fever_id")
 public class Fever extends Event {
-    private double degrees;
+    private Double degrees;
 
-    public Fever(Date date, String comment, double degrees) {
+    public Fever(Date date, String comment, Double degrees) {
         super(date, comment);
         this.degrees = degrees;
     }

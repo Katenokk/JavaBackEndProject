@@ -109,6 +109,7 @@ public class SecurityConfig {
                 .requestMatchers(GET, "/health-records/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_VET")
                 .requestMatchers(POST, "/health-records/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(PUT, "/health-records/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                .requestMatchers(PATCH, "/health-records/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(DELETE, "/health-records/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(POST, "/health-records/**").permitAll()
                 .requestMatchers("/error/**").permitAll()

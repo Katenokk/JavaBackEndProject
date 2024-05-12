@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.time.LocalDate;
 import java.util.Date;
@@ -30,6 +31,7 @@ import java.util.Date;
         @JsonSubTypes.Type(value = Fever.class, name = "fever")
 })
 @JsonIgnoreProperties(value = { "id" }, allowSetters = true)
+@DynamicUpdate
 public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

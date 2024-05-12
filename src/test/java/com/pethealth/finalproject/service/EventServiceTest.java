@@ -1,5 +1,6 @@
 package com.pethealth.finalproject.service;
 
+import com.pethealth.finalproject.dtos.VomitDTO;
 import com.pethealth.finalproject.model.*;
 import com.pethealth.finalproject.repository.EventRepository;
 import com.pethealth.finalproject.repository.HealthRecordRepository;
@@ -186,6 +187,59 @@ class EventServiceTest {
     }
 
     @Test
+    void testPartialUpdateEvent_Valid() {
+        //para evitar interferencias con otros tests que usan Owner
+//        Owner patchEventOwner = new Owner("Patch event", "patch-owner", "1234", new ArrayList<>(), "patchowner@mail.com");
+//        userRepository.save(patchEventOwner);
+//        LocalDate dateOfBirth = LocalDate.of(200, 1, 1);
+//        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+//        Cat pipu = new Cat("Pipu", dateOfBirthOld, false, List.of(CatDiseases.IBD), CatBreeds.BENGAL, patchEventOwner, vet);
+//        petRepository.save(pipu);
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.YEAR, 2023);
+        calendar.set(Calendar.MONTH, Calendar.MARCH);
+        calendar.set(Calendar.DAY_OF_MONTH, 10);
+        calendar.set(Calendar.HOUR_OF_DAY, 11);
+        calendar.set(Calendar.MINUTE, 35);
+        Date date6 = calendar.getTime();
+
+        Calendar calendar2 = Calendar.getInstance();
+        calendar2.set(Calendar.YEAR, 2023);
+        calendar2.set(Calendar.MONTH, Calendar.MARCH);
+        calendar2.set(Calendar.DAY_OF_MONTH, 15);
+        calendar2.set(Calendar.HOUR_OF_DAY, 12);
+        calendar2.set(Calendar.MINUTE, 35);
+        Date date7 = calendar.getTime();
+
+        Event existingEvent = new Vomit(date7, "Vomit", true, false);
+        catto.getHealthRecord().addEvent(existingEvent);
+        eventRepository.save(existingEvent);
+
+        VomitDTO patchVomit = new VomitDTO();
+        patchVomit.setComment("patched");
+        patchVomit.setDate(date6);
+        patchVomit.setHasFood(false);
+        patchVomit.setHasHairball(true);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(owner.getUsername(), owner.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
+        eventService.partialUpdateEvent(existingEvent.getId(), patchVomit);
+
+        Optional<Event> fromRepoEvent = eventRepository.findById(existingEvent.getId());
+        assertTrue(fromRepoEvent.isPresent());
+        Vomit vomitEvent = (Vomit) fromRepoEvent.get();
+        assertEquals("patched", fromRepoEvent.get().getComment());
+        assertEquals(date6, fromRepoEvent.get().getDate());
+        assertFalse(vomitEvent.isHasFood());
+        assertTrue(vomitEvent.isHasHairball());
+
+        SecurityContextHolder.clearContext();
+    }
+    @Test
     void testDeleteEvent_Valid(){
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.YEAR, 2024);
@@ -195,10 +249,15 @@ class EventServiceTest {
         calendar.set(Calendar.MINUTE, 30);
         Date date4 = calendar.getTime();
 
+        Owner differentOwner = new Owner("Different Owner", "diff-owner", "1234", new ArrayList<>(), "diffowner@mail.com");
+        userRepository.save(differentOwner);
+        catto.setOwner(differentOwner);
+        petRepository.save(catto);
+
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(owner.getUsername(), owner.getPassword(), authorities);
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(differentOwner.getUsername(), differentOwner.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
         Event vomit4 = new Vomit(date4, "Vomit", true, false);

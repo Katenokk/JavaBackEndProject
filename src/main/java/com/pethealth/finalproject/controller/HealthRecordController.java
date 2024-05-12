@@ -1,5 +1,6 @@
 package com.pethealth.finalproject.controller;
 
+import com.pethealth.finalproject.dtos.EventDTO;
 import com.pethealth.finalproject.dtos.HealthRecordDTO;
 import com.pethealth.finalproject.model.Event;
 import com.pethealth.finalproject.model.HealthRecord;
@@ -37,6 +38,11 @@ public class HealthRecordController {
     @PostMapping("events/{petId}")
     public Event addEventToPet(@PathVariable Long petId, @RequestBody Event event) {
         return eventService.addEventToPet(petId, event);
+    }
+
+    @PatchMapping("events/{eventId}")
+    public void partialUpdateEvent(@PathVariable Long eventId, @RequestBody EventDTO eventDto) {
+        eventService.partialUpdateEvent(eventId, eventDto);
     }
 
     @GetMapping("/{petId}")
