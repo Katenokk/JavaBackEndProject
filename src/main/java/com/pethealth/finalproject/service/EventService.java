@@ -2,6 +2,7 @@ package com.pethealth.finalproject.service;
 
 import com.pethealth.finalproject.dtos.EventDTO;
 import com.pethealth.finalproject.dtos.FeverDTO;
+import com.pethealth.finalproject.dtos.MedicationDTO;
 import com.pethealth.finalproject.dtos.VomitDTO;
 import com.pethealth.finalproject.model.*;
 import com.pethealth.finalproject.repository.EventRepository;
@@ -74,10 +75,6 @@ public class EventService {
         HealthRecord healthRecord = pet.getHealthRecord();
         healthRecord.getEvents().size();
 
-//        Long healthRecordId = pet.getHealthRecord().getId();
-//        HealthRecord healthRecord = healthRecordRepository.findByIdAndInitializeEvents(healthRecordId)
-//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Health record not found with id " + healthRecordId));
-
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(event.getDate());
         // Change the time zone of the Calendar object to UTC
@@ -121,12 +118,9 @@ public class EventService {
 
         Pet pet = petRepository.findById(existingEvent.getPetHealthRecord().getPet().getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found with id " + existingEvent.getPetHealthRecord().getPet().getId()));
-
-
         if (!(currentUser.equals(pet.getOwner()) || currentUser instanceof Admin)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access is denied.");
         }
-
         event.setPetHealthRecord(existingEvent.getPetHealthRecord());
         event.setId(existingEvent.getId());
         return eventRepository.save(event);
@@ -141,10 +135,12 @@ public class EventService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found with id " + eventId));
         //no funcionaba con el discriminator :(
         if ((eventDto instanceof FeverDTO) && !(existingEvent instanceof Fever)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The type of the provided event does not match the type of the existing event");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The type of the provided event does not match fever");
         } else if ((eventDto instanceof VomitDTO) && !(existingEvent instanceof Vomit)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The type of the provided event does not match the type of the existing event");
-        } else if (!(eventDto instanceof FeverDTO) && !(eventDto instanceof VomitDTO)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The type of the provided event does not match vomit");
+        } else if ((eventDto instanceof MedicationDTO) && !(existingEvent instanceof Medication)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The type of the provided event does not match medication");
+        } else if (!(eventDto instanceof FeverDTO) && !(eventDto instanceof VomitDTO) && !(eventDto instanceof MedicationDTO)) {
             throw new IllegalArgumentException("Invalid event type.");
         }
 
@@ -160,6 +156,8 @@ public class EventService {
             patchedEvent = patchVomitEntity((VomitDTO) eventDto, (Vomit) existingEvent);
         } else if (eventDto instanceof FeverDTO) {
             patchedEvent = patchFeverEntity((FeverDTO) eventDto, (Fever) existingEvent);
+        } else if (eventDto instanceof MedicationDTO) {
+            patchedEvent = patchMedicationEntity((MedicationDTO) eventDto, (Medication) existingEvent);
         } else {
             throw new IllegalArgumentException("Invalid event type.");
         }
@@ -185,6 +183,15 @@ public class EventService {
             existingFever.setDegrees(feverDto.getDegrees());
         }
         return existingFever;
+    }
+    private Medication patchMedicationEntity(MedicationDTO medicationDto, Medication existingMedication) {
+        if (medicationDto.getName() != null) {
+            existingMedication.setName(medicationDto.getName());
+        }
+        if (medicationDto.getDosageInMgPerDay() != null) {
+            existingMedication.setDosageInMgPerDay(medicationDto.getDosageInMgPerDay());
+        }
+        return existingMedication;
     }
 
 

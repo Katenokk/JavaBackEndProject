@@ -29,7 +29,8 @@ import java.util.Date;
         property = "type")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = Vomit.class, name = "vomit"),
-        @JsonSubTypes.Type(value = Fever.class, name = "fever")
+        @JsonSubTypes.Type(value = Fever.class, name = "fever"),
+        @JsonSubTypes.Type(value = Medication.class, name = "medication")
 })
 @JsonIgnoreProperties(value = { "id" }, allowSetters = true)
 @DynamicUpdate
