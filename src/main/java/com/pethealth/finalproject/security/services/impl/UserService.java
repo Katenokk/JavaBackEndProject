@@ -38,11 +38,8 @@ import java.util.*;
 @RequiredArgsConstructor
 @Slf4j
 public class UserService implements UserServiceInterface, UserDetailsService {
-
-
     @Autowired
     private UserRepository userRepository;
-
 
     @Autowired
     private RoleRepository roleRepository;
@@ -228,7 +225,6 @@ public class UserService implements UserServiceInterface, UserDetailsService {
             if(user instanceof Owner){
                 Owner owner = (Owner) user;
                 OwnerDTO ownerDTO = new OwnerDTO();
-//                ownerDTO.setId(owner.getId());
                 ownerDTO.setName(owner.getName());
                 ownerDTO.setUsername(owner.getUsername());
                 ownerDTO.setEmail(owner.getEmail());
@@ -237,7 +233,6 @@ public class UserService implements UserServiceInterface, UserDetailsService {
             } else if(user instanceof Veterinarian){
                 Veterinarian vet = (Veterinarian) user;
                 VeterinarianDTO vetDTO = new VeterinarianDTO();
-//                vetDTO.setId(vet.getId());
                 vetDTO.setName(vet.getName());
                 vetDTO.setUsername(vet.getUsername());
                 vetDTO.setEmail(vet.getEmail());
@@ -246,7 +241,6 @@ public class UserService implements UserServiceInterface, UserDetailsService {
             } else if(user instanceof Admin){
                 Admin admin = (Admin) user;
                 AdminDTO adminDTO = new AdminDTO();
-//                adminDTO.setId(admin.getId());
                 adminDTO.setName(admin.getName());
                 adminDTO.setUsername(admin.getUsername());
                 userDTOs.add(adminDTO);
@@ -259,7 +253,6 @@ public class UserService implements UserServiceInterface, UserDetailsService {
         List<PetReadDTO> petReadDTOs = new ArrayList<>();
         for (Pet pet : pets) {
             PetReadDTO petReadDTO = new PetReadDTO();
-//            petReadDTO.setId(pet.getId());
             petReadDTO.setName(pet.getName());
             petReadDTO.setDateOfBirth(pet.getDateOfBirth());
             petReadDTO.setOwnerId(pet.getOwner().getId());
@@ -276,32 +269,7 @@ public class UserService implements UserServiceInterface, UserDetailsService {
         return petReadDTOs;
     }
 
-//    public List<Veterinarian> getAllVeterinarians(){
-//        Long currentUserId = getCurrentUserId();
-//        if(currentUserId == null){
-//            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You must be logged in to update an account.");
-//        }
-//
-//        User currentUser = userRepository.findById(currentUserId)
-//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
-//
-//        // Check if the current user is the owner of the account they are trying to update
-//        if (!(currentUser instanceof Owner) && !(currentUser instanceof Admin)) {
-//            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Only owners and admins can see all veterinarians.");
-//        }
-//
-//        List<Veterinarian> allVeterinarians = new ArrayList<>();
-//        for(User user : userRepository.findAll()){
-//            if(user instanceof Veterinarian){
-//                allVeterinarians.add((Veterinarian) user);
-//            }
-//        }
-//        if(allVeterinarians.isEmpty()){
-//            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No veterinarians found.");
-//        }
-//
-//        return allVeterinarians;
-//    }
+
 
     public List<Veterinarian> getAllVeterinarians(){
         String currentUsername = getCurrentUserName();

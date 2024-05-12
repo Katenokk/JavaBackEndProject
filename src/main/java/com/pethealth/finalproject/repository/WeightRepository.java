@@ -13,7 +13,6 @@ import java.util.List;
 
 @Repository
 public interface WeightRepository extends JpaRepository<Weight, Long> {
-
     @Query("SELECT w FROM Weight w WHERE w.day BETWEEN :startDate AND :endDate")
     List<Weight> findAllBetweenDates(@Param("startDate") Date startDate, @Param("endDate") Date endDate);
 

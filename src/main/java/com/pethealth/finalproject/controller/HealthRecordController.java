@@ -1,9 +1,7 @@
 package com.pethealth.finalproject.controller;
-
 import com.pethealth.finalproject.dtos.EventDTO;
 import com.pethealth.finalproject.dtos.HealthRecordDTO;
 import com.pethealth.finalproject.model.Event;
-import com.pethealth.finalproject.model.HealthRecord;
 import com.pethealth.finalproject.model.Weight;
 import com.pethealth.finalproject.service.EventService;
 import com.pethealth.finalproject.service.HealthRecordService;
@@ -11,10 +9,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 

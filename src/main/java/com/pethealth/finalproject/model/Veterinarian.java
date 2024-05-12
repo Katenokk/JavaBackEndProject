@@ -24,8 +24,6 @@ import java.util.Set;
 @Entity
 @Data
 @NoArgsConstructor
-//@AllArgsConstructor
-//@Table(name="veterinarian")
 @DiscriminatorValue("VETERINARIAN")
 public class Veterinarian extends User {
 
@@ -40,8 +38,6 @@ public class Veterinarian extends User {
     public Veterinarian(String name, String username, String password, Collection<Role> roles, String email) {
         super(name, username, password, roles);
         this.email = email;
-//        this.treatedPets = new HashSet<>();
-        //probar si asi se añaden todos los pets a la lista
     }
 
     public void addPet(Pet pet) {
@@ -57,15 +53,4 @@ public class Veterinarian extends User {
         pet.setVeterinarian(null); // Clear the association
     }
 
-    @Override
-    public String toString() {
-//        String firstPetName = !getTreatedPets().isEmpty() ? getTreatedPets().iterator().next().getName() : "";
-        return "Vet{" +
-                "name='" + getName() + '\'' +
-                "user name='" + getUsername() + '\'' +
-                ", email='" + email + '\'' +
-//                ", firstPet='" + firstPetName + "'" +
-                // terminar resto luego
-                '}';
-    }
 }

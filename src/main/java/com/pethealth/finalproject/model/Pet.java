@@ -19,15 +19,6 @@ import java.util.Date;
 @DynamicUpdate
 @Inheritance(strategy= InheritanceType.JOINED)
 @Table(name="pet")
-//@JsonTypeInfo(
-//        use = JsonTypeInfo.Id.NAME,
-//        include = JsonTypeInfo.As.PROPERTY,
-//        property = "type")
-//@JsonSubTypes({
-//        @JsonSubTypes.Type(value = Cat.class, name = "cat"),
-//        @JsonSubTypes.Type(value = Dog.class, name = "dog")
-//        // add other subclasses if any
-//})
 public abstract class Pet {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -59,31 +50,15 @@ public abstract class Pet {
 
     private boolean isSpayedOrNeutered;
 
-//    @JsonManagedReference //quitar ultima anotacion y eager
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "owner_id", referencedColumnName  = "id")
     @JsonIdentityReference(alwaysAsId = true)
     private Owner owner;
 
-//    quitar jsoninclude
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "veterinarian_id", referencedColumnName = "id")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Veterinarian veterinarian;
 
-    @Override
-    public String toString() {
-        return "Pet{" +
-                "id=" + getId() +
-                ", name='" + getName() + '\'' +
-                '}';
-    }
 
-    //prueba
-//    public void setOwner(Owner owner) {
-//        this.owner = owner;
-//        if (owner != null) {
-//            owner.getPets().add(this); // Ensure bidirectional relationship is maintained
-//        }
-//    }
 }

@@ -12,12 +12,6 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 public class VeterinarianDTO extends UserDTO {
-//    private String name;
-//
-//    private String username;
-//
-//    private String password;
-
     private String email;
     private List<PetReadDTO> treatedPets;
 }

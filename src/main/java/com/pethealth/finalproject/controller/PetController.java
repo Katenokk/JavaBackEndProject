@@ -1,15 +1,14 @@
 package com.pethealth.finalproject.controller;
 
 import com.pethealth.finalproject.dtos.PetReadDTO;
-import com.pethealth.finalproject.model.*;
-import com.pethealth.finalproject.security.models.User;
+import com.pethealth.finalproject.model.Pet;
+import com.pethealth.finalproject.model.PetDTO;
 import com.pethealth.finalproject.security.services.impl.UserService;
 import com.pethealth.finalproject.service.PetService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

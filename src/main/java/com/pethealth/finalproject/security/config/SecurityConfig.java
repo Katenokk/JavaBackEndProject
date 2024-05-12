@@ -108,12 +108,13 @@ public class SecurityConfig {
                 .requestMatchers(PUT, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(POST, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(PATCH, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                .requestMatchers(DELETE, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+
                 .requestMatchers(GET, "/health-records/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_VET")
                 .requestMatchers(POST, "/health-records/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(PUT, "/health-records/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(PATCH, "/health-records/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(DELETE, "/health-records/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
-                .requestMatchers(POST, "/health-records/**").permitAll()
                 .requestMatchers("/error/**").permitAll()
 
                 .anyRequest().authenticated());

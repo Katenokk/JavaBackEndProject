@@ -21,13 +21,8 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.*;
 
 @Service
@@ -90,9 +85,7 @@ public class HealthRecordService {
         }
         //
         healthRecord.addWeight(weight);
-        //quitar
-//        healthRecordRepository.saveAndFlush(healthRecord);
-//antes solo estaba el save de weight, asi vuelve a funcionar el test!
+
         weightRepository.saveAndFlush(weight);
     }
 
@@ -131,7 +124,6 @@ public class HealthRecordService {
         return dto;
     }
 
-    //faltaria un convertEventToDTO
 
     public List<Weight> findWeightsBetweenDates(Long petId, Date startDate, Date endDate) {
         String currentUserName = getCurrentUserName();

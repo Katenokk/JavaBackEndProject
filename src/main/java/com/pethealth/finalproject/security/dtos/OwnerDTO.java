@@ -12,12 +12,6 @@ import java.util.List;
 @NoArgsConstructor
 public class OwnerDTO extends UserDTO {
 
-//    private String name;
-//
-//    private String username;
-//
-//    private String password;
-
     private String email;
     private List<PetReadDTO> ownedPets;
 }
