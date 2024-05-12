@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 @JsonTypeName("fever")
 public class FeverDTO extends EventDTO{
-    @NotNull
+
     @Positive
     private Double degrees;
 }

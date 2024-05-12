@@ -16,12 +16,13 @@ import java.util.Date;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "discriminator")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = VomitDTO.class, name = "vomit"),
-        @JsonSubTypes.Type(value = FeverDTO.class, name = "fever")
+        @JsonSubTypes.Type(value = FeverDTO.class, name = "fever"),
+        @JsonSubTypes.Type(value = MedicationDTO.class, name = "medication")
 })
 public class EventDTO {
     private Long id;
 
-    @NotNull
+
     @PastOrPresent(message = "Date must be in the past or present")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     private Date date;
