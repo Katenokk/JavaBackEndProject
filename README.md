@@ -195,3 +195,6 @@ Owners can view the health record of an assigned pet. They need to select the pe
   - Veterinarians can access the health record data of a pet assigned to them. They can only view, not modify or delete.
 
 ## Future Work
+
+- **Add more Events:**
+  - Add more types of health events to the system, such as surgeries, vaccinations, stool, injury, etc.
