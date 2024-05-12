@@ -11,6 +11,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -74,11 +77,19 @@ class EventServiceTest {
     @AfterEach
     void tearDown() {
         weightRepository.deleteAll();
+        petRepository.deleteAll();
     }
 
     @Test
     @Transactional
     void testAddEventToPet_Valid(){
+        Owner addEventOwner = new Owner("Add event", "add-owner", "1234", new ArrayList<>(), "addowner@mail.com");
+        userRepository.save(addEventOwner);
+        LocalDate dateOfBirth = LocalDate.of(200, 1, 1);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        Cat michi = new Cat("Michi", dateOfBirthOld, false, List.of(CatDiseases.IBD), CatBreeds.BENGAL, addEventOwner, vet);
+        petRepository.save(michi);
+
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.YEAR, 2024);
         calendar.set(Calendar.MONTH, Calendar.JANUARY);
@@ -88,14 +99,24 @@ class EventServiceTest {
         Date date1 = calendar.getTime();
 
         Event vomit1 = new Vomit(date1, "Vomit", true, false);
-        eventService.addEventToPet(catto.getId(), vomit1);
 
-        Cat fromRepoCat = (Cat) petRepository.findById(catto.getId()).get();
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(addEventOwner.getUsername(), addEventOwner.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
+        eventService.addEventToPet(michi.getId(), vomit1);
+
+        Cat fromRepoCat = (Cat) petRepository.findById(michi.getId()).get();
         HealthRecord fromRepoHealthRecord = fromRepoCat.getHealthRecord();
         assertTrue(fromRepoHealthRecord.getEvents().contains(vomit1));
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test
+    @Transactional
     void testFindEventsByPet(){
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.YEAR, 2024);
@@ -106,14 +127,30 @@ class EventServiceTest {
         Date date2 = calendar.getTime();
 
         Event vomit2 = new Vomit(date2, "Vomit", true, false);
-        eventService.addEventToPet(catto.getId(), vomit2);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(owner.getUsername(), owner.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
+        catto.getHealthRecord().addEvent(vomit2);
+        eventRepository.save(vomit2);
 
         List<Event> events = eventService.findEventsByPet(catto.getId());
         assertTrue(events.contains(vomit2));
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test
     void testUpdateEvent_Valid(){
+        Owner updateEventOwner = new Owner("Update event", "update-owner", "1234", new ArrayList<>(), "updateowner@mail.com");
+        userRepository.save(updateEventOwner);
+        LocalDate dateOfBirth = LocalDate.of(200, 1, 1);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        Cat kitty = new Cat("Kitty", dateOfBirthOld, false, List.of(CatDiseases.IBD), CatBreeds.BENGAL, updateEventOwner, vet);
+        petRepository.save(kitty);
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.YEAR, 2024);
         calendar.set(Calendar.MONTH, Calendar.JANUARY);
@@ -123,9 +160,18 @@ class EventServiceTest {
         Date date3 = calendar.getTime();
 
         Event vomit3 = new Vomit(date3, "Vomit", true, false);
-        eventService.addEventToPet(catto.getId(), vomit3);
+
+        kitty.getHealthRecord().addEvent(vomit3);
+        eventRepository.save(vomit3);
 
         Vomit newVomit = new Vomit(date3, "updated", false, true);
+        newVomit.setPetHealthRecord(vomit3.getPetHealthRecord());
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(updateEventOwner.getUsername(), updateEventOwner.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
         eventService.updateEvent(vomit3.getId(), newVomit);
 
@@ -135,6 +181,8 @@ class EventServiceTest {
         assertEquals("updated", fromRepoEvent.get().getComment());
         assertTrue(((Vomit) fromRepoEvent.get()).isHasHairball());
         assertFalse(((Vomit) fromRepoEvent.get()).isHasFood());
+
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -147,8 +195,17 @@ class EventServiceTest {
         calendar.set(Calendar.MINUTE, 30);
         Date date4 = calendar.getTime();
 
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(owner.getUsername(), owner.getPassword(), authorities);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+
         Event vomit4 = new Vomit(date4, "Vomit", true, false);
-        eventService.addEventToPet(catto.getId(), vomit4);
+
+        catto.getHealthRecord().addEvent(vomit4);
+        eventRepository.save(vomit4);
+
         assertTrue(eventRepository.findById(vomit4.getId()).isPresent());
         //assert that vomit4 was added to pet
         Cat fromRepoCat = (Cat) petRepository.findByIdAndFetchEventsEagerly(catto.getId()).get();
@@ -160,5 +217,7 @@ class EventServiceTest {
         Optional<Event> fromRepoEvent = eventRepository.findById(vomit4.getId());
 
         assertFalse(fromRepoEvent.isPresent());
+
+        SecurityContextHolder.clearContext();
     }
 }

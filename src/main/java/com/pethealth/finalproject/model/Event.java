@@ -1,6 +1,7 @@
 package com.pethealth.finalproject.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
@@ -28,6 +29,7 @@ import java.util.Date;
         @JsonSubTypes.Type(value = Vomit.class, name = "vomit"),
         @JsonSubTypes.Type(value = Fever.class, name = "fever")
 })
+@JsonIgnoreProperties(value = { "id" }, allowSetters = true)
 public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

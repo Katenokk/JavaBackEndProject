@@ -3,6 +3,7 @@ package com.pethealth.finalproject.repository;
 import com.pethealth.finalproject.model.Cat;
 import com.pethealth.finalproject.model.Dog;
 import com.pethealth.finalproject.model.Pet;
+import com.pethealth.finalproject.security.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -25,4 +26,7 @@ public interface PetRepository extends JpaRepository<Pet, Long> {
     //para poder inicializar los eventos para añadir eventos a pet
     @Query("SELECT p FROM Pet p LEFT JOIN FETCH p.healthRecord h LEFT JOIN FETCH h.events WHERE p.id = :id")
     Optional<Pet> findByIdAndFetchEventsEagerly(@Param("id") Long id);
+
+//    @Query("SELECT p.owner FROM Pet p WHERE p.id = :petId")
+//    User findOwnerByPetId(@Param("petId") Long petId);
 }

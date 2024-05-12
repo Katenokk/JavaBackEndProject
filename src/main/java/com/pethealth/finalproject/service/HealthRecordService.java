@@ -6,6 +6,7 @@ import com.pethealth.finalproject.model.Admin;
 import com.pethealth.finalproject.model.HealthRecord;
 import com.pethealth.finalproject.model.Pet;
 import com.pethealth.finalproject.model.Weight;
+import com.pethealth.finalproject.repository.HealthRecordRepository;
 import com.pethealth.finalproject.repository.PetRepository;
 import com.pethealth.finalproject.repository.WeightRepository;
 import com.pethealth.finalproject.security.models.User;
@@ -40,6 +41,9 @@ public class HealthRecordService {
         @Autowired
         private UserRepository userRepository;
 
+        @Autowired
+        private HealthRecordRepository healthRecordRepository;
+
     public String getCurrentUserName(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof AnonymousAuthenticationToken)) {
@@ -63,6 +67,10 @@ public class HealthRecordService {
         }
 
         HealthRecord healthRecord = pet.getHealthRecord();
+        //quitar
+        if (healthRecord == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "HealthRecord not found for Pet with id " + petId);
+        }
 
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
@@ -82,8 +90,10 @@ public class HealthRecordService {
         }
         //
         healthRecord.addWeight(weight);
-
-        weightRepository.save(weight);
+        //quitar
+//        healthRecordRepository.saveAndFlush(healthRecord);
+//antes solo estaba el save de weight, asi vuelve a funcionar el test!
+        weightRepository.saveAndFlush(weight);
     }
 
     public HealthRecordDTO getPetHealthRecord(Long petId) {

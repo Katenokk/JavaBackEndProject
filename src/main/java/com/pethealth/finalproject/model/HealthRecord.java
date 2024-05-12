@@ -25,20 +25,10 @@ public class HealthRecord {
     private Long id;
 
     @OneToOne(mappedBy = "healthRecord")
-//    @JsonIdentityInfo(
-//            generator = ObjectIdGenerators.PropertyGenerator.class,
-//            property = "id")
-//    @JsonIdentityReference(alwaysAsId = true)
-//    @JsonTypeInfo(
-//            use = JsonTypeInfo.Id.NAME,
-//            include = JsonTypeInfo.As.PROPERTY,
-//            property = "type")
-//    @JsonSubTypes({
-//            @JsonSubTypes.Type(value = Cat.class, name = "cat"),
-//            @JsonSubTypes.Type(value = Dog.class, name = "dog")
-//    })
+    @JsonBackReference
     private Pet pet;
 
+//    @OneToMany(mappedBy = "healthRecord")
     @OneToMany(mappedBy = "healthRecord", cascade = CascadeType.ALL)
     private List<Weight> weights;
 
@@ -46,7 +36,7 @@ public class HealthRecord {
 //    @OneToMany(mappedBy = "petHealthRecord", cascade = CascadeType.ALL)
 //    private List<Medication> medications;
 //
-    @OneToMany(mappedBy = "petHealthRecord", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "petHealthRecord", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Event> events;
 
 

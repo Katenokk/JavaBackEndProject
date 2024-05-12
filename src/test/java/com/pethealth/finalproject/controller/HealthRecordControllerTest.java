@@ -2,6 +2,7 @@ package com.pethealth.finalproject.controller;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.pethealth.finalproject.dtos.HealthRecordDTO;
 import com.pethealth.finalproject.model.*;
@@ -20,6 +21,8 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.Commit;
 import org.springframework.test.annotation.DirtiesContext;
@@ -79,8 +82,15 @@ class HealthRecordControllerTest {
     private MockMvc mockMvc;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    private Vomit vomitWithDifferentId;
+
     @BeforeEach
     void setUp() {
+        eventRepository.deleteAll();
+        weightRepository.deleteAll();
+        petRepository.deleteAll();
+        userRepository.deleteAll();
+
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
         objectMapper.registerModule(new JavaTimeModule());
         owner = new Owner("New Owner", "new-owner", "1234", new ArrayList<>(), "owner@mail.com");
@@ -105,46 +115,60 @@ class HealthRecordControllerTest {
 //        healthRecordRepository.save(healthRecord1);
         petRepository.saveAndFlush(catto);
 
+        // Create a new Vomit object and save it to the database
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.YEAR, 2024);
+        calendar.set(Calendar.MONTH, Calendar.JANUARY);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, 12);
+        calendar.set(Calendar.MINUTE, 30);
+        Date date = calendar.getTime();
+
+        vomitWithDifferentId = new Vomit(date, "Vomit", true, false);
+        vomitWithDifferentId.setPetHealthRecord(catto.getHealthRecord());
+        eventRepository.save(vomitWithDifferentId);
+
     }
 
     @AfterEach
     void tearDown() {
+        eventRepository.deleteAll();
         weightRepository.deleteAll();
         petRepository.deleteAll();
         userRepository.deleteAll();
+
     }
-    @Test
-    @Transactional
-    @WithMockUser(username = "new-owner", authorities = {"ROLE_USER"})
-    void testAddWeightToPet() throws Exception {
-        catto.getHealthRecord().getWeights().clear();
-        weightRepository.deleteAll();
-        TestTransaction.flagForCommit(); //para solo tener que comprobar un weight
-        Long petId = catto.getId();
-        LocalDate localNow = LocalDate.now();
-        Date date = Date.from(localNow.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
-        double weightInKg = 10.0;
 
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-        String formattedDate = formatter.format(date);
+@Test
+@Transactional
+@WithMockUser(username = "new-owner", authorities = {"ROLE_USER"})
+//@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+void testAddWeightToPet() throws Exception {
+    TestTransaction.flagForCommit();
+    Long petId = catto.getId();
+    LocalDate localNow = LocalDate.now();
+    Date date = Date.from(localNow.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+    double weightInKg = 10.0;
 
-        MvcResult result = mockMvc.perform(post("/health-records/weights/" + petId)
-                        .param("date", formattedDate)
-                        .param("weightInKg", String.valueOf(weightInKg)))
+    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+    String formattedDate = formatter.format(date);
 
-                .andExpect(status().isOk())
-                .andReturn();
-        TestTransaction.flagForCommit();
-        TestTransaction.end();
+    MvcResult result = mockMvc.perform(post("/health-records/weights/" + petId)
+                    .param("date", formattedDate)
+                    .param("weightInKg", String.valueOf(weightInKg)))
+            .andExpect(status().isOk())
+            .andReturn();
 
-        TestTransaction.start();
+    String content = result.getResponse().getContentAsString();
+    assertTrue(content.contains("Weight added to pet"));
 
-        Pet pet = petRepository.findById(petId).orElse(null);
-        assertNotNull(pet);
-        assertNotNull(pet.getHealthRecord());
-        assertFalse(pet.getHealthRecord().getWeights().isEmpty());
-        assertEquals(weightInKg, pet.getHealthRecord().getWeights().get(0).getWeight());
-    }
+    Pet pet = petRepository.findByIdAndFetchWeightsEagerly(petId).orElse(null);
+    assertNotNull(pet);
+    assertNotNull(pet.getHealthRecord());
+    assertFalse(pet.getHealthRecord().getWeights().isEmpty());
+    assertTrue(pet.getHealthRecord().getWeights().stream().anyMatch(weight -> weight.getWeight() == weightInKg));
+
+}
 
     @Test
     @WithMockUser(username = "new-owner", authorities = {"ROLE_USER"})
@@ -252,6 +276,7 @@ class HealthRecordControllerTest {
 
     @Test
 //    @Transactional
+    @WithMockUser(username = "new-owner", authorities = {"ROLE_USER"})
     void testAddEventToPet_Valid() throws Exception {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.YEAR, 2024);
@@ -286,6 +311,7 @@ class HealthRecordControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "new-owner", authorities = {"ROLE_USER"})
     void testFindEventsByPet() throws Exception {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.YEAR, 2024);
@@ -317,8 +343,49 @@ class HealthRecordControllerTest {
         assertTrue(savedEvents.contains(fever1));
     }
 
+//    @Test
+//    @DirtiesContext
+////    @WithMockUser(username = "new-owner", authorities = {"ROLE_USER"})
+//    void testUpdateEvent_Valid() throws Exception {
+//        Calendar calendar = Calendar.getInstance();
+//        calendar.set(Calendar.YEAR, 2024);
+//        calendar.set(Calendar.MONTH, Calendar.JANUARY);
+//        calendar.set(Calendar.DAY_OF_MONTH, 1);
+//        calendar.set(Calendar.HOUR_OF_DAY, 12);
+//        calendar.set(Calendar.MINUTE, 30);
+//        Date date3 = calendar.getTime();
+//
+//        Vomit vomit3 = new Vomit(date3, "Vomit", true, false);
+//        eventRepository.save(vomit3);
+//        catto.getHealthRecord().addEvent(vomit3);
+//        petRepository.save(catto);
+//
+//        // Create a local ObjectMapper instance with USE_EQUALITY_FOR_OBJECT_ID disabled
+//        ObjectMapper localMapper = new ObjectMapper();
+//        localMapper.disable(SerializationFeature.USE_EQUALITY_FOR_OBJECT_ID);
+//
+//        Vomit newVomit = new Vomit(date3, "updated", false, true);
+//        newVomit.setPetHealthRecord(vomit3.getPetHealthRecord());
+//
+//
+//        String body = localMapper.writeValueAsString(newVomit);
+//
+//        mockMvc.perform(put("/health-records/events/" + vomit3.getId())
+//                .content(body)
+//                .contentType(MediaType.APPLICATION_JSON)
+//        ).andExpect(status().isOk());
+//
+////        Optional<Event> fromRepoVomit = eventRepository.findById(vomit3.getId());
+////
+////        assertTrue(fromRepoVomit.isPresent());
+////        assertEquals("updated", fromRepoVomit.get().getComment());
+////        assertEquals(newVomit.isHasHairball(), ((Vomit) fromRepoVomit.get()).isHasHairball());
+////        assertEquals(newVomit.isHasFood(), ((Vomit) fromRepoVomit.get()).isHasFood());
+//    }
+
     @Test
-    void testUpdateEvent_Valid() throws Exception {
+    @WithMockUser(username = "new-owner", authorities = {"ROLE_USER"})
+    void testUpdateEvent_Valid2() throws Exception {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.YEAR, 2024);
         calendar.set(Calendar.MONTH, Calendar.JANUARY);
@@ -336,7 +403,7 @@ class HealthRecordControllerTest {
 
         String body = objectMapper.writeValueAsString(newVomit);
 
-        mockMvc.perform(put("/health-records/events/" + catto.getId())
+        mockMvc.perform(put("/health-records/events/" + vomit3.getId())
                 .content(body)
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(status().isOk());
@@ -350,6 +417,7 @@ class HealthRecordControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "new-owner", authorities = {"ROLE_USER"})
     void testDeleteEvent_Valid() throws Exception {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.YEAR, 2024);

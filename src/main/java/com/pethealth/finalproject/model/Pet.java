@@ -19,6 +19,15 @@ import java.util.Date;
 @DynamicUpdate
 @Inheritance(strategy= InheritanceType.JOINED)
 @Table(name="pet")
+//@JsonTypeInfo(
+//        use = JsonTypeInfo.Id.NAME,
+//        include = JsonTypeInfo.As.PROPERTY,
+//        property = "type")
+//@JsonSubTypes({
+//        @JsonSubTypes.Type(value = Cat.class, name = "cat"),
+//        @JsonSubTypes.Type(value = Dog.class, name = "dog")
+//        // add other subclasses if any
+//})
 public abstract class Pet {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

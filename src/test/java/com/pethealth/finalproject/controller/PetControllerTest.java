@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -62,16 +63,19 @@ class PetControllerTest {
         objectMapper.registerModule(new JavaTimeModule());
         //no coge bien los json de los dto
 //        objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
-        LocalDate dateOfBirth = LocalDate.of(2010,06,01);
-        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
-        newCat = new Cat("Níobe", dateOfBirthOld, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, null, null);
-        LocalDate dateOfBirth2 = LocalDate.of(2000, 01, 01);
-        Date dateOfBirthOld2 = Date.from(dateOfBirth2.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
-        newDog = new Dog("Bombo", dateOfBirthOld2, false, List.of(DogDiseases.ARTHRITIS), DogBreeds.HUSKY, null, null);
         newOwner = new Owner("New Owner", "new_owner", "1234", new ArrayList<>(), "owner@mail.com");
         userRepository.save(newOwner);
         newVet = new Veterinarian("New Vet", "new_vet", "0000",  new ArrayList<>(), "vet@mail.com");
         userRepository.save(newVet);
+        LocalDate dateOfBirth = LocalDate.of(2010,06,01);
+        Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        newCat = new Cat("Níobe", dateOfBirthOld, true, List.of(CatDiseases.IBD), CatBreeds.MIXED, newOwner, null);
+        LocalDate dateOfBirth2 = LocalDate.of(2000, 01, 01);
+        Date dateOfBirthOld2 = Date.from(dateOfBirth2.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        newDog = new Dog("Bombo", dateOfBirthOld2, false, List.of(DogDiseases.ARTHRITIS), DogBreeds.HUSKY, newOwner, null);
+        petRepository.save(newCat);
+
+
     }
 
     @AfterEach
@@ -100,9 +104,10 @@ class PetControllerTest {
 
 
     @Test
+    @WithMockUser(username = "new_owner", authorities = {"ROLE_USER"})
     void findPetById() throws Exception {
-        newCat.setOwner(newOwner);
-        petRepository.save(newCat);
+//        newCat.setOwner(newOwner);
+//        petRepository.save(newCat);
         MvcResult mvcResult = mockMvc.perform(get("/api/pets/" + newCat.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -157,19 +162,10 @@ class PetControllerTest {
 
 
     @Test
+    @WithMockUser(username = "new_owner", authorities = {"ROLE_USER"})
     void addNewPet_ThrowException_ExistingCat() throws Exception {
-        petRepository.deleteAll();
-        userRepository.deleteAll();
-        userRepository.save(newOwner);
-
-        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
-
-        petRepository.save(newCat);
         CatDTO newCatDTO = new CatDTO();
-//        userRepository.save(newOwner);
+
         newCatDTO.setOwner(newOwner);
         newCatDTO.setName("Níobe");
         newCatDTO.setSpayedOrNeutered(true);
@@ -184,21 +180,10 @@ class PetControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(status().isUnprocessableEntity()).andReturn();
 
-        SecurityContextHolder.clearContext();
     }
     @Test
+    @WithMockUser(username = "new_owner", authorities = {"ROLE_USER"})
     void updatePets_Valid() throws Exception {
-        petRepository.deleteAll();
-        userRepository.deleteAll();
-        newOwner = userRepository.save(newOwner);
-
-        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
-
-        newCat.setOwner(newOwner);
-        petRepository.save(newCat);
         Long existingCatId = newCat.getId();
 
         CatDTO updatedCatDTO = new CatDTO();
@@ -224,7 +209,7 @@ class PetControllerTest {
         assertEquals(updatedCatDTO.isSpayedOrNeutered(), updatedCat.isSpayedOrNeutered());
         assertEquals(updatedCatDTO.isSpayedOrNeutered(), updatedCat.isSpayedOrNeutered());
 
-        SecurityContextHolder.clearContext();
+
     }
 
     @Test
@@ -259,9 +244,8 @@ class PetControllerTest {
 
 
     @Test
+    @WithMockUser(username = "new_owner", authorities = {"ROLE_USER"})
     void patchPets_Valid() throws Exception {
-        newCat.setOwner(newOwner);
-        petRepository.save(newCat);
         Long existingCatId = newCat.getId();
 
         CatDTO updatedCatDTO = new CatDTO();
@@ -284,6 +268,7 @@ class PetControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "new_owner", authorities = {"ROLE_USER"})
     void patchPets_ThrowsException_CatNotFound() throws Exception {
         CatDTO updatedCatDTO = new CatDTO();
         updatedCatDTO.setName("Updated Name");
@@ -303,9 +288,8 @@ class PetControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "new_owner", authorities = {"ROLE_USER"})
     void deletePet_Valid() throws Exception {
-        newCat.setOwner(newOwner);
-        petRepository.save(newCat);
         Long existingCatId = newCat.getId();
 
         mockMvc.perform(delete("/api/pets/" + existingCatId)
@@ -316,6 +300,7 @@ class PetControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "new_owner", authorities = {"ROLE_USER"})
     void deletePet_ThrowsException_CatNotFound() throws Exception {
         mockMvc.perform(delete("/api/pets/100")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -323,9 +308,8 @@ class PetControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "new_owner", authorities = {"ROLE_USER"})
     void assignVeterinarianToPet_Valid() throws Exception {
-        newCat.setOwner(newOwner);
-        petRepository.save(newCat);
         userRepository.save(newVet);
         Long existingCatId = newCat.getId();
         Long existingVetId = newVet.getId();
@@ -340,6 +324,7 @@ class PetControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "new_owner", authorities = {"ROLE_USER"})
     void assignVeterinarianToPet_CatNotFound() throws Exception {
         userRepository.save(newVet);
         Long existingVetId = newVet.getId();
@@ -350,9 +335,8 @@ class PetControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "new_owner", authorities = {"ROLE_USER"})
     void assignVeterinarianToPet_VeterinaryNotFound() throws Exception {
-        newCat.setOwner(newOwner);
-        petRepository.save(newCat);
         Long existingCatId = newCat.getId();
 
         mockMvc.perform(patch("/api/pets/veterinarians/" + existingCatId + "/100")
@@ -361,9 +345,8 @@ class PetControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "new_owner", authorities = {"ROLE_USER"})
     void removeVeterinarianFromPet_Valid() throws Exception {
-        newCat.setOwner(newOwner);
-        petRepository.save(newCat);
         userRepository.save(newVet);
         Long existingCatId = newCat.getId();
         Long existingVetId = newVet.getId();
@@ -381,6 +364,7 @@ class PetControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "new_owner", authorities = {"ROLE_USER"})
     void removeVeterinarianFromPet_CatNotFound() throws Exception {
         userRepository.save(newVet);
         Long existingVetId = newVet.getId();
@@ -391,9 +375,8 @@ class PetControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "new_owner", authorities = {"ROLE_USER"})
     void removeVeterinarianFromPet_VeterinarianNotFound() throws Exception {
-        newCat.setOwner(newOwner);
-        petRepository.save(newCat);
         Long existingCatId = newCat.getId();
 
         mockMvc.perform(delete("/api/pets/veterinarians/" + existingCatId + "/100")

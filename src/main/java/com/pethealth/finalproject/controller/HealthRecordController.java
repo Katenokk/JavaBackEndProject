@@ -49,9 +49,9 @@ public class HealthRecordController {
         return ResponseEntity.ok(eventService.findEventsByPet(petId));
     }
 
-    @PutMapping("events/{petId}")
-    public ResponseEntity<String> updateEvent(@PathVariable Long petId, @RequestBody Event event){
-        eventService.updateEvent(petId, event);
+    @PutMapping("events/{eventId}")
+    public ResponseEntity<String> updateEvent(@PathVariable Long eventId, @RequestBody Event event){
+        Event updatedEvent = eventService.updateEvent(eventId, event);
         return ResponseEntity.ok("Event updated successfully");
     }
 

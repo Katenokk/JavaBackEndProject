@@ -17,4 +17,7 @@ public interface HealthRecordRepository extends JpaRepository<HealthRecord, Long
 
     @Query("SELECT h FROM HealthRecord h JOIN FETCH h.events WHERE h.id = :id")
     Optional<HealthRecord> findByIdAndInitializeEvents(@Param("id") Long id);
+
+//    @Query("SELECT h.pet.owner.id FROM HealthRecord h WHERE h.id = :healthRecordId")
+//    Long findOwnerIdByHealthRecordId(@Param("healthRecordId") Long healthRecordId);
 }
