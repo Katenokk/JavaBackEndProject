@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.pethealth.finalproject.TokenAuthenticationService;
 import com.pethealth.finalproject.model.*;
 import com.pethealth.finalproject.repository.PetRepository;
 import com.pethealth.finalproject.security.dtos.UserDTO;
@@ -209,7 +207,6 @@ class UserControllerTest {
         assertEquals("owner", savedOwner.get().getUsername());
     }
 
-    //falta el de 422 x 3
 
     @Test
     void saveAdmin_Valid() throws Exception {
@@ -580,8 +577,6 @@ class UserControllerTest {
     @Test
     @WithMockUser(username = "pepito", authorities = {"ROLE_USER"})
     void deleteOwnerById_Valid() throws Exception {
-//        userRepository.save(newOwner);
-
         mockMvc.perform(delete("/api/owners/" + newOwner.getId()))
                 .andExpect(status().isOk());
 

@@ -59,8 +59,6 @@ class HealthRecordServiceTest {
     private Veterinarian hrTestVet;
     @BeforeEach
     void setUp() {
-//        owner = new Owner("New Owner", "new-owner", "1234", new ArrayList<>(), "owner@mail.com");
-//        userRepository.save(owner);
         hrTestOwner = new Owner("For HR Service", "hr-owner", "1234", new ArrayList<>(), "hrowner@mail.com");
         userRepository.save(hrTestOwner);
         hrTestVet = new Veterinarian("HR Vet", "hr-vet", "1234", new ArrayList<>(), "hrvet@mail.com");
@@ -84,37 +82,6 @@ class HealthRecordServiceTest {
         weightRepository.deleteAll();
     }
 
-//    @Test
-//    @Transactional
-//    @Rollback(false)
-//    void addWeightToPet() {
-//        petRepository.saveAndFlush(catto);
-//
-//        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-//        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-//        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-//        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(owner.getUsername(), owner.getPassword(), authorities);
-//        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
-//
-//        LocalDate now = LocalDate.now();
-//        Date dateNow = Date.from(now.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
-//        double weightInKg = 10.5;
-//
-//        healthRecordService.addWeightToPet(catto.getId(), dateNow, weightInKg);
-//
-//        entityManager.clear();
-//
-//
-//        Pet foundPet = petRepository.findByIdAndFetchWeightsEagerly(catto.getId()).orElse(null);
-//        assertNotNull(foundPet);
-//        assertNotNull(foundPet.getHealthRecord().getWeights());
-////        lambda para comprobar si la fecha y peso están en la lista de pesos
-//        boolean weightAdded = foundPet.getHealthRecord().getWeights().stream()
-//                .anyMatch(weight -> weight.getDay().equals(dateNow) && weight.getWeight() == weightInKg);
-//        assertTrue(weightAdded);
-//
-//        SecurityContextHolder.clearContext();
-//    }
 
     @Test
     @Transactional

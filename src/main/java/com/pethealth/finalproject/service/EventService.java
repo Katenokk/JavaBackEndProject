@@ -11,22 +11,20 @@ import com.pethealth.finalproject.repository.PetRepository;
 import com.pethealth.finalproject.repository.WeightRepository;
 import com.pethealth.finalproject.security.models.User;
 import com.pethealth.finalproject.security.repositories.UserRepository;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.text.ParseException;
-import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.transaction.PlatformTransactionManager;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.TimeZone;
 
 
 
@@ -59,7 +57,6 @@ public class EventService {
         return null;
     }
 
-//    @Transactional
     public Event addEventToPet(Long petId, Event event) {
         String currentUserName = getCurrentUserName();
         User currentUser = userRepository.findByUsername(currentUserName)

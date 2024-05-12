@@ -102,8 +102,6 @@ class HealthRecordControllerTest {
         catto = new Cat("Catto", dateOfBirthOld, false, List.of(CatDiseases.IBD), CatBreeds.BENGAL, owner, oriol);
         userRepository.save(oriol);
         healthRecord1 = new HealthRecord(catto);
-//        LocalDate localNow = LocalDate.now();
-//        Date now = Date.from(localNow.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
         LocalDate localDate1 = LocalDate.of(2024, 1, 5);
         LocalDate localDate2 = LocalDate.of(2024, 1, 20);
         Date date1 = Date.from(localDate1.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
@@ -113,7 +111,6 @@ class HealthRecordControllerTest {
         healthRecord1.addWeight(weight1);
         healthRecord1.addWeight(weight2);
         catto.setHealthRecord(healthRecord1);
-//        healthRecordRepository.save(healthRecord1);
         petRepository.saveAndFlush(catto);
 
         // Create a new Vomit object and save it to the database
@@ -143,7 +140,6 @@ class HealthRecordControllerTest {
 @Test
 @Transactional
 @WithMockUser(username = "new-owner", authorities = {"ROLE_USER"})
-//@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 void testAddWeightToPet() throws Exception {
     TestTransaction.flagForCommit();
     Long petId = catto.getId();
@@ -208,17 +204,6 @@ void testAddWeightToPet() throws Exception {
                 .andExpect(jsonPath("$[0].day", is(notNullValue())))
                 .andExpect(jsonPath("$[0].weight", is(notNullValue())));
 
-        // Convert the response to a list of Weights
-//        String content = result.getResponse().getContentAsString();
-//        JavaType type = objectMapper.getTypeFactory().constructCollectionType(List.class, Weight.class);
-//        List<Weight> returnedWeights = objectMapper.readValue(content, type);
-
-
-//        assertNotNull(returnedWeights);
-//        assertFalse(returnedWeights.isEmpty());
-//        for (Weight weight : returnedWeights) {
-//            assertTrue(weight.getDay().after(start) && weight.getDay().before(end));
-//        }
     }
 
     @Test
@@ -276,7 +261,6 @@ void testAddWeightToPet() throws Exception {
     }
 
     @Test
-//    @Transactional
     @WithMockUser(username = "new-owner", authorities = {"ROLE_USER"})
     void testAddEventToPet_Valid() throws Exception {
         Calendar calendar = Calendar.getInstance();
@@ -298,7 +282,7 @@ void testAddWeightToPet() throws Exception {
         Pet fromRepoCat = petRepository.findByIdAndFetchEventsEagerly(catto.getId()).get();
         HealthRecord fromRepoHealthRecord = fromRepoCat.getHealthRecord();
         Vomit savedVomit = (Vomit) fromRepoHealthRecord.getEvents().get(0);
-        //problemas con el formato de las fechas
+
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         String formattedVomit1Date = formatter.format(vomit1.getDate());
         String formattedSavedEventDate = formatter.format(savedVomit.getDate());

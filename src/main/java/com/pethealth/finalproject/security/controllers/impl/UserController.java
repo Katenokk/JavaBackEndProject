@@ -6,6 +6,7 @@ import com.pethealth.finalproject.model.Veterinarian;
 import com.pethealth.finalproject.security.dtos.*;
 import com.pethealth.finalproject.security.models.User;
 import com.pethealth.finalproject.security.services.interfaces.UserServiceInterface;
+import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,24 +26,8 @@ import java.util.List;
 @RequestMapping("/api")
 public class UserController {
 
-    /**
-     * User service for accessing user data
-     */
     @Autowired
     private UserServiceInterface userService;
-
-    /**
-     * Get a list of all users
-     *
-     * @return list of all users
-     */
-
-//ver como usar en postman
-//    @GetMapping("/logout")
-//    public String logout(HttpSession session) {
-//        session.invalidate();
-//        return "redirect:/login";
-//    }
 
     @GetMapping("/users")
     @ResponseStatus(HttpStatus.OK)
@@ -61,7 +46,6 @@ public class UserController {
     public User finUserByUsername(@RequestParam String username) {
         return userService.getUser(username);
     }
-
 
     @PostMapping("/users")
     @ResponseStatus(HttpStatus.CREATED)
@@ -160,9 +144,6 @@ public class UserController {
     public void partialUpdateAdmin(@PathVariable Long id, @RequestBody @Valid UserUpdateDTO userUpdateDTO) {
         userService.partialUpdateAdmin(id, userUpdateDTO.getName(),  userUpdateDTO.getPassword());
     }
-
-
-
 
     @DeleteMapping("/owners/{id}")
     public ResponseEntity<String> deleteOwnerById(@PathVariable(name="id") Long id){

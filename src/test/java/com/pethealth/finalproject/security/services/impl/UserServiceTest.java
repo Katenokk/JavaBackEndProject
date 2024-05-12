@@ -254,7 +254,6 @@ class UserServiceTest {
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         CustomUserDetails mockUser = new CustomUserDetails(newOwner.getUsername(), newOwner.getPassword(), authorities, newOwner.getId());
-//        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
         Owner updatedOwner = new Owner("Cambiado", "cambiado", "0000", new ArrayList<>(), "email@nuevo.com");
@@ -276,7 +275,6 @@ class UserServiceTest {
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         CustomUserDetails mockUser = new CustomUserDetails(newOwner.getUsername(), newOwner.getPassword(), authorities, newOwner.getId());
-//        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
         Owner owner = new Owner();
@@ -297,7 +295,6 @@ class UserServiceTest {
         authorities.add(new SimpleGrantedAuthority("ROLE_VET"));
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         CustomUserDetails mockUser = new CustomUserDetails(newVet.getUsername(), newVet.getPassword(), authorities, newVet.getId());
-//        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newVet.getUsername(), newVet.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
         Veterinarian updatedVet = new Veterinarian("nuevo nombre", "nuevo usuario", "0000", new ArrayList<>(), "email@nuevo.com");
@@ -319,7 +316,6 @@ class UserServiceTest {
         authorities.add(new SimpleGrantedAuthority("ROLE_VET"));
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         CustomUserDetails mockUser = new CustomUserDetails(newVet.getUsername(), newVet.getPassword(), authorities, newVet.getId());
-//        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newVet.getUsername(), newVet.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
         Veterinarian vet = new Veterinarian();
@@ -339,7 +335,6 @@ class UserServiceTest {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         CustomUserDetails mockUser = new CustomUserDetails(newAdmin.getUsername(), newAdmin.getPassword(), authorities, newAdmin.getId());
-//        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newAdmin.getUsername(), newAdmin.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
         Admin updatedAdmin = new Admin("Nuevo Admin", "nuevo admin", "0000", new ArrayList<>());
@@ -360,7 +355,6 @@ class UserServiceTest {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         CustomUserDetails mockUser = new CustomUserDetails(newAdmin.getUsername(), newAdmin.getPassword(), authorities, newAdmin.getId());
-//        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newAdmin.getUsername(), newAdmin.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
         Admin admin = new Admin();
@@ -455,7 +449,6 @@ class UserServiceTest {
         SecurityContextHolder.clearContext();
     }
 
-    //falta probar excepciones de los updates
 
     @Test
     void deleteOwnerTest(){
@@ -545,7 +538,7 @@ class UserServiceTest {
 
         SecurityContextHolder.clearContext();
     }
-//falla cuando se ejecuta junto con los demás
+
     @Test
     void deleteAdminTest(){
         Admin deleteAdmin = userRepository.save(testAdmin);

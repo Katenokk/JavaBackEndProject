@@ -28,14 +28,9 @@ public class HealthRecord {
     @JsonBackReference
     private Pet pet;
 
-//    @OneToMany(mappedBy = "healthRecord")
     @OneToMany(mappedBy = "healthRecord", cascade = CascadeType.ALL)
     private List<Weight> weights;
 
-// implementar luego:
-//    @OneToMany(mappedBy = "petHealthRecord", cascade = CascadeType.ALL)
-//    private List<Medication> medications;
-//
     @OneToMany(mappedBy = "petHealthRecord", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Event> events;
 

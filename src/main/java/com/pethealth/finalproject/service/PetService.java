@@ -1,9 +1,5 @@
 package com.pethealth.finalproject.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.pethealth.finalproject.dtos.CatReadDTO;
 import com.pethealth.finalproject.dtos.DogReadDTO;
 import com.pethealth.finalproject.dtos.PetReadDTO;
@@ -26,7 +22,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -52,9 +47,7 @@ public class PetService {
         return null;
     }
 
-//    public Pet findPetById(Long id){
-//        return petRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found"));
-//    }
+
 public Pet findPetById(Long id){
     String currentUserName = getCurrentUserName();
     User currentUser = userRepository.findByUsername(currentUserName)
@@ -74,7 +67,6 @@ public Pet findPetById(Long id){
 
 
     public Pet addNewPet(PetDTO petDTO) {
-        //sacar la id del usurario logeado (no es necesario pero es una seguridad extra)
         String currentUserName = getCurrentUserName();
         User currentUser = userRepository.findByUsername(currentUserName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
@@ -275,16 +267,21 @@ public Pet findPetById(Long id){
         if(!currentUser.equals(existingPet.getOwner()) || currentUser instanceof Admin){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Only the owner of the pet or admin can update pet.");
         }
+        if ((existingPet instanceof Cat) && (!(petDTO instanceof CatDTO)) ||
+                (existingPet instanceof Dog) && (!(petDTO instanceof DogDTO))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid pet type.");
+        }
         Pet updatedPet;
         if (petDTO instanceof CatDTO) {
             updatedPet = mapToCatEntity((CatDTO) petDTO);
         } else if (petDTO instanceof DogDTO) {
             updatedPet = mapToDogEntity((DogDTO) petDTO);
         } else {
-            throw new IllegalArgumentException("Invalid pet type.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid pet type.");
         }
 
         updatedPet.setId(id);
+        updatedPet.setHealthRecord(existingPet.getHealthRecord());
 
         petRepository.save(updatedPet);
     }
@@ -298,6 +295,10 @@ public Pet findPetById(Long id){
         //comprobar si el owner es el mismo que el usuario logeado o es admin
         if(!currentUser.equals(existingPet.getOwner()) || currentUser instanceof Admin){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Only the owner of the pet or admin can update pet.");
+        }
+        if ((existingPet instanceof Cat) && (!(petDTO instanceof CatDTO)) ||
+                (existingPet instanceof Dog) && (!(petDTO instanceof DogDTO))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid pet type.");
         }
 
         Pet patchedPet;
@@ -394,7 +395,6 @@ public Pet findPetById(Long id){
 
         userRepository.save(veterinarian);
         petRepository.save(pet);
-//        Hibernate.initialize(veterinarian.getTreatedPets());
         return userRepository.findByIdAndFetchPetsEagerly(vetId).map(user -> {
             Veterinarian vet = (Veterinarian) user;
             vet.getTreatedPets().size();

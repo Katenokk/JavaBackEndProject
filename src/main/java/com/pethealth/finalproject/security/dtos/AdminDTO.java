@@ -8,9 +8,4 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class AdminDTO extends UserDTO {
-//    private String name;
-//
-//    private String username;
-//
-//    private String password;
 }

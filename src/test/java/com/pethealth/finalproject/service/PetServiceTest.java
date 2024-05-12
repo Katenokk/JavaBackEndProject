@@ -321,11 +321,6 @@ class PetServiceTest {
         petRepository.save(newDog);
         userRepository.save(newOwner);
 
-//        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-//        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-//        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
-//        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
-
         List<Pet> pets = petRepository.findAll();
         assertFalse(pets.isEmpty());
         assertTrue(pets.contains(newCat));
@@ -366,9 +361,8 @@ class PetServiceTest {
         List<PetReadDTO> pets = petService.findAllPetsByVeterinarian();
 
         assertNotNull(pets);
-//        assertEquals(2, pets.size());
-//        assertTrue(pets.contains(cat1));
-//        assertTrue(pets.contains(cat2));
+        assertEquals(cat1.getName(), pets.get(0).getName());
+
         SecurityContextHolder.clearContext();
     }
 
