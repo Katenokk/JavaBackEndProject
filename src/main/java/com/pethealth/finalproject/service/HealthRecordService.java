@@ -6,6 +6,7 @@ import com.pethealth.finalproject.model.Admin;
 import com.pethealth.finalproject.model.HealthRecord;
 import com.pethealth.finalproject.model.Pet;
 import com.pethealth.finalproject.model.Weight;
+import com.pethealth.finalproject.repository.HealthRecordRepository;
 import com.pethealth.finalproject.repository.PetRepository;
 import com.pethealth.finalproject.repository.WeightRepository;
 import com.pethealth.finalproject.security.models.User;
@@ -20,6 +21,7 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
@@ -39,6 +41,9 @@ public class HealthRecordService {
         @Autowired
         private UserRepository userRepository;
 
+        @Autowired
+        private HealthRecordRepository healthRecordRepository;
+
     public String getCurrentUserName(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof AnonymousAuthenticationToken)) {
@@ -47,6 +52,7 @@ public class HealthRecordService {
         }
         return null;
     }
+
 
     public  void addWeightToPet(Long petId, Date date, double weightInKg) {
         String currentUserName = getCurrentUserName();
@@ -61,6 +67,10 @@ public class HealthRecordService {
         }
 
         HealthRecord healthRecord = pet.getHealthRecord();
+        //quitar
+        if (healthRecord == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "HealthRecord not found for Pet with id " + petId);
+        }
 
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
@@ -72,8 +82,6 @@ public class HealthRecordService {
 
         Weight weight = new Weight(utcDate, weightInKg, healthRecord);
 
-//        Weight weight = new Weight(date, weightInKg, healthRecord);
-
         Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
         Set<ConstraintViolation<Weight>> violations = validator.validate(weight);
 
@@ -82,8 +90,10 @@ public class HealthRecordService {
         }
         //
         healthRecord.addWeight(weight);
-
-        weightRepository.save(weight);
+        //quitar
+//        healthRecordRepository.saveAndFlush(healthRecord);
+//antes solo estaba el save de weight, asi vuelve a funcionar el test!
+        weightRepository.saveAndFlush(weight);
     }
 
     public HealthRecordDTO getPetHealthRecord(Long petId) {
@@ -120,6 +130,8 @@ public class HealthRecordService {
         dto.setWeight(weight.getWeight());
         return dto;
     }
+
+    //faltaria un convertEventToDTO
 
     public List<Weight> findWeightsBetweenDates(Long petId, Date startDate, Date endDate) {
         String currentUserName = getCurrentUserName();

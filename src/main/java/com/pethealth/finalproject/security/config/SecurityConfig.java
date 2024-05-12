@@ -85,6 +85,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests((requests) -> requests
                 .requestMatchers("/api/login/**").permitAll()
                 .requestMatchers("/api/register/**").permitAll()
+                .requestMatchers(POST, "/api/roles/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(GET, "/api/users").hasAnyAuthority("ROLE_ADMIN")
                 .requestMatchers(GET, "/api/veterinarians").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(GET, "/api/users/username").hasAnyAuthority("ROLE_ADMIN")
@@ -102,19 +103,22 @@ public class SecurityConfig {
                 .requestMatchers(DELETE, "/api/admins/**").hasAnyAuthority("ROLE_ADMIN")
                 .requestMatchers(DELETE, "/api/veterinarians/**").hasAnyAuthority("ROLE_VET", "ROLE_ADMIN")
 
+                .requestMatchers(GET, "/api/pets/").hasAnyAuthority("ROLE_ADMIN")
                 .requestMatchers(GET, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(PUT, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(POST, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(PATCH, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(GET, "/health-records/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_VET")
                 .requestMatchers(POST, "/health-records/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                .requestMatchers(PUT, "/health-records/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                .requestMatchers(PATCH, "/health-records/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                .requestMatchers(DELETE, "/health-records/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(POST, "/health-records/**").permitAll()
                 .requestMatchers("/error/**").permitAll()
 
                 .anyRequest().authenticated());
 
 
-        //disable secturity during development (uncomment lines 80-85, remove line 88):
 //        http.authorizeRequests().anyRequest().permitAll();
 
         // add the custom authentication filter to the http security object

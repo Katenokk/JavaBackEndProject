@@ -91,5 +91,34 @@ class UserRepositoryTest {
         assertEquals(newVet.getName(), retrievedVet.get().getName());
     }
 
-    //añadir findByIdAndFetchPetsEagerly si se implementa
+    @Test
+    void findByEmail() {
+        userRepository.save(newOwner);
+        Optional<User> retrievedOwner = userRepository.findByEmail(newOwner.getEmail());
+        assertTrue(retrievedOwner.isPresent());
+        assertEquals(newOwner.getName(), retrievedOwner.get().getName());
+    }
+
+    @Test
+    void findByIdAndFetchPetsEagerly() {
+        Veterinarian testVet1 = new Veterinarian("Dr Test", "test-vet", "1234", new ArrayList(), "email1@mail.com");
+        Owner testOner1 = new Owner("Test Owner", "test-owner", "1234", new ArrayList(), "email2@mail.com");
+        Cat testCat1 = new Cat("Test Cat", new Date(), true, List.of(CatDiseases.IBD), CatBreeds.MIXED, testOner1, testVet1);
+        Dog testDog1 = new Dog("Test Dog", new Date(), true, List.of(DogDiseases.ARTHRITIS), DogBreeds.MIXED, testOner1, testVet1);
+        testVet1.addPet(testCat1);
+        testVet1.addPet(testDog1);
+        userRepository.save(testVet1);
+        userRepository.save(testOner1);
+        petRepository.save(testCat1);
+        petRepository.save(testDog1);
+
+        Optional<Veterinarian> retrievedVet = userRepository.findByIdAndFetchPetsEagerly(testVet1.getId());
+
+        assertTrue(retrievedVet.isPresent());
+        assertEquals(retrievedVet.get(), testVet1);
+        assertTrue(retrievedVet.get().getTreatedPets().contains(testCat1));
+        assertTrue(retrievedVet.get().getTreatedPets().contains(testDog1));
+    }
+
+
 }

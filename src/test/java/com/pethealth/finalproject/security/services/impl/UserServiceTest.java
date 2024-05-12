@@ -17,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -49,9 +50,6 @@ class UserServiceTest {
 
     @Autowired
     private UserService userService;
-
-
-
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -191,6 +189,14 @@ class UserServiceTest {
         Optional<User> updatedUser = userRepository.findByUsername("test-user");
         assertTrue(updatedUser.isPresent());
         assertTrue(updatedUser.get().getRoles().stream().anyMatch(r -> r.getName().equals("ROLE_TEST")));
+    }
+
+    @Test
+    void loadByUsername(){
+        userRepository.save(testUser);
+        UserDetails userDetails = userService.loadUserByUsername("test-user");
+        assertNotNull(userDetails);
+        assertEquals("test-user", userDetails.getUsername());
     }
 
     @Test

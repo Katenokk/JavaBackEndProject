@@ -25,38 +25,25 @@ public class HealthRecord {
     private Long id;
 
     @OneToOne(mappedBy = "healthRecord")
-//    @JsonIdentityInfo(
-//            generator = ObjectIdGenerators.PropertyGenerator.class,
-//            property = "id")
-//    @JsonIdentityReference(alwaysAsId = true)
-//    @JsonTypeInfo(
-//            use = JsonTypeInfo.Id.NAME,
-//            include = JsonTypeInfo.As.PROPERTY,
-//            property = "type")
-//    @JsonSubTypes({
-//            @JsonSubTypes.Type(value = Cat.class, name = "cat"),
-//            @JsonSubTypes.Type(value = Dog.class, name = "dog")
-//    })
+    @JsonBackReference
     private Pet pet;
 
+//    @OneToMany(mappedBy = "healthRecord")
     @OneToMany(mappedBy = "healthRecord", cascade = CascadeType.ALL)
     private List<Weight> weights;
 
-//    @PostLoad
-//    private void initWeights(){
-//        Hibernate.initialize(this.weights);
-//    }
 // implementar luego:
 //    @OneToMany(mappedBy = "petHealthRecord", cascade = CascadeType.ALL)
 //    private List<Medication> medications;
 //
-//    @OneToMany(mappedBy = "petHealthRecord", cascade = CascadeType.ALL)
-//    private List<Event> events;
+    @OneToMany(mappedBy = "petHealthRecord", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Event> events;
 
 
     public HealthRecord(Pet pet) {
         this.pet = pet;
         this.weights = new ArrayList<>();
+        this.events = new ArrayList<>();
     }
 
     public void addWeight(Weight weight) {
@@ -71,5 +58,18 @@ public class HealthRecord {
     public void removeWeight(Weight weight) {
         weights.remove(weight);
         weight.setHealthRecord(null);
+    }
+
+    public void addEvent(Event event) {
+        if(events == null) {
+            events = new ArrayList<>();
+        } else {
+            events.add(event);
+            event.setPetHealthRecord(this);
+        }
+    }
+
+    public void removeEvent(Event event) {
+        events.remove(event);
     }
 }

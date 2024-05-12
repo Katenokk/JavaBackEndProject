@@ -6,6 +6,7 @@ import com.pethealth.finalproject.repository.HealthRecordRepository;
 import com.pethealth.finalproject.repository.PetRepository;
 import com.pethealth.finalproject.repository.WeightRepository;
 import com.pethealth.finalproject.security.repositories.UserRepository;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -41,6 +43,9 @@ class HealthRecordServiceTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private EntityManager entityManager;
+
 
     private Weight weight1;
     private Weight weight2;
@@ -49,18 +54,21 @@ class HealthRecordServiceTest {
 
     private Cat catto;
     private Owner owner;
+    private Owner hrTestOwner;
 
-    private Veterinarian vet;
+    private Veterinarian hrTestVet;
     @BeforeEach
     void setUp() {
-        owner = new Owner("New Owner", "new-owner", "1234", new ArrayList<>(), "owner@mail.com");
-        userRepository.save(owner);
-        vet = new Veterinarian("New Vet", "new-vet", "1234", new ArrayList<>(), "vet@mail.com");
+//        owner = new Owner("New Owner", "new-owner", "1234", new ArrayList<>(), "owner@mail.com");
+//        userRepository.save(owner);
+        hrTestOwner = new Owner("For HR Service", "hr-owner", "1234", new ArrayList<>(), "hrowner@mail.com");
+        userRepository.save(hrTestOwner);
+        hrTestVet = new Veterinarian("HR Vet", "hr-vet", "1234", new ArrayList<>(), "hrvet@mail.com");
 
         LocalDate dateOfBirth = LocalDate.of(200, 1, 1);
         Date dateOfBirthOld = Date.from(dateOfBirth.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
-        catto = new Cat("Catto", dateOfBirthOld, false, List.of(CatDiseases.IBD), CatBreeds.BENGAL, owner, vet);
-        userRepository.save(vet);
+        catto = new Cat("Catto", dateOfBirthOld, false, List.of(CatDiseases.IBD), CatBreeds.BENGAL, hrTestOwner, hrTestVet);
+        userRepository.save(hrTestVet);
 
         healthRecord1 = new HealthRecord(catto);
         healthRecordRepository.save(healthRecord1);
@@ -76,15 +84,51 @@ class HealthRecordServiceTest {
         weightRepository.deleteAll();
     }
 
+//    @Test
+//    @Transactional
+//    @Rollback(false)
+//    void addWeightToPet() {
+//        petRepository.saveAndFlush(catto);
+//
+//        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+//        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+//        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+//        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(owner.getUsername(), owner.getPassword(), authorities);
+//        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
+//
+//        LocalDate now = LocalDate.now();
+//        Date dateNow = Date.from(now.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+//        double weightInKg = 10.5;
+//
+//        healthRecordService.addWeightToPet(catto.getId(), dateNow, weightInKg);
+//
+//        entityManager.clear();
+//
+//
+//        Pet foundPet = petRepository.findByIdAndFetchWeightsEagerly(catto.getId()).orElse(null);
+//        assertNotNull(foundPet);
+//        assertNotNull(foundPet.getHealthRecord().getWeights());
+////        lambda para comprobar si la fecha y peso están en la lista de pesos
+//        boolean weightAdded = foundPet.getHealthRecord().getWeights().stream()
+//                .anyMatch(weight -> weight.getDay().equals(dateNow) && weight.getWeight() == weightInKg);
+//        assertTrue(weightAdded);
+//
+//        SecurityContextHolder.clearContext();
+//    }
+
     @Test
     @Transactional
     void addWeightToPet() {
+        Owner originalOwner1 = new Owner("Original", "original-one", "1234", new ArrayList<>(), "owner1@mail.com");
+        userRepository.save(originalOwner1);
+        catto.setOwner(originalOwner1);
+
         petRepository.save(catto);
 
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(owner.getUsername(), owner.getPassword(), authorities);
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(originalOwner1.getUsername(), originalOwner1.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
         LocalDate now = LocalDate.now();
@@ -103,6 +147,7 @@ class HealthRecordServiceTest {
         SecurityContextHolder.clearContext();
     }
 
+
     @Test
     @Transactional
     void addWeightToPet_InvalidWeight(){
@@ -111,7 +156,7 @@ class HealthRecordServiceTest {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(owner.getUsername(), owner.getPassword(), authorities);
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(hrTestOwner.getUsername(), hrTestOwner.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
         LocalDate date = LocalDate.now().plusDays(1);
         Date futureDate = Date.from(date.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
@@ -139,7 +184,7 @@ class HealthRecordServiceTest {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(owner.getUsername(), owner.getPassword(), authorities);
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(hrTestOwner.getUsername(), hrTestOwner.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
         HealthRecordDTO healthRecordDTO = healthRecordService.getPetHealthRecord(catto.getId());
@@ -169,7 +214,7 @@ class HealthRecordServiceTest {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(owner.getUsername(), owner.getPassword(), authorities);
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(hrTestOwner.getUsername(), hrTestOwner.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
         LocalDate startDate = LocalDate.now().minusDays(1);
@@ -201,7 +246,7 @@ class HealthRecordServiceTest {
 
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_VET"));
-        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(vet.getUsername(), vet.getPassword(), authorities);
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(hrTestVet.getUsername(), hrTestVet.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
         LocalDate startDate = LocalDate.now().minusDays(1);
@@ -231,7 +276,7 @@ class HealthRecordServiceTest {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(owner.getUsername(), owner.getPassword(), authorities);
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(hrTestOwner.getUsername(), hrTestOwner.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
         LocalDate startDate = LocalDate.now().plusDays(1);
@@ -259,7 +304,7 @@ class HealthRecordServiceTest {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(owner.getUsername(), owner.getPassword(), authorities);
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(hrTestOwner.getUsername(), hrTestOwner.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
         LocalDate startDate = LocalDate.now().plusDays(2);
@@ -287,7 +332,7 @@ class HealthRecordServiceTest {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(owner.getUsername(), owner.getPassword(), authorities);
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(hrTestOwner.getUsername(), hrTestOwner.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
         healthRecordService.removeWeightFromPet(weight1.getId(), catto.getId());
@@ -315,7 +360,7 @@ class HealthRecordServiceTest {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(owner.getUsername(), owner.getPassword(), authorities);
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(hrTestOwner.getUsername(), hrTestOwner.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
         assertThrows(ResponseStatusException.class, () -> healthRecordService.removeWeightFromPet(100L, catto.getId()));
@@ -332,7 +377,7 @@ class HealthRecordServiceTest {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(owner.getUsername(), owner.getPassword(), authorities);
+        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(hrTestOwner.getUsername(), hrTestOwner.getPassword(), authorities);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
 
         assertThrows(ResponseStatusException.class, () -> healthRecordService.removeWeightFromPet(100L, weight1.getId()));

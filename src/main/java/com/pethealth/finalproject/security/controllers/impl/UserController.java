@@ -125,9 +125,6 @@ public class UserController {
         }
     }
 
-
-
-    //no se pone la id en el json!
     @PutMapping("/admins/{id}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     public void updateAdmin(@PathVariable Long id, @RequestBody @Valid Admin admin){

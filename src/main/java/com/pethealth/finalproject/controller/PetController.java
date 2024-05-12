@@ -29,34 +29,16 @@ public class PetController {
         return petService.findPetById(id);
     }
 
-//    @GetMapping("/pets")
-//    public List<Pet> findAllPets() {
-//        return petService.findAllPets();
-//    }
-
+    //endpoint aparte solo para admins
     @GetMapping("/pets")
     public List<PetReadDTO> findAllPets() {
         return petService.findAllPets();
     }
 
-
     @PostMapping("/pets")
     public ResponseEntity<Pet> addNewPet(@RequestBody @Valid PetDTO petDTO) {
         return ResponseEntity.ok(petService.addNewPet(petDTO));
     }
-
-
-//    @PutMapping("pets/cats/{id}")
-//    @ResponseStatus(value = HttpStatus.NO_CONTENT)
-//    public void updatePet(@PathVariable Long id, @RequestBody Cat cat){
-//        petService.updatePet(id, cat);
-//    }
-//
-//    @PutMapping("pets/dogs/{id}")
-//    @ResponseStatus(value = HttpStatus.NO_CONTENT)
-//    public void updatePet(@PathVariable Long id, @RequestBody Dog dog){
-//        petService.updatePet(id, dog);
-//    }
 
     @PutMapping("pets/{id}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
@@ -89,11 +71,6 @@ public class PetController {
         return ResponseEntity.ok("Veterinarian removed from pet successfully.");
     }
 
-//    @GetMapping("/pets/veterinarians/{vetId}/")
-//    public List<Pet> findAllPetsByVeterinarian(@PathVariable Long vetId) {
-//        return petService.findAllPetsByVeterinarian(vetId);
-//    }
-
     @GetMapping("/pets/veterinarians")
     public List<PetReadDTO> findAllPetsByVeterinarian() {
         return petService.findAllPetsByVeterinarian();
@@ -103,9 +80,6 @@ public class PetController {
     public List<PetReadDTO> findAllPetsByOwner() {
         return petService.findAllPetsByOwner();
     }
-
-
-
 
 
 }

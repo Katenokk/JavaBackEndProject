@@ -27,7 +27,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
 
     @Modifying
-//    @Transactional
     @Query("UPDATE Pet p SET p.veterinarian = null WHERE p.veterinarian = :veterinarian")
     void removeAssociationVeterinarianWithPet(@Param("veterinarian") Veterinarian veterinarian);
 

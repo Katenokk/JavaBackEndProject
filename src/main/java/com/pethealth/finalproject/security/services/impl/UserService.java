@@ -62,28 +62,6 @@ public class UserService implements UserServiceInterface, UserDetailsService {
         return null;
     }
 
-    public User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!(authentication instanceof AnonymousAuthenticationToken)) {
-            String currentUserName = authentication.getName();
-            return userRepository.findByUsername(currentUserName)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
-        }
-        return null; // or throw an exception
-    }
-
-
-    public Long getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!(authentication instanceof AnonymousAuthenticationToken)) {
-            Object principal = authentication.getPrincipal();
-            if (principal instanceof CustomUserDetails) {
-                CustomUserDetails currentUser = (CustomUserDetails) principal;
-                return currentUser.getId();
-            }
-        }
-        return null;
-    }
 
     /**
      * Loads the user by its username

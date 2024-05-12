@@ -1,5 +1,6 @@
 package com.pethealth.finalproject.model;
 
+import com.pethealth.finalproject.repository.EventRepository;
 import com.pethealth.finalproject.repository.HealthRecordRepository;
 import com.pethealth.finalproject.repository.PetRepository;
 import com.pethealth.finalproject.repository.WeightRepository;
@@ -32,6 +33,9 @@ class HealthRecordTest {
 
     @Autowired
     private PetRepository petRepository;
+
+    @Autowired
+    private EventRepository eventRepository;
 
     private Weight weight1;
     private Weight weight2;
@@ -116,6 +120,23 @@ class HealthRecordTest {
         assertTrue(healthRecord.getWeights().contains(weight));
         assertTrue(foundHealthRecord.getWeights().contains(weight));
         assertEquals(healthRecord, weight.getHealthRecord());
+    }
+
+    @Test
+    void testAssociationWithEvent() {
+        LocalDate localDate1 = LocalDate.of(2010,06,01);
+        Date date1 = Date.from(localDate1.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+        Event event = new Event(date1, "Event");
+        healthRecord1.addEvent(event);
+        event.setPetHealthRecord(healthRecord1);
+        healthRecordRepository.save(healthRecord1);
+        eventRepository.save(event);
+
+        HealthRecord foundHealthRecord = healthRecordRepository.findByIdAndInitializeEvents(healthRecord1.getId()).orElse(null);
+
+        assertNotNull(foundHealthRecord);
+        assertTrue(foundHealthRecord.getEvents().contains(event));
+        assertEquals(healthRecord1, event.getPetHealthRecord());
     }
 
 
