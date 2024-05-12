@@ -192,43 +192,6 @@ public Pet findPetById(Long id){
         return petReadDTOs;
     }
 
-//public List<PetReadDTO> findAllPets() {
-//    String currentUserName = getCurrentUserName();
-//    User currentUser = userRepository.findByUsername(currentUserName)
-//            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
-//
-//    List<Pet> pets = petRepository.findAll();
-//
-//    if(currentUser instanceof Admin) {
-//       //admin can see all pets
-//        if(pets.isEmpty()){
-//            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No pets found.");
-//        }
-//    } else if(currentUser instanceof Owner) {
-//        // If the user is an owner, filter the pets
-//        pets = pets.stream()
-//                .filter(pet -> pet.getOwner().equals(currentUser))
-//                .collect(Collectors.toList());
-//    } else if(currentUser instanceof Veterinarian) {
-//        // If the user is a veterinarian, filter the pets
-//        pets = pets.stream()
-//                .filter(pet -> pet.getVeterinarian().equals(currentUser))
-//                .collect(Collectors.toList());
-//    } else {
-//        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access is denied.");
-//    }
-//
-//    if(pets.isEmpty()){
-//        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No pets found.");
-//    }
-//
-//    List<PetReadDTO> petReadDTOs = pets.stream()
-//            .map(this::mapToPetReadDTO)
-//            .collect(Collectors.toList());
-//
-//    return petReadDTOs;
-//}
-
     public PetReadDTO mapToPetReadDTO(Pet pet) {
         PetReadDTO petReadDTO;
         if (pet instanceof Cat) {
@@ -257,19 +220,6 @@ public Pet findPetById(Long id){
         return petReadDTO;
     }
 
-//    @Transactional
-//    public List<Pet> findAllPetsByVeterinarian(Long vetId) {
-//        System.out.println("vet id: " + vetId);
-//        Veterinarian veterinarian = (Veterinarian) userRepository.findByIdAndFetchPetsEagerly(vetId)
-//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Veterinarian not found."));
-//
-//        List<Pet> pets = new ArrayList<>(veterinarian.getTreatedPets());
-//        System.out.println("number of pets: " + pets.size());
-//        if (pets.isEmpty()) {
-//            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No pets found.");
-//        }
-//        return pets;
-//    }
 
     @Transactional
     public List<PetReadDTO> findAllPetsByVeterinarian() {
@@ -279,7 +229,6 @@ public Pet findPetById(Long id){
         if(!(user instanceof Veterinarian)){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is not a veterinarian.");
         }
-//        Veterinarian veterinarian = (Veterinarian) user;
         //para ver si asi carga todos los pet para que pase el test
         Veterinarian veterinarian = (Veterinarian) userRepository.findByIdAndFetchPetsEagerly(user.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Veterinarian not found."));
@@ -287,7 +236,6 @@ public Pet findPetById(Long id){
 
         List<Pet> pets = new ArrayList<>(veterinarian.getTreatedPets());
 
-        System.out.println("number of pets: " + pets.size());
         if (pets.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No pets found.");
         }

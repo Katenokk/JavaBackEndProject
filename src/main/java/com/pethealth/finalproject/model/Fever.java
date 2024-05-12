@@ -2,6 +2,8 @@ package com.pethealth.finalproject.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.PrimaryKeyJoinColumn;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,6 +19,9 @@ import java.util.Date;
 @Entity
 @PrimaryKeyJoinColumn(name = "fever_id")
 public class Fever extends Event {
+
+    @NotNull
+    @Positive
     private Double degrees;
 
     public Fever(Date date, String comment, Double degrees) {

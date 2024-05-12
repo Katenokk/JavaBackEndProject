@@ -31,6 +31,9 @@ class HealthRecordRepositoryTest {
     @Autowired
     private PetRepository petRepository;
 
+    @Autowired
+    private EventRepository eventRepository;
+
     private Weight weight1;
     private Weight weight2;
 
@@ -77,5 +80,24 @@ class HealthRecordRepositoryTest {
         assertEquals(2, foundHealthRecord.getWeights().size());
         assertTrue(foundHealthRecord.getWeights().contains(weight1));
         assertTrue(foundHealthRecord.getWeights().contains(weight2));
+    }
+
+    @Test
+    void findByIdAndInitializeEvents(){
+        Event event1 = new Event(new Date(), "Event 1");
+        Event event2 = new Event(new Date(), "Event 2");
+        healthRecord1.addEvent(event1);
+        healthRecord1.addEvent(event2);
+        eventRepository.saveAll(List.of(event1, event2));
+        healthRecordRepository.save(healthRecord1);
+
+        Optional<HealthRecord> foundRecord = healthRecordRepository.findByIdAndInitializeEvents(healthRecord1.getId());
+
+        assertTrue(foundRecord.isPresent());
+        HealthRecord foundHealthRecord = foundRecord.get();
+        assertNotNull(foundHealthRecord.getEvents());
+        assertEquals(2, foundHealthRecord.getEvents().size());
+        assertTrue(foundHealthRecord.getEvents().contains(event1));
+        assertTrue(foundHealthRecord.getEvents().contains(event2));
     }
 }

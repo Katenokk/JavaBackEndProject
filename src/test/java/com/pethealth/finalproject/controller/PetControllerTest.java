@@ -61,8 +61,6 @@ class PetControllerTest {
     void setUp() {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
         objectMapper.registerModule(new JavaTimeModule());
-        //no coge bien los json de los dto
-//        objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
         newOwner = new Owner("New Owner", "new_owner", "1234", new ArrayList<>(), "owner@mail.com");
         userRepository.save(newOwner);
         newVet = new Veterinarian("New Vet", "new_vet", "0000",  new ArrayList<>(), "vet@mail.com");
@@ -74,8 +72,6 @@ class PetControllerTest {
         Date dateOfBirthOld2 = Date.from(dateOfBirth2.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
         newDog = new Dog("Bombo", dateOfBirthOld2, false, List.of(DogDiseases.ARTHRITIS), DogBreeds.HUSKY, newOwner, null);
         petRepository.save(newCat);
-
-
     }
 
     @AfterEach
@@ -106,8 +102,6 @@ class PetControllerTest {
     @Test
     @WithMockUser(username = "new_owner", authorities = {"ROLE_USER"})
     void findPetById() throws Exception {
-//        newCat.setOwner(newOwner);
-//        petRepository.save(newCat);
         MvcResult mvcResult = mockMvc.perform(get("/api/pets/" + newCat.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -116,18 +110,9 @@ class PetControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "new_owner", authorities = {"ROLE_USER"})
     void addNewPet_Valid() throws Exception {
-        petRepository.deleteAll();
-        userRepository.deleteAll();
-        userRepository.save(newOwner);
-
-        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
-
         CatDTO newCatDTO = new CatDTO();
-//        userRepository.save(newOwner);
         newCatDTO.setOwner(newOwner);
         newCatDTO.setName("Pipu");
         newCatDTO.setSpayedOrNeutered(true);
@@ -156,8 +141,6 @@ class PetControllerTest {
         assertNotNull(createdCat);
         assertEquals(createdCat.getName(), createdPetName);
         assertTrue(createdPetDateOfBirth.contains("2010-01-01"));
-
-        SecurityContextHolder.clearContext();
     }
 
 
@@ -208,21 +191,11 @@ class PetControllerTest {
         assertEquals(updatedCatDTO.getDateOfBirth(), updatedCat.getDateOfBirth());
         assertEquals(updatedCatDTO.isSpayedOrNeutered(), updatedCat.isSpayedOrNeutered());
         assertEquals(updatedCatDTO.isSpayedOrNeutered(), updatedCat.isSpayedOrNeutered());
-
-
     }
 
     @Test
+    @WithMockUser(username = "new_owner", authorities = {"ROLE_USER"})
     void updatePets_ThrowException_CatNotFound() throws Exception {
-        petRepository.deleteAll();
-        userRepository.deleteAll();
-        newOwner = userRepository.save(newOwner);
-
-        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-        org.springframework.security.core.userdetails.User mockUser = new  org.springframework.security.core.userdetails.User(newOwner.getUsername(), newOwner.getPassword(), authorities);
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(mockUser, null, authorities));
-
         CatDTO updatedCatDTO = new CatDTO();
         updatedCatDTO.setName("Updated Name");
         updatedCatDTO.setOwner(newOwner);
@@ -238,10 +211,7 @@ class PetControllerTest {
                 .content(body)
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(status().isNotFound());
-
-        SecurityContextHolder.clearContext();
     }
-
 
     @Test
     @WithMockUser(username = "new_owner", authorities = {"ROLE_USER"})

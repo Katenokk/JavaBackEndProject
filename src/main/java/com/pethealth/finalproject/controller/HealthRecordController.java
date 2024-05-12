@@ -7,6 +7,7 @@ import com.pethealth.finalproject.model.HealthRecord;
 import com.pethealth.finalproject.model.Weight;
 import com.pethealth.finalproject.service.EventService;
 import com.pethealth.finalproject.service.HealthRecordService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -36,12 +37,12 @@ public class HealthRecordController {
     }
 
     @PostMapping("events/{petId}")
-    public Event addEventToPet(@PathVariable Long petId, @RequestBody Event event) {
+    public Event addEventToPet(@PathVariable Long petId, @RequestBody @Valid Event event) {
         return eventService.addEventToPet(petId, event);
     }
 
     @PatchMapping("events/{eventId}")
-    public void partialUpdateEvent(@PathVariable Long eventId, @RequestBody EventDTO eventDto) {
+    public void partialUpdateEvent(@PathVariable Long eventId, @RequestBody @Valid EventDTO eventDto) {
         eventService.partialUpdateEvent(eventId, eventDto);
     }
 
@@ -56,7 +57,7 @@ public class HealthRecordController {
     }
 
     @PutMapping("events/{eventId}")
-    public ResponseEntity<String> updateEvent(@PathVariable Long eventId, @RequestBody Event event){
+    public ResponseEntity<String> updateEvent(@PathVariable Long eventId, @RequestBody @Valid Event event){
         Event updatedEvent = eventService.updateEvent(eventId, event);
         return ResponseEntity.ok("Event updated successfully");
     }

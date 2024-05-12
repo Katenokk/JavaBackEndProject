@@ -17,7 +17,6 @@ public interface PetRepository extends JpaRepository<Pet, Long> {
 
     Optional<Cat> findCatById(Long id);
     Optional<Dog> findDogById(Long id);
-
     Optional<Pet> findByName(String name);
 
     @Query("SELECT p FROM Pet p LEFT JOIN FETCH p.healthRecord h LEFT JOIN FETCH h.weights WHERE p.id = :id")
@@ -27,6 +26,4 @@ public interface PetRepository extends JpaRepository<Pet, Long> {
     @Query("SELECT p FROM Pet p LEFT JOIN FETCH p.healthRecord h LEFT JOIN FETCH h.events WHERE p.id = :id")
     Optional<Pet> findByIdAndFetchEventsEagerly(@Param("id") Long id);
 
-//    @Query("SELECT p.owner FROM Pet p WHERE p.id = :petId")
-//    User findOwnerByPetId(@Param("petId") Long petId);
 }

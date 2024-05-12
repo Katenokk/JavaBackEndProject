@@ -295,8 +295,6 @@ void testAddWeightToPet() throws Exception {
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(status().isOk()).andReturn();
 
-//        String content = mvcResult.getResponse().getContentAsString();
-
         Pet fromRepoCat = petRepository.findByIdAndFetchEventsEagerly(catto.getId()).get();
         HealthRecord fromRepoHealthRecord = fromRepoCat.getHealthRecord();
         Vomit savedVomit = (Vomit) fromRepoHealthRecord.getEvents().get(0);
@@ -344,45 +342,6 @@ void testAddWeightToPet() throws Exception {
         assertTrue(savedEvents.contains(fever1));
     }
 
-//    @Test
-//    @DirtiesContext
-////    @WithMockUser(username = "new-owner", authorities = {"ROLE_USER"})
-//    void testUpdateEvent_Valid() throws Exception {
-//        Calendar calendar = Calendar.getInstance();
-//        calendar.set(Calendar.YEAR, 2024);
-//        calendar.set(Calendar.MONTH, Calendar.JANUARY);
-//        calendar.set(Calendar.DAY_OF_MONTH, 1);
-//        calendar.set(Calendar.HOUR_OF_DAY, 12);
-//        calendar.set(Calendar.MINUTE, 30);
-//        Date date3 = calendar.getTime();
-//
-//        Vomit vomit3 = new Vomit(date3, "Vomit", true, false);
-//        eventRepository.save(vomit3);
-//        catto.getHealthRecord().addEvent(vomit3);
-//        petRepository.save(catto);
-//
-//        // Create a local ObjectMapper instance with USE_EQUALITY_FOR_OBJECT_ID disabled
-//        ObjectMapper localMapper = new ObjectMapper();
-//        localMapper.disable(SerializationFeature.USE_EQUALITY_FOR_OBJECT_ID);
-//
-//        Vomit newVomit = new Vomit(date3, "updated", false, true);
-//        newVomit.setPetHealthRecord(vomit3.getPetHealthRecord());
-//
-//
-//        String body = localMapper.writeValueAsString(newVomit);
-//
-//        mockMvc.perform(put("/health-records/events/" + vomit3.getId())
-//                .content(body)
-//                .contentType(MediaType.APPLICATION_JSON)
-//        ).andExpect(status().isOk());
-//
-////        Optional<Event> fromRepoVomit = eventRepository.findById(vomit3.getId());
-////
-////        assertTrue(fromRepoVomit.isPresent());
-////        assertEquals("updated", fromRepoVomit.get().getComment());
-////        assertEquals(newVomit.isHasHairball(), ((Vomit) fromRepoVomit.get()).isHasHairball());
-////        assertEquals(newVomit.isHasFood(), ((Vomit) fromRepoVomit.get()).isHasFood());
-//    }
 
     @Test
     @WithMockUser(username = "new-owner", authorities = {"ROLE_USER"})
