@@ -10,6 +10,5 @@ import java.util.List;
 public class HealthRecordDTO {
     private Long id;
     private List<WeightDTO> weights;
-    //nuevo
     private List<EventDTO> events;
 }

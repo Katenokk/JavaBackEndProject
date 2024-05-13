@@ -19,9 +19,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -111,7 +108,6 @@ public class HealthRecordService {
         dto.setWeights(healthRecord.getWeights().stream()
                 .map(this::convertWeightToDTO)
                 .toList());
-        //nuevo
         dto.setEvents(convertEventListToDTO(healthRecord.getEvents()));
         return dto;
     }
@@ -124,7 +120,6 @@ public class HealthRecordService {
         return dto;
     }
 
-    //nuevo
     private List<EventDTO> convertEventListToDTO(List<Event> events) {
         return events.stream()
                 .map(this::convertEventToDTO)
@@ -156,7 +151,6 @@ public class HealthRecordService {
 
         return dto;
     }
-//hasta aqui
 
     public List<Weight> findWeightsBetweenDates(Long petId, Date startDate, Date endDate) {
         String currentUserName = getCurrentUserName();
