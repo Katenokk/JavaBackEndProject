@@ -90,7 +90,7 @@ public Pet findPetById(Long id){
         } else {
             throw new IllegalArgumentException("Invalid pet type.");
         }
-        //check if the pet already exists, by name (añadir atributos??)
+        //check if the pet already exists, by name
         //la ID se asigna cuando se usa el findById
         if (pet instanceof Cat) {
             Cat existingCat = (Cat) petRepository.findByName(pet.getName()).orElse(null);
@@ -218,7 +218,7 @@ public Pet findPetById(Long id){
         if(!(user instanceof Veterinarian)){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is not a veterinarian.");
         }
-        //para ver si asi carga todos los pet para que pase el test
+        //para que cargue todos los pets a la vez
         Veterinarian veterinarian = (Veterinarian) userRepository.findByIdAndFetchPetsEagerly(user.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Veterinarian not found."));
         Hibernate.initialize(veterinarian.getTreatedPets());
@@ -264,7 +264,7 @@ public Pet findPetById(Long id){
         Pet existingPet = petRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found."));
         //comprobar si el owner es el mismo que el usuario logeado o es admin
-        if(!currentUser.equals(existingPet.getOwner()) || currentUser instanceof Admin){
+        if(!currentUser.equals(existingPet.getOwner()) && !(currentUser instanceof Admin)){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Only the owner of the pet or admin can update pet.");
         }
         if ((existingPet instanceof Cat) && (!(petDTO instanceof CatDTO)) ||
@@ -293,7 +293,7 @@ public Pet findPetById(Long id){
         Pet existingPet = petRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found."));
         //comprobar si el owner es el mismo que el usuario logeado o es admin
-        if(!currentUser.equals(existingPet.getOwner()) || currentUser instanceof Admin){
+        if(!currentUser.equals(existingPet.getOwner()) && !(currentUser instanceof Admin)){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Only the owner of the pet or admin can update pet.");
         }
         if ((existingPet instanceof Cat) && (!(petDTO instanceof CatDTO)) ||
@@ -356,7 +356,7 @@ public Pet findPetById(Long id){
 
         Pet pet = petRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found."));
-        if(!(currentUser.equals(pet.getOwner()) || currentUser instanceof Admin)){
+        if(!(currentUser.equals(pet.getOwner()) && !(currentUser instanceof Admin))){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Only the owner of the pet or admin can delete pet.");
         }
 
@@ -380,7 +380,7 @@ public Pet findPetById(Long id){
         Pet pet = petRepository.findById(petId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found."));
 
-        if(!(currentUser.equals(pet.getOwner()) || currentUser instanceof Admin)){
+        if(!(currentUser.equals(pet.getOwner()) && !(currentUser instanceof Admin))){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Only the owner of the pet or admin can assign a veterinarian.");
         }
 
