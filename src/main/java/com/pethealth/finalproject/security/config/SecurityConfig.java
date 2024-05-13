@@ -85,7 +85,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests((requests) -> requests
                 .requestMatchers("/api/login/**").permitAll()
                 .requestMatchers("/api/register/**").permitAll()
-                .requestMatchers(POST, "/api/roles/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                .requestMatchers(POST, "/api/roles/**").hasAnyAuthority("ROLE_ADMIN")
                 .requestMatchers(GET, "/api/users").hasAnyAuthority("ROLE_ADMIN")
                 .requestMatchers(GET, "/api/veterinarians").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(GET, "/api/users/username").hasAnyAuthority("ROLE_ADMIN")

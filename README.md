@@ -16,9 +16,10 @@
 
 ## Introduction
 
+This README provides an overview of the application's functionalities for different user roles: administrators, owners, and veterinarians.
+
 The Pet Health Application allows users to manage their pets' health records seamlessly. Each pet added to the system is associated with a health record containing information about weight and events.
 
-This README provides an overview of the application's functionalities for different user roles: administrators, owners, and veterinarians.
 
 ## Description
 
@@ -115,7 +116,7 @@ Access to these endpoints is configured as follows:
 
 ## Functionalities:
 
-### Functionalities for Owners:
+### for Owners:
 
 #### Create Owner:
 
@@ -163,8 +164,11 @@ Owners can update all data of one of their pets. They cannot access data of othe
 
 Owners can update one or more details of one of their pets. They cannot access data of other owners' pets.
 
-- **Endpoint PATCH:** `api/pets/{petId}`
+- **Endpoint PUT:** `api/pets/{petId}`
   - **Parameters:** Complete Pet object, Pet ID
+ 
+- **Endpoint PATCH:** `api/pets/{petId}`
+- **Parameters:** PetDTO object, Pet ID
 
 #### Delete Own Pet:
 
@@ -198,7 +202,7 @@ Owners can view the health record of an assigned pet. They need to select the pe
     ```json
     {
       "petId": 1,
-      "date": "2024-04-10",
+      "date": "2024-04-10 12:00",
       "weightInKg": 3.5
     }
     ```
@@ -246,7 +250,7 @@ Owners can view the health record of an assigned pet. They need to select the pe
 - **Get Assigned Pet Details:**
   - Veterinarians can retrieve details of a pet assigned to them.
     - **Endpoint GET:** `api/pets/{petId}`
-    - **Parameters:** Complete Pet object, Pet ID
+    - **Parameters:** Pet ID
 
 - **Get the Health Record of an Assigned Pet:**
   - Veterinarians can access the health record data of a pet assigned to them. They can only view, not modify or delete.
