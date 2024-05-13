@@ -1,5 +1,18 @@
 # JavaBackEndProject
 # Pet Health Application
+## Index
+
+1. Introduction
+2. Description
+3. Setup
+4. Technologies Used
+5. Testing and Task Management
+6. Controllers and Routes Structure
+7. Functionalities
+  - For Owners
+  - For Veterinarians
+  - For Admins
+8. Future Work
 
 ## Introduction
 
@@ -32,6 +45,21 @@ The Pet Health Application is built using the following technologies:
 - Lombok
 - Jakarta Validation
 - Spring Security (Bearer Authentication)
+
+## Testing and Task Management
+
+### Endpoint Testing and Test Plan
+
+For thorough testing of API endpoints and creating a comprehensive test plan, I utilized Postman. Postman allowed me to send requests to my endpoints with various HTTP methods and payloads, ensuring that my API functions as expected under different scenarios. Additionally, I created a detailed test plan within Postman, covering all possible methods and edge cases to ensure the robustness of the API.
+
+### Task Management and Backlog
+
+To manage our project tasks and backlog efficiently, I employed Kanban boards in my GitHub repository. Kanban provided me with a visual representation of my workflow, allowing me to track the progress of tasks from conception to completion. With Kanban, I could easily prioritize tasks and monitor their status, ensuring smooth project execution and delivery.
+
+### Repository Contents
+
+- The repository includes a UML class diagram (`PetHealthDiagramm.png`) depicting the project's architecture and relationships between different components. This diagram provides a visual representation of the system's structure, making it easier to understand the organization of classes and their interactions.
+
 
 ## Controllers and Routes Structure
 
@@ -85,79 +113,81 @@ Access to these endpoints is configured as follows:
 
 
 
-## Functionalities for Owners:
+## Functionalities:
 
-### Create Owner:
+### Functionalities for Owners:
+
+#### Create Owner:
 
 Owners can register their own accounts by providing basic information such as name and email.
 
-### Update Owner Details:
+#### Update Owner Details:
 
 Owners can update their account information by specifying their ID and providing updated data such as name or email.
 
-### Delete Owner:
+#### Delete Owner:
 
 Owners can delete their own accounts from the system by specifying their ID.
 
-### See all veterinarians available:
+#### See all veterinarians available:
 
 Owners can list all the veterinarians registered in the application so that they can choose one.
 
-### Get list of Owner's Pets:
+#### Get list of Owner's Pets:
 
 Owners can access data about their own pets.
 
 - **Endpoint GET:** `api/pets/owners`
   - **Parameters:** none
 
-### Add a New Pet to Profile:
+#### Add a New Pet to Profile:
 
 Owners can add pets to their own profile. They need to provide pet data without including the "owner" field; the logged-in user will be automatically assigned as the owner.
 
 - **Endpoint POST:** `api/pets`
 - 
-### Find a Pet:
+#### Find a Pet:
 
 Owners can find a pet by its id, they can only find their own pets.
 
 - **Endpoint POST:** `api/pets/{petId}`
 
-### Update All Pet Details:
+#### Update All Pet Details:
 
 Owners can update all data of one of their pets. They cannot access data of other owners' pets.
 
 - **Endpoint PUT:** `api/pets/{petId}`
   - **Parameters:** Complete Pet object, Pet ID
 
-### Partially Update Pet Details:
+#### Partially Update Pet Details:
 
 Owners can update one or more details of one of their pets. They cannot access data of other owners' pets.
 
 - **Endpoint PATCH:** `api/pets/{petId}`
   - **Parameters:** Complete Pet object, Pet ID
 
-### Delete Own Pet:
+#### Delete Own Pet:
 
 Owners can delete one of their own pets. They cannot delete pets belonging to other owners.
 
 - **Endpoint DELETE:** `api/pets/{petId}`
   - **Parameters:** Pet ID
 
-### Assign Veterinarian to Pet:
+#### Assign Veterinarian to Pet:
 
 Owners can assign a veterinarian to one of their pets. They cannot assign veterinarians to pets belonging to other owners.
 
 - **Endpoint PATCH:** `api/pets/veterinarians/{petId}/{vetId}`
   - **Parameters:** Pet ID, Veterinarian ID
 
-### Remove Veterinarian from Pet:
+#### Remove Veterinarian from Pet:
 
 Owners can remove a veterinarian assigned to one of their pets. They cannot remove veterinarians from pets belonging to other owners.
 
 - **Endpoint DELETE:** `api/pets/veterinarians/{petId}/{vetId}`
   - **Parameters:** Pet ID, Veterinarian ID
 
-### Manage Health Record Data of Pet:
+#### Manage Health Record Data of Pet:
 
 Owners can view the health record of an assigned pet. They need to select the pet (provide its ID) and will be able to see a summary of all health data for that pet: registered weights, health events, etc.
 
@@ -201,7 +231,7 @@ Owners can view the health record of an assigned pet. They need to select the pe
 
 
 
-## Functionalities for Veterinarians:
+### for Veterinarians:
 
 - **Create Veterinarian:**
   - A veterinarian can register a Veterinarian account in the application by providing basic information such as name and email.
@@ -221,7 +251,7 @@ Owners can view the health record of an assigned pet. They need to select the pe
 - **Get the Health Record of an Assigned Pet:**
   - Veterinarians can access the health record data of a pet assigned to them. They can only view, not modify or delete.
 
-## Functionalities for Admins:
+### for Admins:
 
 - **All the permissions of other users:**
 
@@ -244,4 +274,8 @@ Owners can view the health record of an assigned pet. They need to select the pe
   - Add more types of health events to the system, such as surgeries, vaccinations, stool, injury, etc.
 
 - **List Health Events of Pet by Types and Dates:**
-  - Owners can list health events of a pet by types and dates.
+
+- **Add image files to Events**
+
+- **List Health Events of Pet by Types and Dates along with Weights:**
+  - Make reports of specific Events within a time period, along with the weights of the pet. Store these reports in a PDF file.
