@@ -106,7 +106,7 @@ public class SecurityConfig {
                 .requestMatchers(GET, "/api/pets/").hasAnyAuthority("ROLE_ADMIN")
                 .requestMatchers(GET, "/api/pets/veterinarians").hasAnyAuthority("ROLE_VET", "ROLE_ADMIN")
                 .requestMatchers(GET, "/api/pets/owners").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
-                .requestMatchers(GET, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                .requestMatchers(GET, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_VET", "ROLE_ADMIN")
                 .requestMatchers(PUT, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(POST, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .requestMatchers(PATCH, "/api/pets/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")

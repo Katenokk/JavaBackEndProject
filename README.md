@@ -37,6 +37,20 @@ The Pet Health Application is built using the following technologies:
 
 The application follows a structured approach to handling HTTP requests using controllers and routes. Here's an overview of the controllers and their corresponding routes:
 
+The application provides endpoints for user authentication and registration:
+
+- Manages user login functionality.
+  - Routes:
+    - POST `/api/login` (Allows users to log in)
+
+- `UserController`: Handles user registration.
+  - Routes:
+    - POST `/api/register` (Allows users to register new accounts)
+
+
+Access to these endpoints is configured as follows:
+
+
 - `UserController`: Manages user-related operations such as registration, updates, and deletion.
   - Routes:
     - GET `/api/users`
@@ -49,7 +63,7 @@ The application follows a structured approach to handling HTTP requests using co
   - Routes:
     - POST `/api/roles`
     - POST `/api/roles/addtouser`
-    - ...
+  
 
 - `PetController`: Manages pet-related operations such as fetching, adding, updating, and deleting pets.
   - Routes:
@@ -85,22 +99,28 @@ Owners can update their account information by specifying their ID and providing
 
 Owners can delete their own accounts from the system by specifying their ID.
 
-### Get Owner Details by ID:
+### See all veterinarians available:
 
-Owners can retrieve detailed information about their own account by providing their ID.
+Owners can list all the veterinarians registered in the application so that they can choose one.
 
-### Get Owner's Pets:
+### Get list of Owner's Pets:
 
-Owners can access data about their own pets. To retrieve all pets belonging to a specific owner, the owner's ID needs to be provided.
+Owners can access data about their own pets.
 
-- **Endpoint GET:** `api/pets/{petId}`
-  - **Parameters:** Pet ID
+- **Endpoint GET:** `api/pets/owners`
+  - **Parameters:** none
 
 ### Add a New Pet to Profile:
 
 Owners can add pets to their own profile. They need to provide pet data without including the "owner" field; the logged-in user will be automatically assigned as the owner.
 
 - **Endpoint POST:** `api/pets`
+- 
+### Find a Pet:
+
+Owners can find a pet by its id, they can only find their own pets.
+
+- **Endpoint POST:** `api/pets/{petId}`
 
 ### Update All Pet Details:
 
@@ -164,6 +184,12 @@ Owners can view the health record of an assigned pet. They need to select the pe
 - **Add Events to Pet's Health Record:**
   - Owners can add different events to the health record of an assigned pet.
 
+- **Get a Specific Health Event of Pet:**
+  - Owners can get a specific health event of an assigned pet using the GET method.
+
+- **Get all Health Events of own Pet:**
+  - Owners can get a list of health events of an assigned pet using the GET method.
+  
 - **Update Specific Health Event of Pet:**
   - Owners can update a specific health event of an assigned pet using the PUT method.
 
@@ -173,17 +199,18 @@ Owners can view the health record of an assigned pet. They need to select the pe
 - **Delete Health Event of Pet:**
   - Owners can delete a health event from the health record of an assigned pet.
 
-- **List Health Events of Pet by Types and Dates:**
-  - Owners can list health events of a pet by types and dates.
+
 
 ## Functionalities for Veterinarians:
 
 - **Create Veterinarian:**
-  - A veterinarian can create a Veterinarian account in the application by providing basic information such as name and email.
+  - A veterinarian can register a Veterinarian account in the application by providing basic information such as name and email.
+  
+- **Manage own account**
 
-- **Get List of Pets Assigned to Veterinarian:**
-  - Veterinarians can access data of the pets they have assigned. To access all pets assigned to a specific veterinarian, the veterinarian's ID needs to be provided.
-    - **Endpoint GET:** `api/pets`
+- **Get List of Pets Assigned to them:**
+  - Veterinarians can access data of the pets they have assigned.
+    - **Endpoint GET:** `api/pets/veterinarians`
     - **Parameters:** None
 
 - **Get Assigned Pet Details:**
@@ -191,10 +218,30 @@ Owners can view the health record of an assigned pet. They need to select the pe
     - **Endpoint GET:** `api/pets/{petId}`
     - **Parameters:** Complete Pet object, Pet ID
 
-- **Get List of Health Records of Assigned Pet:**
+- **Get the Health Record of an Assigned Pet:**
   - Veterinarians can access the health record data of a pet assigned to them. They can only view, not modify or delete.
+
+## Functionalities for Admins:
+
+- **All the permissions of other users:**
+
+- **List all users**
+
+- **Find user by username**
+
+- **Add any user account**
+
+- **Manage accounts**
+  - Create, update and delete admin accounts.
+  
+- **Find all pets**
+
+- **Add roles to users**
 
 ## Future Work
 
 - **Add more Events:**
   - Add more types of health events to the system, such as surgeries, vaccinations, stool, injury, etc.
+
+- **List Health Events of Pet by Types and Dates:**
+  - Owners can list health events of a pet by types and dates.
