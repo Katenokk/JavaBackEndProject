@@ -277,7 +277,7 @@ void testAddWeightToPet() throws Exception {
         MvcResult mvcResult = mockMvc.perform(post("/health-records/events/" + catto.getId())
                 .content(body)
                 .contentType(MediaType.APPLICATION_JSON)
-        ).andExpect(status().isOk()).andReturn();
+        ).andExpect(status().isCreated()).andReturn();
 
         Pet fromRepoCat = petRepository.findByIdAndFetchEventsEagerly(catto.getId()).get();
         HealthRecord fromRepoHealthRecord = fromRepoCat.getHealthRecord();

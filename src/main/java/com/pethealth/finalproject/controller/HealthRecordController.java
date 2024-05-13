@@ -8,6 +8,7 @@ import com.pethealth.finalproject.service.HealthRecordService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.Date;
@@ -24,6 +25,7 @@ public class HealthRecordController {
     private EventService eventService;
 
     @PostMapping("weights/{petId}")
+    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<String> addWeightToPet(@PathVariable Long petId,
                                                         @RequestParam @DateTimeFormat(pattern="yyyy-MM-dd HH:mm") Date date,
                                                         @RequestParam double weightInKg) {
@@ -32,6 +34,7 @@ public class HealthRecordController {
     }
 
     @PostMapping("events/{petId}")
+    @ResponseStatus(HttpStatus.CREATED)
     public Event addEventToPet(@PathVariable Long petId, @RequestBody @Valid Event event) {
         return eventService.addEventToPet(petId, event);
     }
@@ -42,16 +45,19 @@ public class HealthRecordController {
     }
 
     @GetMapping("/{petId}")
+    @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<HealthRecordDTO> getPetHealthRecord(@PathVariable Long petId) {
         return ResponseEntity.ok(healthRecordService.getPetHealthRecord(petId));
     }
 
     @GetMapping("events/{petId}")
+    @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<List<Event>> getEvents(@PathVariable Long petId) {
         return ResponseEntity.ok(eventService.findEventsByPet(petId));
     }
 
     @PutMapping("events/{eventId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<String> updateEvent(@PathVariable Long eventId, @RequestBody @Valid Event event){
         Event updatedEvent = eventService.updateEvent(eventId, event);
         return ResponseEntity.ok("Event updated successfully");
@@ -64,6 +70,7 @@ public class HealthRecordController {
     }
 
     @GetMapping("/weights/{petId}")
+    @ResponseStatus(HttpStatus.OK)
     public List<Weight> findWeightsBetweenDates(@PathVariable Long petId,
                                                 @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date startDate,
                                                 @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endDate) {

@@ -74,6 +74,7 @@ public class UserController {
     //registro de usuarios:
 
     @PostMapping("/register/owners")
+    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<String> registerOwner(@RequestBody @Valid Owner owner) {
         try {
             userService.saveOwner(owner);
@@ -86,6 +87,7 @@ public class UserController {
     }
 
     @PostMapping("/register/veterinarians")
+    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<String> registerVeterinarian(@RequestBody @Valid Veterinarian veterinarian) {
         try {
             userService.saveVeterinarian(veterinarian);
@@ -98,6 +100,7 @@ public class UserController {
     }
 
     @PostMapping("/register/admins")
+    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<String> registerAdmin(@RequestBody @Valid Admin admin) {
         try {
             userService.saveAdmin(admin);

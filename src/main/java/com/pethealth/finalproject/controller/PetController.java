@@ -24,17 +24,20 @@ public class PetController {
     private UserService userService;
 
     @GetMapping("/pets/{id}")
+    @ResponseStatus(HttpStatus.OK)
     public Pet findPetById(@PathVariable Long id){
         return petService.findPetById(id);
     }
 
     //endpoint aparte solo para admins
     @GetMapping("/pets")
+    @ResponseStatus(HttpStatus.OK)
     public List<PetReadDTO> findAllPets() {
         return petService.findAllPets();
     }
 
     @PostMapping("/pets")
+    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Pet> addNewPet(@RequestBody @Valid PetDTO petDTO) {
         return ResponseEntity.ok(petService.addNewPet(petDTO));
     }
