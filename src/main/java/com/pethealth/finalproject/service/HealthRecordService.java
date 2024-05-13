@@ -1,11 +1,7 @@
 package com.pethealth.finalproject.service;
 
-import com.pethealth.finalproject.dtos.HealthRecordDTO;
-import com.pethealth.finalproject.dtos.WeightDTO;
-import com.pethealth.finalproject.model.Admin;
-import com.pethealth.finalproject.model.HealthRecord;
-import com.pethealth.finalproject.model.Pet;
-import com.pethealth.finalproject.model.Weight;
+import com.pethealth.finalproject.dtos.*;
+import com.pethealth.finalproject.model.*;
 import com.pethealth.finalproject.repository.HealthRecordRepository;
 import com.pethealth.finalproject.repository.PetRepository;
 import com.pethealth.finalproject.repository.WeightRepository;
@@ -23,7 +19,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class HealthRecordService {
@@ -62,7 +62,7 @@ public class HealthRecordService {
         }
 
         HealthRecord healthRecord = pet.getHealthRecord();
-        //quitar
+
         if (healthRecord == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "HealthRecord not found for Pet with id " + petId);
         }
@@ -71,7 +71,6 @@ public class HealthRecordService {
         calendar.setTime(date);
         // Change the time zone of the Calendar object to UTC
         calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
-
         // The Calendar's time is now the same instant in UTC
         Date utcDate = calendar.getTime();
 
@@ -112,7 +111,8 @@ public class HealthRecordService {
         dto.setWeights(healthRecord.getWeights().stream()
                 .map(this::convertWeightToDTO)
                 .toList());
-
+        //nuevo
+        dto.setEvents(convertEventListToDTO(healthRecord.getEvents()));
         return dto;
     }
 
@@ -124,6 +124,39 @@ public class HealthRecordService {
         return dto;
     }
 
+    //nuevo
+    private List<EventDTO> convertEventListToDTO(List<Event> events) {
+        return events.stream()
+                .map(this::convertEventToDTO)
+                .collect(Collectors.toList());
+    }
+
+    private EventDTO convertEventToDTO(Event event) {
+        EventDTO dto = new EventDTO();
+        if (event instanceof Vomit) {
+            VomitDTO vomitDTO = new VomitDTO();
+            vomitDTO.setHasFood(((Vomit) event).isHasFood());
+            vomitDTO.setHasHairball(((Vomit) event).isHasHairball());
+            dto = vomitDTO;
+        } else if (event instanceof Fever) {
+            FeverDTO feverDTO = new FeverDTO();
+            feverDTO.setDegrees(((Fever) event).getDegrees());
+            dto = feverDTO;
+        } else if (event instanceof Medication) {
+            MedicationDTO medicationDTO = new MedicationDTO();
+            medicationDTO.setName(((Medication) event).getName());
+            medicationDTO.setDosageInMgPerDay(((Medication) event).getDosageInMgPerDay());
+            dto = medicationDTO;
+        } else {
+            dto = new EventDTO();
+        }
+        dto.setId(event.getId());
+        dto.setDate(event.getDate());
+        dto.setComment(event.getComment());
+
+        return dto;
+    }
+//hasta aqui
 
     public List<Weight> findWeightsBetweenDates(Long petId, Date startDate, Date endDate) {
         String currentUserName = getCurrentUserName();
