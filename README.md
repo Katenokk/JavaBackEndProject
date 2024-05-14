@@ -66,7 +66,7 @@ To manage our project tasks and backlog efficiently, I employed Kanban boards in
 
 The application follows a structured approach to handling HTTP requests using controllers and routes. Here's an overview of the controllers and their corresponding routes:
 
-The application provides endpoints for user authentication and registration:
+The application provides open endpoints for user authentication and registration:
 
 - Manages user login functionality.
   - Routes:
@@ -126,13 +126,22 @@ Owners can register their own accounts by providing basic information such as na
 
 Owners can update their account information by specifying their ID and providing updated data such as name or email.
 
+- **Endpoint GET:** `api/owners/{id}`
+  - **Parameters:** Owner object
+
 #### Delete Owner:
 
 Owners can delete their own accounts from the system by specifying their ID.
 
+- **Endpoint DELETE:** `api/owners/{id}`
+  - **Parameters:** Owner id
+
 #### See all veterinarians available:
 
 Owners can list all the veterinarians registered in the application so that they can choose one.
+
+- **Endpoint GET:** `api/veterinarians`
+  - **Parameters:** none
 
 #### Get list of Owner's Pets:
 
@@ -146,12 +155,14 @@ Owners can access data about their own pets.
 Owners can add pets to their own profile. They need to provide pet data without including the "owner" field; the logged-in user will be automatically assigned as the owner.
 
 - **Endpoint POST:** `api/pets`
-- 
+- **Parameters:** PetDTO object
+
 #### Find a Pet:
 
 Owners can find a pet by its id, they can only find their own pets.
 
 - **Endpoint POST:** `api/pets/{petId}`
+- **Parameters:** Pet id
 
 #### Update All Pet Details:
 
@@ -206,33 +217,58 @@ Owners can view the health record of an assigned pet. They need to select the pe
       "weightInKg": 3.5
     }
     ```
+- **Endpoint POST:** `health-records/weights/{petId}`
+  - **Parameters:** Pet ID, date, weight in kg
 
 - **Delete Weight from Pet's Health Record:**
   - Owners can delete a weight from the health record of an assigned pet. They need to provide the ID of the weight.
+  
+- **Endpoint DELETE:** `health-records/weights/{weightId}/{petId}`
+  - **Parameters:** Weight id, Pet ID
 
 - **Retrieve Weights of Pet Within a Time Period:**
   - Owners can query all weights of a pet within a specified time period. They need to provide the pet's ID, start date, and end date.
+  
+- **Endpoint GET:** `health-records/weights/{petId}`
+  - **Parameters:** Pet ID, start date, end date
 
 ### Events:
 
 - **Add Events to Pet's Health Record:**
   - Owners can add different events to the health record of an assigned pet.
 
-- **Get a Specific Health Event of Pet:**
-  - Owners can get a specific health event of an assigned pet using the GET method.
+- **Endpoint POST:** `health-records/events/{petId}`
+  - **Parameters:** Pet ID, EventDTO object
+  
+- **Get the Health Record of own Pet:**
+  - Owners can get the complete health record of an assigned pet using the GET method.
+
+- **Endpoint GET:** `health-records/{petId}`
+  - **Parameters:** Pet ID
 
 - **Get all Health Events of own Pet:**
   - Owners can get a list of health events of an assigned pet using the GET method.
-  
+
+- **Endpoint GET:** `health-records/events/{petId}`
+  - **Parameters:** Pet ID 
+ 
 - **Update Specific Health Event of Pet:**
   - Owners can update a specific health event of an assigned pet using the PUT method.
 
+- **Endpoint PUT:** `health-records/events/{petId}`
+  - **Parameters:** Pet ID, Event object
+  
 - **Modify Specific Health Event Data of Pet:**
   - Owners can change data of a specific health event of an assigned pet using the PATCH method.
+
+- **Endpoint PATCH:** `health-records/events/{petId}`
+  - **Parameters:** Pet ID, EventDTO object
 
 - **Delete Health Event of Pet:**
   - Owners can delete a health event from the health record of an assigned pet.
 
+- **Endpoint PATCH:** `health-records/events/{petId}`
+  - **Parameters:** Pet ID
 
 
 ### for Veterinarians:
@@ -241,6 +277,7 @@ Owners can view the health record of an assigned pet. They need to select the pe
   - A veterinarian can register a Veterinarian account in the application by providing basic information such as name and email.
   
 - **Manage own account**
+- Create, update and delete own account.
 
 - **Get List of Pets Assigned to them:**
   - Veterinarians can access data of the pets they have assigned.
@@ -261,7 +298,13 @@ Owners can view the health record of an assigned pet. They need to select the pe
 
 - **List all users**
 
+- **Endpoint GET:** api/users`
+  - **Parameters:** none
+
 - **Find user by username**
+
+- **Endpoint GET:** api/users/username`
+  - **Parameters:** username
 
 - **Add any user account**
 
@@ -270,7 +313,13 @@ Owners can view the health record of an assigned pet. They need to select the pe
   
 - **Find all pets**
 
+- **Endpoint GET:** `api/pets`
+  - **Parameters:** none
+
 - **Add roles to users**
+
+- **Endpoint POST:** `api/roles/addtouser`
+  - **Parameters:** RoleToUserDTO object
 
 ## Future Work
 
