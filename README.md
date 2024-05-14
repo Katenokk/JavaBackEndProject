@@ -217,19 +217,19 @@ Owners can view the health record of an assigned pet. They need to select the pe
       "weightInKg": 3.5
     }
     ```
-- **Endpoint POST:** `health-records/weights/{petId}`
+  - **Endpoint POST:** `health-records/weights/{petId}`
   - **Parameters:** Pet ID, date, weight in kg
 
 - **Delete Weight from Pet's Health Record:**
   - Owners can delete a weight from the health record of an assigned pet. They need to provide the ID of the weight.
   
-- **Endpoint DELETE:** `health-records/weights/{weightId}/{petId}`
+  - **Endpoint DELETE:** `health-records/weights/{weightId}/{petId}`
   - **Parameters:** Weight id, Pet ID
 
 - **Retrieve Weights of Pet Within a Time Period:**
   - Owners can query all weights of a pet within a specified time period. They need to provide the pet's ID, start date, and end date.
   
-- **Endpoint GET:** `health-records/weights/{petId}`
+  - **Endpoint GET:** `health-records/weights/{petId}`
   - **Parameters:** Pet ID, start date, end date
 
 ### Events:
@@ -237,37 +237,37 @@ Owners can view the health record of an assigned pet. They need to select the pe
 - **Add Events to Pet's Health Record:**
   - Owners can add different events to the health record of an assigned pet.
 
-- **Endpoint POST:** `health-records/events/{petId}`
+  - **Endpoint POST:** `health-records/events/{petId}`
   - **Parameters:** Pet ID, EventDTO object
   
 - **Get the Health Record of own Pet:**
   - Owners can get the complete health record of an assigned pet using the GET method.
 
-- **Endpoint GET:** `health-records/{petId}`
+  - **Endpoint GET:** `health-records/{petId}`
   - **Parameters:** Pet ID
 
 - **Get all Health Events of own Pet:**
   - Owners can get a list of health events of an assigned pet using the GET method.
 
-- **Endpoint GET:** `health-records/events/{petId}`
+  - **Endpoint GET:** `health-records/events/{petId}`
   - **Parameters:** Pet ID 
  
 - **Update Specific Health Event of Pet:**
   - Owners can update a specific health event of an assigned pet using the PUT method.
 
-- **Endpoint PUT:** `health-records/events/{petId}`
+  - **Endpoint PUT:** `health-records/events/{petId}`
   - **Parameters:** Pet ID, Event object
   
 - **Modify Specific Health Event Data of Pet:**
   - Owners can change data of a specific health event of an assigned pet using the PATCH method.
 
-- **Endpoint PATCH:** `health-records/events/{petId}`
+  - **Endpoint PATCH:** `health-records/events/{petId}`
   - **Parameters:** Pet ID, EventDTO object
 
 - **Delete Health Event of Pet:**
   - Owners can delete a health event from the health record of an assigned pet.
 
-- **Endpoint PATCH:** `health-records/events/{petId}`
+  - **Endpoint PATCH:** `health-records/events/{petId}`
   - **Parameters:** Pet ID
 
 
