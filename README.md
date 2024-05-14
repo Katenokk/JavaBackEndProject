@@ -298,12 +298,12 @@ Owners can view the health record of an assigned pet. They need to select the pe
 
 - **List all users**
 
-- **Endpoint GET:** api/users`
+- **Endpoint GET:** `api/users`
   - **Parameters:** none
 
 - **Find user by username**
 
-- **Endpoint GET:** api/users/username`
+- **Endpoint GET:** `api/users/username`
   - **Parameters:** username
 
 - **Add any user account**
